@@ -1,0 +1,33 @@
+{
+  "name": "@rebase-ui/monorepo",
+  "private": true,
+  "scripts": {
+    "fmt": "oxfmt",
+    "lint": "oxlint --type-aware --type-check",
+    "test": "pnpm test:chromium",
+    "test:browsers": "cross-env VITEST_ENV=all-browsers pnpm test:unit",
+    "test:chromium": "cross-env VITEST_ENV=chromium pnpm test:unit",
+    "test:firefox": "cross-env VITEST_ENV=firefox pnpm test:unit",
+    "test:unit": "vitest --project @rebase-ui/solid",
+    "test:webkit": "cross-env VITEST_ENV=webkit pnpm test:unit"
+  },
+  "devDependencies": {
+    "@rebase-ui/monorepo-tests": "workspace:*",
+    "@types/node": "^26.4.0",
+    "@vitest/browser-playwright": "^5.0.0-rc.4",
+    "cross-env": "^10.1.0",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0-rc.4"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.0.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.0.0"
+}

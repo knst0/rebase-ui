@@ -1,0 +1,132 @@
+{
+  "name": "@rebase-ui/solid",
+  "version": "0.1.0",
+  "description": "Headless, accessible UI primitives for Solid.js, ported from Base UI.",
+  "keywords": [
+    "accessible",
+    "base-ui",
+    "components",
+    "headless",
+    "solid",
+    "solid-js",
+    "ui"
+  ],
+  "license": "MIT",
+  "author": "Konstantin Kireyev <https://github.com/knst0>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knst0/rebase-ui.git",
+    "directory": "packages/solid"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#prehydration/slider/thumb": {
+      "browser": "./src/internals/prehydration-script/prehydrationScript.stub.ts",
+      "default": "./src/slider/thumb/prehydrationScript.min.ts"
+    },
+    "#prehydration/tabs/indicator": {
+      "browser": "./src/internals/prehydration-script/prehydrationScript.stub.ts",
+      "default": "./src/tabs/indicator/prehydrationScript.min.ts"
+    },
+    "#test-utils": "./test/index.ts",
+    "#utils": "./src/internals/utils/index.ts"
+  },
+  "exports": {
+    "./accordion": "./src/accordion/index.ts",
+    "./alert-dialog": "./src/alert-dialog/index.ts",
+    "./avatar": "./src/avatar/index.ts",
+    "./button": "./src/button/index.ts",
+    "./collapsible": "./src/collapsible/index.ts",
+    "./checkbox": "./src/checkbox/index.ts",
+    "./checkbox-group": "./src/checkbox-group/index.ts",
+    "./dialog": "./src/dialog/index.ts",
+    "./field": "./src/field/index.ts",
+    "./fieldset": "./src/fieldset/index.ts",
+    "./input": "./src/input/index.ts",
+    "./menu": "./src/menu/index.ts",
+    "./number-field": "./src/number-field/index.ts",
+    "./otp-field": "./src/otp-field/index.ts",
+    "./popover": "./src/popover/index.ts",
+    "./form": "./src/form/index.ts",
+    "./radio": "./src/radio/index.ts",
+    "./radio-group": "./src/radio-group/index.ts",
+    "./select": "./src/select/index.ts",
+    "./separator": "./src/separator/index.ts",
+    "./slider": "./src/slider/index.ts",
+    "./switch": "./src/switch/index.ts",
+    "./tabs": "./src/tabs/index.ts",
+    "./toggle": "./src/toggle/index.ts",
+    "./toggle-group": "./src/toggle-group/index.ts",
+    "./tooltip": "./src/tooltip/index.ts"
+  },
+  "publishConfig": {
+    "imports": {
+      "#prehydration/slider/thumb": {
+        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.ts",
+        "default": "./dist/slider/thumb/prehydrationScript.min.ts"
+      },
+      "#prehydration/tabs/indicator": {
+        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.ts",
+        "default": "./dist/tabs/indicator/prehydrationScript.min.ts"
+      }
+    },
+    "exports": {
+      "./accordion": "./dist/accordion/index.js",
+      "./alert-dialog": "./dist/alert-dialog/index.js",
+      "./avatar": "./dist/avatar/index.js",
+      "./button": "./dist/button/index.js",
+      "./collapsible": "./dist/collapsible/index.js",
+      "./checkbox": "./dist/checkbox/index.js",
+      "./checkbox-group": "./dist/checkbox-group/index.js",
+      "./dialog": "./dist/dialog/index.js",
+      "./field": "./dist/field/index.js",
+      "./fieldset": "./dist/fieldset/index.js",
+      "./input": "./dist/input/index.js",
+      "./menu": "./dist/menu/index.js",
+      "./number-field": "./dist/number-field/index.js",
+      "./otp-field": "./dist/otp-field/index.js",
+      "./popover": "./dist/popover/index.js",
+      "./form": "./dist/form/index.js",
+      "./radio": "./dist/radio/index.js",
+      "./radio-group": "./dist/radio-group/index.js",
+      "./select": "./dist/select/index.js",
+      "./separator": "./dist/separator/index.js",
+      "./slider": "./dist/slider/index.js",
+      "./switch": "./dist/switch/index.js",
+      "./tabs": "./dist/tabs/index.js",
+      "./toggle": "./dist/toggle/index.js",
+      "./toggle-group": "./dist/toggle-group/index.js",
+      "./tooltip": "./dist/tooltip/index.js"
+    },
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "inline-scripts": "node ./scripts/inline-scripts.mjs",
+    "prepack": "tsdown"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "@floating-ui/utils": "^0.2.12"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^1.0.0-beta.2",
+    "@solidjs/vite-plugin": "3.0.0-next.36",
+    "@solidjs/web": "^2.0.0-rc.4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/user-event": "^14.6.6",
+    "jsdom": "^30.0.1",
+    "oxc-minify": "^0.147.0",
+    "solid-js": "^2.0.0-rc.4",
+    "tsdown": "^0.22.14"
+  },
+  "peerDependencies": {
+    "@solidjs/web": ">=2.0.0-rc.0 || >=2",
+    "solid-js": ">=2.0.0-rc.0 || >=2"
+  }
+}

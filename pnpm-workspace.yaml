@@ -1,0 +1,6 @@
+packages:
+  - docs
+  - packages/*
+  - test
+  - test/*
+minimumReleaseAge: 0

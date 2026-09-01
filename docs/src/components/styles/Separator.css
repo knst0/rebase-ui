@@ -1,0 +1,13 @@
+@layer components {
+  .r-separator {
+    background-color: var(--color-border);
+
+    &[data-orientation="horizontal"] {
+      height: 1px;
+    }
+
+    &[data-orientation="vertical"] {
+      width: 1px;
+    }
+  }
+}
