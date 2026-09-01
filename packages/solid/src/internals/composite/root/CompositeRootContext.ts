@@ -10,6 +10,14 @@ export interface CompositeRootContext {
   highlightItemOnHover: Accessor<boolean>;
   elements: Accessor<HTMLElement[]>;
   metadataMap: Accessor<Map<HTMLElement, CompositeItemMetadata>>;
+  /** Document-order position of a registered element, or `-1`. Reactive and O(1). */
+  indexOf: (element: HTMLElement | null) => number;
+  /**
+   * Reserves the static `tabIndex` an item renders with, before any element exists.
+   * Returns `0` for the item whose render position matches the highlighted index so
+   * server-rendered and pre-effect markup still exposes exactly one tab stop.
+   */
+  claimInitialTabIndex: () => number;
   registerItem: (element: HTMLElement, metadata?: CompositeItemMetadata) => void;
   unregisterItem: (element: HTMLElement) => void;
   /**

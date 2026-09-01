@@ -34,7 +34,7 @@ export function useCompositeListItem<Metadata>(parameters: UseCompositeListItemP
     }
   });
 
-  const index = () => (itemElement === null ? -1 : (context.map().get(itemElement)?.index ?? -1));
+  const index = () => context.indexOf(itemElement);
 
   return { ref, index };
 }

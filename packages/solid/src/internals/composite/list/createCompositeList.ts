@@ -1,6 +1,6 @@
-import { type Accessor, createMemo, createSignal } from "solid-js";
+import { type Accessor, createMemo } from "solid-js";
 
-import { sortByDocumentPosition } from "../composite";
+import { createElementRegistry } from "../registry/createElementRegistry";
 import type { CompositeListContext, CompositeMetadata } from "./CompositeListContext";
 
 export interface CreateCompositeListReturnValue<Metadata> {
@@ -15,38 +15,26 @@ export interface CreateCompositeListReturnValue<Metadata> {
  * a roving tab stop.
  */
 export function createCompositeList<Metadata>(): CreateCompositeListReturnValue<Metadata> {
-  const [elements, setElements] = createSignal<HTMLElement[]>([]);
-  const [metadataMap, setMetadataMap] = createSignal(new Map<HTMLElement, Accessor<Metadata | undefined>>());
-
-  const register = (element: HTMLElement, metadata: Accessor<Metadata | undefined>) => {
-    setMetadataMap((previous) => new Map(previous).set(element, metadata));
-    setElements((previous) => sortByDocumentPosition(previous, element));
-  };
-
-  const unregister = (element: HTMLElement) => {
-    setMetadataMap((previous) => {
-      if (!previous.has(element)) {
-        return previous;
-      }
-      const next = new Map(previous);
-      next.delete(element);
-      return next;
-    });
-    setElements((previous) => previous.filter((current) => current !== element));
-  };
+  const registry = createElementRegistry<Metadata>();
 
   const map = createMemo(() => {
-    const items = elements();
-    const metadata = metadataMap();
+    const items = registry.elements();
     const next = new Map<HTMLElement, CompositeMetadata<Metadata>>();
 
     for (let index = 0; index < items.length; index += 1) {
       const element = items[index];
-      next.set(element, { ...(metadata.get(element)?.() ?? ({} as Metadata)), index });
+      next.set(element, { ...(registry.metadataOf(element) ?? ({} as Metadata)), index });
     }
 
     return next;
   });
 
-  return { contextValue: { register, unregister, map }, elements, map };
+  const contextValue: CompositeListContext<Metadata> = {
+    register: registry.register,
+    unregister: registry.unregister,
+    indexOf: registry.indexOf,
+    map,
+  };
+
+  return { contextValue, elements: registry.elements, map };
 }

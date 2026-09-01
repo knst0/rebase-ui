@@ -4,6 +4,7 @@ import { untrack } from "solid-js";
 import { RenderElement, type RenderElementProps } from "../../render-element";
 import type { StateAttributesMapping } from "../../stateToAttributes";
 import type { CompositeOrientation, DisabledIndices, ModifierKey, TextDirection } from "../composite";
+import type { CompositeScrollBehavior } from "../scroll/scrollBehavior";
 import { CompositeRootContext, type CompositeItemMetadata } from "./CompositeRootContext";
 import type { CompositeGridNavigator } from "./gridNavigation";
 import { type CompositeOnLoop, useCompositeRoot } from "./useCompositeRoot";
@@ -27,6 +28,7 @@ export function CompositeRoot<T extends ValidComponent = "div", State extends Re
     disabledIndices: () => props.disabledIndices,
     modifierKeys: () => props.modifierKeys,
     onMapChange: (map) => props.onMapChange?.(map),
+    scrollBehavior: untrack(() => props.scrollBehavior),
   });
 
   const ref = (element: HTMLElement | null) => {
@@ -95,6 +97,11 @@ export interface CompositeRootProps<T extends ValidComponent = "div", State exte
   disabledIndices?: DisabledIndices | undefined;
   modifierKeys?: readonly ModifierKey[] | undefined;
   onMapChange?: ((map: Map<HTMLElement, CompositeItemMetadata>) => void) | undefined;
+  /**
+   * How the highlighted item is scrolled into view.
+   * @default nearestScrollBehavior
+   */
+  scrollBehavior?: CompositeScrollBehavior | undefined;
 }
 
 export namespace CompositeRoot {

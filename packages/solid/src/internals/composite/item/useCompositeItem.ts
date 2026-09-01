@@ -23,7 +23,9 @@ export function useCompositeItem(parameters: UseCompositeItemParameters = {}): U
 
   let itemElement: HTMLElement | null = null;
 
-  const index = () => (itemElement === null ? -1 : context.elements().indexOf(itemElement));
+  const initialTabIndex = context.claimInitialTabIndex();
+
+  const index = () => context.indexOf(itemElement);
 
   const compositeRef = (element: HTMLElement | null) => {
     itemElement = element;
@@ -41,13 +43,7 @@ export function useCompositeItem(parameters: UseCompositeItemParameters = {}): U
 
   const getCompositeProps = (externalProps: Record<string, any> = {}): Record<string, any> =>
     overrideProps(externalProps, {
-      get tabIndex() {
-        const currentIndex = index();
-        if (currentIndex === -1) {
-          return externalProps.tabIndex;
-        }
-        return currentIndex === context.highlightedIndex() ? 0 : -1;
-      },
+      tabIndex: initialTabIndex,
 
       onFocus(event: FocusEvent) {
         externalProps.onFocus?.(event);

@@ -1,32 +1,25 @@
-import { createEffect, createSignal, flush, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, flush, untrack } from "solid-js";
 
 import {
-  ARROW_DOWN,
-  ARROW_LEFT,
-  ARROW_RIGHT,
-  ARROW_UP,
   type CompositeElements,
   type CompositeOrientation,
   COMPOSITE_KEYS,
   type DisabledIndices,
-  END,
-  findNonDisabledListIndex,
-  getMaxListIndex,
   getMinListIndex,
-  HOME,
   isElementDisabled,
   isIndexOutOfListBounds,
   isListIndexDisabled,
   isModifierKeySet,
   isNativeInput,
   type ModifierKey,
-  scrollIntoViewIfNeeded,
-  sortByDocumentPosition,
   type TextDirection,
 } from "../composite";
 import { ACTIVE_COMPOSITE_ITEM } from "../constants";
+import { createElementRegistry } from "../registry/createElementRegistry";
+import { type CompositeScrollBehavior, nearestScrollBehavior } from "../scroll/scrollBehavior";
 import type { CompositeItemMetadata, CompositeRootContext } from "./CompositeRootContext";
 import type { CompositeGridNavigator } from "./gridNavigation";
+import { getNavigationIntent, resolveNextIndex } from "./navigation";
 
 const EMPTY_MODIFIER_KEYS: readonly ModifierKey[] = [];
 
@@ -91,6 +84,12 @@ export interface UseCompositeRootParameters {
    * Defaults to the composite root element.
    */
   rootRef?: ((element: HTMLElement | null) => void) | undefined;
+  /**
+   * How the highlighted item is scrolled into view. Defaults to the browser's
+   * native `scrollIntoView({ block: 'nearest' })`. Pass `preciseScrollBehavior`
+   * to opt into manual `scroll-margin`/`scroll-padding` handling.
+   */
+  scrollBehavior?: CompositeScrollBehavior | undefined;
 }
 
 export interface UseCompositeRootReturnValue {
@@ -113,43 +112,62 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
   const disabledIndices = () => parameters.disabledIndices?.();
   const modifierKeys = () => resolveValueOrAccessor(parameters.modifierKeys) ?? EMPTY_MODIFIER_KEYS;
 
-  const [elements, setElements] = createSignal<HTMLElement[]>([]);
-  const [metadataMap, setMetadataMap] = createSignal(new Map<HTMLElement, CompositeItemMetadata>());
+  const registry = createElementRegistry<CompositeItemMetadata>();
+  const elements = registry.elements;
+
   const [internalHighlightedIndex, setInternalHighlightedIndex] = createSignal(0);
 
   const highlightedIndex = () => resolveValueOrAccessor(parameters.highlightedIndex) ?? internalHighlightedIndex();
 
   let rootElement: HTMLElement | null = null;
 
+  const scrollHighlightedIntoView = (element: HTMLElement | null) => {
+    (parameters.scrollBehavior ?? nearestScrollBehavior)({
+      container: rootElement,
+      element,
+      direction: untrack(direction),
+      orientation: untrack(orientation),
+    });
+  };
+
   const setHighlightedIndex = (index: number, shouldScrollIntoView = false) => {
     setInternalHighlightedIndex(index);
     parameters.onHighlightedIndexChange?.(index);
 
     if (shouldScrollIntoView) {
-      scrollIntoViewIfNeeded(rootElement, untrack(elements)[index] ?? null, direction(), orientation());
+      scrollHighlightedIntoView(untrack(elements)[index] ?? null);
     }
   };
 
   const registerItem = (element: HTMLElement, metadata?: CompositeItemMetadata) => {
-    setMetadataMap((previous) => {
-      const next = new Map(previous);
-      next.set(element, metadata ?? {});
-      return next;
-    });
-    setElements((previous) => sortByDocumentPosition(previous, element));
+    registry.register(element, metadata ?? {});
   };
 
-  const unregisterItem = (element: HTMLElement) => {
-    setMetadataMap((previous) => {
-      if (!previous.has(element)) {
-        return previous;
+  const metadataMap = createMemo(() => {
+    const items = elements();
+    const next = new Map<HTMLElement, CompositeItemMetadata>();
+    for (const item of items) {
+      next.set(item, registry.metadataOf(item) ?? {});
+    }
+    return next;
+  });
+
+  let claimedTabStops = 0;
+  const claimInitialTabIndex = () => (claimedTabStops++ === untrack(highlightedIndex) ? 0 : -1);
+
+  let tabStopElement: HTMLElement | null = null;
+
+  createEffect(
+    () => elements()[highlightedIndex()] ?? null,
+    (element) => {
+      if (tabStopElement === element) {
+        return;
       }
-      const next = new Map(previous);
-      next.delete(element);
-      return next;
-    });
-    setElements((previous) => previous.filter((current) => current !== element));
-  };
+      tabStopElement?.setAttribute("tabindex", "-1");
+      element?.setAttribute("tabindex", "0");
+      tabStopElement = element;
+    },
+  );
 
   let hasSetDefaultIndex = false;
 
@@ -160,11 +178,7 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
         return;
       }
 
-      const sortedMap = new Map<HTMLElement, CompositeItemMetadata>();
-      for (const item of items) {
-        sortedMap.set(item, map.get(item) ?? {});
-      }
-      parameters.onMapChange?.(sortedMap);
+      parameters.onMapChange?.(map);
 
       const indices = untrack(disabledIndices);
       const currentIndex = untrack(highlightedIndex);
@@ -173,28 +187,21 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
         hasSetDefaultIndex = true;
 
         const activeItem = items.find((item) => item.hasAttribute(ACTIVE_COMPOSITE_ITEM)) ?? null;
-        const activeIndex = activeItem ? items.indexOf(activeItem) : -1;
+        const activeIndex = activeItem ? registry.indexOf(activeItem) : -1;
 
         if (activeIndex !== -1) {
           setHighlightedIndex(activeIndex);
         } else if (isListIndexDisabled(items, currentIndex, indices)) {
-          // The default highlighted item is disabled, so it should not hold the single
-          // roving tab stop: a natively disabled element is removed from the tab order,
-          // and an aria-disabled one should not be the entry point. Move the tab stop to
-          // the first enabled item. If every item is disabled, keep the current index.
           const firstEnabledIndex = getMinListIndex(items, indices);
           if (!isIndexOutOfListBounds(items, firstEnabledIndex)) {
             setHighlightedIndex(firstEnabledIndex);
           }
         }
 
-        scrollIntoViewIfNeeded(rootElement, activeItem, direction(), orientation());
+        scrollHighlightedIntoView(activeItem);
         return;
       }
 
-      // `disabledIndices` can resolve after the initial registration, so the current tab
-      // stop may now point at a disabled item, leaving the composite without a reachable
-      // tab stop. Re-validate and move it to the first enabled item.
       if (indices == null || resolveValueOrAccessor(parameters.highlightedIndex) != null) {
         return;
       }
@@ -221,9 +228,12 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
-    const isHomeOrEnd = event.key === HOME || event.key === END;
+    const currentOrientation = orientation();
+    const currentDirection = direction();
+    const homeAndEndEnabled = enableHomeAndEndKeys();
+    const intent = getNavigationIntent(event, currentOrientation, currentDirection);
 
-    if (!COMPOSITE_KEYS.has(event.key) || (!enableHomeAndEndKeys() && isHomeOrEnd)) {
+    if (!COMPOSITE_KEYS.has(event.key) || (!homeAndEndEnabled && intent.isHomeOrEndKey)) {
       return;
     }
 
@@ -236,90 +246,24 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
       return;
     }
 
-    const isRtl = direction() === "rtl";
-    const currentOrientation = orientation();
-    const indices = disabledIndices();
-
-    const horizontalForwardKey = isRtl ? ARROW_LEFT : ARROW_RIGHT;
-    const horizontalBackwardKey = isRtl ? ARROW_RIGHT : ARROW_LEFT;
-    const forwardKey = currentOrientation === "vertical" ? ARROW_DOWN : horizontalForwardKey;
-    const backwardKey = currentOrientation === "vertical" ? ARROW_UP : horizontalBackwardKey;
-
-    const target = event.target;
-    if (target != null && isNativeInput(target) && !isElementDisabled(target)) {
-      const selectionStart = target.selectionStart;
-      const selectionEnd = target.selectionEnd;
-      const textContent = target.value;
-
-      // Return to native textbox behavior when
-      // 1 - Shift is held to make a text selection, or if there already is a text selection
-      if (selectionStart == null || event.shiftKey || selectionStart !== selectionEnd) {
-        return;
-      }
-      // 2 - arrow-ing forward and not in the last position of the text
-      if (event.key !== backwardKey && selectionStart < textContent.length) {
-        return;
-      }
-      // 3 - arrow-ing backward and not in the first position of the text
-      if (event.key !== forwardKey && selectionStart > 0) {
-        return;
-      }
+    if (shouldDeferToNativeInput(event, intent.forwardKey, intent.backwardKey)) {
+      return;
     }
 
-    const currentIndex = highlightedIndex();
-    const minIndex = getMinListIndex(items, indices);
-    const maxIndex = getMaxListIndex(items, indices);
+    const resolution = resolveNextIndex({
+      direction: currentDirection,
+      disabledIndices: disabledIndices(),
+      elements: items,
+      enableHomeAndEndKeys: homeAndEndEnabled,
+      event,
+      grid: grid(),
+      highlightedIndex: highlightedIndex(),
+      loopFocus: loopFocus(),
+      onLoop,
+      orientation: currentOrientation,
+    });
 
-    let nextIndex = currentIndex;
-
-    const gridNavigator = grid();
-    const isGrid = gridNavigator != null;
-
-    if (gridNavigator != null) {
-      nextIndex = gridNavigator({
-        disabledIndices: indices,
-        elements: items,
-        event,
-        highlightedIndex: currentIndex,
-        loopFocus: loopFocus(),
-        maxIndex,
-        minIndex,
-        onLoop,
-        orientation: currentOrientation,
-        rtl: isRtl,
-      });
-    }
-
-    const isForwardKey =
-      (currentOrientation !== "vertical" && event.key === horizontalForwardKey) ||
-      (currentOrientation !== "horizontal" && event.key === ARROW_DOWN);
-    const isBackwardKey =
-      (currentOrientation !== "vertical" && event.key === horizontalBackwardKey) ||
-      (currentOrientation !== "horizontal" && event.key === ARROW_UP);
-
-    if (enableHomeAndEndKeys()) {
-      if (event.key === HOME) {
-        nextIndex = minIndex;
-      } else if (event.key === END) {
-        nextIndex = maxIndex;
-      }
-    }
-
-    if (nextIndex === currentIndex && (isForwardKey || isBackwardKey)) {
-      if (loopFocus() && nextIndex === maxIndex && isForwardKey) {
-        nextIndex = onLoop(event, currentIndex, minIndex);
-      } else if (loopFocus() && nextIndex === minIndex && isBackwardKey) {
-        nextIndex = onLoop(event, currentIndex, maxIndex);
-      } else {
-        nextIndex = findNonDisabledListIndex(items, {
-          startingIndex: nextIndex,
-          decrement: isBackwardKey,
-          disabledIndices: indices,
-        });
-      }
-    }
-
-    if (nextIndex === currentIndex || isIndexOutOfListBounds(items, nextIndex)) {
+    if (!resolution.handled) {
       return;
     }
 
@@ -327,14 +271,14 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
       event.stopPropagation();
     }
 
-    if (isGrid || isHomeOrEnd || isForwardKey || isBackwardKey) {
+    if (resolution.shouldPreventDefault) {
       event.preventDefault();
     }
 
-    setHighlightedIndex(nextIndex, true);
+    setHighlightedIndex(resolution.nextIndex, true);
     flush();
 
-    items[nextIndex]?.focus();
+    items[resolution.nextIndex]?.focus();
   };
 
   const onFocus = (event: FocusEvent) => {
@@ -374,12 +318,39 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
     highlightItemOnHover,
     elements,
     metadataMap,
+    indexOf: registry.indexOf,
+    claimInitialTabIndex,
     registerItem,
-    unregisterItem,
+    unregisterItem: registry.unregister,
     relayKeyboardEvent: onKeyDown,
   };
 
   return { contextValue, getRootProps, rootRef, elements, highlightedIndex, setHighlightedIndex };
+}
+
+/** Returns `true` when the key should fall through to native textbox behavior. */
+function shouldDeferToNativeInput(event: KeyboardEvent, forwardKey: string, backwardKey: string): boolean {
+  const target = event.target;
+  if (target == null || !isNativeInput(target) || isElementDisabled(target)) {
+    return false;
+  }
+
+  const selectionStart = target.selectionStart;
+  const selectionEnd = target.selectionEnd;
+
+  if (selectionStart == null || event.shiftKey || selectionStart !== selectionEnd) {
+    return true;
+  }
+
+  if (event.key !== backwardKey && selectionStart < target.value.length) {
+    return true;
+  }
+
+  if (event.key !== forwardKey && selectionStart > 0) {
+    return true;
+  }
+
+  return false;
 }
 
 function resolveValueOrAccessor<T>(value: ValueOrAccessor<T> | undefined): T | undefined {
