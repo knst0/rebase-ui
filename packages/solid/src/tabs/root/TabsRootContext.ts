@@ -32,10 +32,15 @@ export interface TabsRootContext {
    */
   getTabIdByPanelValue: (panelValue: TabsTab.Value) => string | undefined;
   /**
-   * Gets the `id` attribute of the TabPanel that corresponds to the given Tab value.
+   * Derives the `id` attribute of the TabPanel with the given value, whether or not it is mounted.
+   */
+  getTabPanelId: (tabValue: TabsTab.Value) => string;
+  /**
+   * Gets the `id` attribute of the TabPanel that corresponds to the given Tab value,
+   * or `undefined` when no panel with that value is currently mounted.
    */
   getTabPanelIdByValue: (tabValue: TabsTab.Value) => string | undefined;
-  registerMountedTabPanel: (panelValue: TabsTab.Value, panelId: string) => () => void;
+  registerMountedTabPanel: (panelValue: TabsTab.Value) => () => void;
   registerTabPanelElement: (element: HTMLElement) => () => void;
   getTabPanelIndex: (element: HTMLElement | null) => number;
   setTabMap: (map: Map<HTMLElement, CompositeItemMetadata>) => void;

@@ -1,5 +1,6 @@
 import { onCleanup } from "solid-js";
 
+import { overrideProps } from "../../overrideProps";
 import { isElementDisabled } from "../composite";
 import { type CompositeItemMetadata, useCompositeRootContext } from "../root/CompositeRootContext";
 
@@ -38,51 +39,37 @@ export function useCompositeItem(parameters: UseCompositeItemParameters = {}): U
     }
   });
 
-  const getCompositeProps = (externalProps: Record<string, any> = {}): Record<string, any> => {
-    const props: Record<string, any> = {};
-
-    for (const key in externalProps) {
-      if (key === "onFocus" || key === "onMouseMove" || key === "tabIndex") {
-        continue;
-      }
-      Object.defineProperty(props, key, { enumerable: true, configurable: true, get: () => externalProps[key] });
-    }
-
-    Object.defineProperty(props, "tabIndex", {
-      enumerable: true,
-      configurable: true,
-      get: () => {
+  const getCompositeProps = (externalProps: Record<string, any> = {}): Record<string, any> =>
+    overrideProps(externalProps, {
+      get tabIndex() {
         const currentIndex = index();
         if (currentIndex === -1) {
           return externalProps.tabIndex;
         }
         return currentIndex === context.highlightedIndex() ? 0 : -1;
       },
+
+      onFocus(event: FocusEvent) {
+        externalProps.onFocus?.(event);
+
+        const currentIndex = index();
+        if (currentIndex !== -1) {
+          context.setHighlightedIndex(currentIndex);
+        }
+      },
+
+      onMouseMove(event: MouseEvent) {
+        externalProps.onMouseMove?.(event);
+
+        if (!context.highlightItemOnHover() || itemElement === null) {
+          return;
+        }
+
+        if (index() !== context.highlightedIndex() && !isElementDisabled(itemElement)) {
+          itemElement.focus();
+        }
+      },
     });
-
-    props.onFocus = (event: FocusEvent) => {
-      externalProps.onFocus?.(event);
-
-      const currentIndex = index();
-      if (currentIndex !== -1) {
-        context.setHighlightedIndex(currentIndex);
-      }
-    };
-
-    props.onMouseMove = (event: MouseEvent) => {
-      externalProps.onMouseMove?.(event);
-
-      if (!context.highlightItemOnHover() || itemElement === null) {
-        return;
-      }
-
-      if (index() !== context.highlightedIndex() && !isElementDisabled(itemElement)) {
-        itemElement.focus();
-      }
-    };
-
-    return props;
-  };
 
   return { getCompositeProps, compositeRef, index };
 }

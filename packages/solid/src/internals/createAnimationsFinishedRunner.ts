@@ -7,6 +7,7 @@ export type AnimationsFinishedRunner = (fnToExecute: () => void, signal?: AbortS
 /**
  * Executes a function once all animations have finished on the provided element.
  * If an animation is canceled, waits for any replacement animations before executing.
+ * Only one pending run is kept at a time: a new call cancels the previous one.
  * @param element - accessor for the element to watch for animations.
  * @param waitForStartingStyleRemoved - accessor for whether to wait for `[data-starting-style]`
  * to be removed before checking for animations.
@@ -15,29 +16,17 @@ export function createAnimationsFinishedRunner(
   element: Accessor<HTMLElement | null | undefined>,
   waitForStartingStyleRemoved: () => boolean = () => false,
 ): AnimationsFinishedRunner {
-  let frame: number | undefined;
-  let observer: MutationObserver | undefined;
+  let cancelPending: (() => void) | undefined;
 
-  const cancelFrame = () => {
-    if (frame !== undefined) {
-      cancelAnimationFrame(frame);
-      frame = undefined;
-    }
+  const cancel = () => {
+    cancelPending?.();
+    cancelPending = undefined;
   };
 
-  const disconnect = () => {
-    observer?.disconnect();
-    observer = undefined;
-  };
-
-  onCleanup(() => {
-    cancelFrame();
-    disconnect();
-  });
+  onCleanup(cancel);
 
   return (fnToExecute, signal = null) => {
-    cancelFrame();
-    disconnect();
+    cancel();
 
     const resolvedElement = untrack(element);
     if (resolvedElement == null) {
@@ -49,7 +38,19 @@ export function createAnimationsFinishedRunner(
       return;
     }
 
+    const scheduleExec = () => {
+      const frame = requestAnimationFrame(() => {
+        cancelPending = undefined;
+        exec();
+      });
+      cancelPending = () => cancelAnimationFrame(frame);
+    };
+
     const exec = () => {
+      if (signal?.aborted) {
+        return;
+      }
+
       Promise.all(resolvedElement.getAnimations().map((animation) => animation.finished)).then(
         () => {
           if (!signal?.aborted) {
@@ -75,16 +76,13 @@ export function createAnimationsFinishedRunner(
 
     if (untrack(waitForStartingStyleRemoved)) {
       if (!resolvedElement.hasAttribute(TransitionStatusDataAttributes.startingStyle)) {
-        frame = requestAnimationFrame(() => {
-          frame = undefined;
-          exec();
-        });
+        scheduleExec();
         return;
       }
 
-      observer = new MutationObserver(() => {
+      const observer = new MutationObserver(() => {
         if (!resolvedElement.hasAttribute(TransitionStatusDataAttributes.startingStyle)) {
-          disconnect();
+          cancel();
           exec();
         }
       });
@@ -94,13 +92,16 @@ export function createAnimationsFinishedRunner(
         attributeFilter: [TransitionStatusDataAttributes.startingStyle],
       });
 
-      signal?.addEventListener("abort", disconnect, { once: true });
+      const abortHandler = () => cancel();
+      signal?.addEventListener("abort", abortHandler, { once: true });
+
+      cancelPending = () => {
+        observer.disconnect();
+        signal?.removeEventListener("abort", abortHandler);
+      };
       return;
     }
 
-    frame = requestAnimationFrame(() => {
-      frame = undefined;
-      exec();
-    });
+    scheduleExec();
   };
 }

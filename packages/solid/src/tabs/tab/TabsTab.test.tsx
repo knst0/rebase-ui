@@ -9,6 +9,16 @@ import { describeConformance } from "#test-utils";
 import * as Tabs from "../index.parts";
 import * as TabsTabDataAttributes from "./TabsTabDataAttributes";
 
+const nextFrames = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        flush();
+        resolve();
+      });
+    });
+  });
+
 describe("<Tabs.Tab />", () => {
   function renderInTabs(tab: (props: Record<string, any>) => any, props: Record<string, any>) {
     return (
@@ -155,6 +165,81 @@ describe("<Tabs.Tab />", () => {
 
     expect(tab).toHaveAttribute("aria-controls", panel.id);
     expect(panel).toHaveAttribute("aria-labelledby", tab.id);
+  });
+
+  it("drops `aria-controls` while the matching panel is unmounted", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <Tabs.Root defaultValue="one">
+        <Tabs.List>
+          <Tabs.Tab value="one">One</Tabs.Tab>
+          <Tabs.Tab value="two">Two</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="one">Panel one</Tabs.Panel>
+        <Tabs.Panel value="two">Panel two</Tabs.Panel>
+      </Tabs.Root>
+    ));
+
+    const [tab1, tab2] = screen.getAllByRole("tab");
+
+    expect(tab1).toHaveAttribute("aria-controls");
+    expect(tab2).not.toHaveAttribute("aria-controls");
+
+    await user.click(tab2);
+    await nextFrames();
+
+    expect(tab1).not.toHaveAttribute("aria-controls");
+    expect(tab2).toHaveAttribute("aria-controls", screen.getByRole("tabpanel").id);
+  });
+
+  it("keeps `aria-controls` pointing at a kept-mounted panel", () => {
+    render(() => (
+      <Tabs.Root defaultValue="one">
+        <Tabs.List>
+          <Tabs.Tab value="two">Two</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="two" keepMounted>
+          Panel two
+        </Tabs.Panel>
+      </Tabs.Root>
+    ));
+
+    const panel = screen.getByRole("tabpanel", { hidden: true });
+    expect(screen.getByRole("tab")).toHaveAttribute("aria-controls", panel.id);
+  });
+
+  it("derives distinct panel ids per root and per value", () => {
+    render(() => (
+      <>
+        <Tabs.Root defaultValue="one">
+          <Tabs.List>
+            <Tabs.Tab value="one">One</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel value="one" keepMounted>
+            A
+          </Tabs.Panel>
+          <Tabs.Panel value="needs escaping/1" keepMounted>
+            B
+          </Tabs.Panel>
+        </Tabs.Root>
+        <Tabs.Root defaultValue="one">
+          <Tabs.List>
+            <Tabs.Tab value="one">One</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel value="one" keepMounted>
+            C
+          </Tabs.Panel>
+        </Tabs.Root>
+      </>
+    ));
+
+    const ids = screen.getAllByRole("tabpanel", { hidden: true }).map((panel) => panel.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) {
+      expect(id).toMatch(/^[A-Za-z0-9_:.-]+$/);
+      expect(document.querySelectorAll(`#${CSS.escape(id)}`)).toHaveLength(1);
+    }
   });
 
   it("honors an explicit `id`", () => {

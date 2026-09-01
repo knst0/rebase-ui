@@ -1,20 +1,16 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createEffect, createMemo, createRenderEffect, createSignal, untrack } from "solid-js";
+import { type Accessor, createEffect, createMemo, createRenderEffect, createSignal, createUniqueId, untrack } from "solid-js";
 
-import { type CompositeItemMetadata, sortByDocumentPosition } from "../../internals/composite";
+import { type CompositeItemMetadata, sortByDocumentPosition, type TextDirection } from "../../internals/composite";
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { Orientation as BaseOrientation, RebaseUIComponentProps } from "../../internals/types";
-import { TabsTab, type TabsTabActivationDirection, type TabsTabMetadata, type TabsTabValue } from "../tab/TabsTab";
+import type { TabsTab, TabsTabActivationDirection, TabsTabMetadata, TabsTabValue } from "../tab/TabsTab";
 import { tabsStateAttributesMapping } from "./stateAttributesMapping";
 import { TabsRootContext } from "./TabsRootContext";
-
-interface ActivationDirectionState {
-  previousValue: TabsTabValue;
-  tabActivationDirection: TabsTabActivationDirection;
-}
+import { tabsValueKey } from "./tabsValueKey";
 
 export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props<T>) {
   const [local, elementProps] = split(props as TabsRoot.Props, { default: defaultProps }, [
@@ -30,9 +26,34 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
   const hasExplicitDefaultValue = untrack(() => (props as TabsRoot.Props).defaultValue !== undefined);
   const initialDefaultValue = untrack(() => local.defaultValue);
 
+  const rootId = createUniqueId();
+
   const [tabMap, setTabMap] = createSignal(new Map<HTMLElement, CompositeItemMetadata>());
-  const [mountedTabPanels, setMountedTabPanels] = createSignal(new Map<TabsTabValue, string>());
   const [panelElements, setPanelElements] = createSignal<HTMLElement[]>([]);
+
+  const registry = createMemo<TabRegistry>(() => {
+    const map = tabMap();
+    const byValue = new Map<TabsTabValue, TabEntry>();
+
+    let firstElement: HTMLElement | undefined;
+    let index = 0;
+
+    for (const [element, rawMetadata] of map) {
+      const metadata = rawMetadata as TabsTabMetadata;
+
+      if (index === 0) {
+        firstElement = element;
+      }
+
+      if (!byValue.has(metadata.value)) {
+        byValue.set(metadata.value, { element, metadata, index });
+      }
+
+      index += 1;
+    }
+
+    return { byValue, size: map.size, firstElement, textDirection: undefined };
+  });
 
   const [value, setValue] = createControllableSignal<TabsTabValue>({
     value: () => local.value,
@@ -42,7 +63,8 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
 
   const isControlled = () => local.value !== undefined;
 
-  const getTabElementBySelectedValue = (selectedValue: TabsTabValue): HTMLElement | null => findTabElement(tabMap(), selectedValue);
+  const getTabElementBySelectedValue = (selectedValue: TabsTabValue): HTMLElement | null =>
+    registry().byValue.get(selectedValue)?.element ?? null;
 
   const [activationDirectionState, setActivationDirectionState] = createSignal<ActivationDirectionState>({
     previousValue: untrack(value),
@@ -57,9 +79,9 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
       return { direction: committed.tabActivationDirection, nextPreviousValue: currentValue };
     }
 
-    const map = tabMap();
-    const direction = computeActivationDirection(committed.previousValue, currentValue, local.orientation, map);
-    const incomplete = committed.previousValue != null && currentValue != null && findTabElement(map, currentValue) == null;
+    const current = registry();
+    const direction = computeActivationDirection(committed.previousValue, currentValue, local.orientation, current);
+    const incomplete = committed.previousValue != null && currentValue != null && !current.byValue.has(currentValue);
 
     return { direction, nextPreviousValue: incomplete ? committed.previousValue : currentValue };
   });
@@ -77,7 +99,7 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
   });
 
   const onValueChange = (newValue: TabsTabValue, eventDetails: TabsRootChangeEventDetails) => {
-    eventDetails.activationDirection = computeActivationDirection(untrack(value), newValue, local.orientation, untrack(tabMap));
+    eventDetails.activationDirection = computeActivationDirection(untrack(value), newValue, local.orientation, untrack(registry));
 
     local.onValueChange?.(newValue, eventDetails);
 
@@ -97,22 +119,23 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
     );
   };
 
-  const registerMountedTabPanel = (panelValue: TabsTabValue, panelId: string) => {
-    setMountedTabPanels((previous) => {
-      const next = new Map(previous);
-      next.set(panelValue, panelId);
-      return next;
-    });
+  const panelMountCounts = new Map<string, ReturnType<typeof createSignal<number>>>();
+
+  const panelMountCount = (key: string) => {
+    let signal = panelMountCounts.get(key);
+    if (signal === undefined) {
+      signal = createSignal(0);
+      panelMountCounts.set(key, signal);
+    }
+    return signal;
+  };
+
+  const registerMountedTabPanel = (panelValue: TabsTabValue) => {
+    const [, setCount] = panelMountCount(tabsValueKey(panelValue));
+    setCount((count) => count + 1);
 
     return () => {
-      setMountedTabPanels((previous) => {
-        if (previous.get(panelValue) !== panelId) {
-          return previous;
-        }
-        const next = new Map(previous);
-        next.delete(panelValue);
-        return next;
-      });
+      setCount((count) => count - 1);
     };
   };
 
@@ -126,26 +149,17 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
 
   const getTabPanelIndex = (element: HTMLElement | null) => (element === null ? -1 : panelElements().indexOf(element));
 
-  const getTabPanelIdByValue = (tabValue: TabsTabValue) => mountedTabPanels().get(tabValue);
+  const getTabPanelId = (tabValue: TabsTabValue) => `${rootId}p${tabsValueKey(tabValue)}`;
 
-  const getTabIdByPanelValue = (tabPanelValue: TabsTabValue) => {
-    for (const metadata of tabMap().values()) {
-      if (tabPanelValue === (metadata as TabsTabMetadata).value) {
-        return (metadata as TabsTabMetadata).id;
-      }
-    }
-    return undefined;
+  const getTabPanelIdByValue = (tabValue: TabsTabValue) => {
+    const key = tabsValueKey(tabValue);
+    const [count] = panelMountCount(key);
+    return count() > 0 ? `${rootId}p${key}` : undefined;
   };
 
-  const selectedTabMetadata = createMemo(() => {
-    const currentValue = value();
-    for (const metadata of tabMap().values()) {
-      if ((metadata as TabsTabMetadata).value === currentValue) {
-        return metadata as TabsTabMetadata;
-      }
-    }
-    return undefined;
-  });
+  const getTabIdByPanelValue = (tabPanelValue: TabsTabValue) => registry().byValue.get(tabPanelValue)?.metadata.id;
+
+  const selectedTabMetadata = createMemo(() => registry().byValue.get(value())?.metadata);
 
   const firstEnabledTabValue = createMemo(() => {
     for (const metadata of tabMap().values()) {
@@ -166,7 +180,7 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
       const selected = selectedTabMetadata();
       return {
         controlled: isControlled(),
-        map: tabMap(),
+        map: registry(),
         selectionIsDisabled: selected?.disabled ?? false,
         selectionExists: selected != null,
         fallback: firstEnabledTabValue(),
@@ -193,7 +207,7 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
       }
 
       didRegisterTabs = true;
-      lastKnownTabElement = map.keys().next().value;
+      lastKnownTabElement = map.firstElement;
 
       const selectionIsMissing = !selectionExists && current !== null;
 
@@ -246,6 +260,7 @@ export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props
     tabActivationDirection,
     getTabElementBySelectedValue,
     getTabIdByPanelValue,
+    getTabPanelId,
     getTabPanelIdByValue,
     registerMountedTabPanel,
     registerTabPanelElement,
@@ -266,50 +281,64 @@ const defaultProps = Object.freeze({
   orientation: "horizontal",
 } satisfies Partial<TabsRoot.Props>);
 
-function findTabElement(tabMap: Map<HTMLElement, CompositeItemMetadata>, value: TabsTabValue): HTMLElement | null {
-  for (const [tabElement, metadata] of tabMap.entries()) {
-    if (value === (metadata as TabsTabMetadata).value) {
-      return tabElement;
-    }
+function getTextDirection(registry: TabRegistry): TextDirection {
+  if (registry.textDirection === undefined) {
+    const element = registry.firstElement;
+    registry.textDirection =
+      element === undefined || typeof getComputedStyle !== "function" || getComputedStyle(element).direction !== "rtl" ? "ltr" : "rtl";
   }
 
-  return null;
+  return registry.textDirection;
 }
 
 function computeActivationDirection(
   oldValue: TabsTabValue,
   newValue: TabsTabValue,
   orientation: TabsRoot.Orientation,
-  tabMap: Map<HTMLElement, CompositeItemMetadata>,
+  registry: TabRegistry,
 ): TabsTabActivationDirection {
   if (oldValue == null || newValue == null) {
     return "none";
   }
 
-  const [positionProp, backward, forward] =
-    orientation === "horizontal" ? (["left", "left", "right"] as const) : (["top", "up", "down"] as const);
+  const [backward, forward] = orientation === "horizontal" ? (["left", "right"] as const) : (["up", "down"] as const);
 
-  const oldTab = findTabElement(tabMap, oldValue);
-  const newTab = findTabElement(tabMap, newValue);
+  const oldTab = registry.byValue.get(oldValue);
+  const newTab = registry.byValue.get(newValue);
 
-  if (oldTab == null || newTab == null) {
+  if (oldTab === undefined || newTab === undefined) {
     if (oldTab !== newTab && (typeof oldValue === "number" || typeof oldValue === "string") && typeof oldValue === typeof newValue) {
       return newValue > oldValue ? forward : backward;
     }
     return "none";
   }
 
-  const oldPosition = oldTab.getBoundingClientRect()[positionProp];
-  const newPosition = newTab.getBoundingClientRect()[positionProp];
-
-  if (newPosition < oldPosition) {
-    return backward;
-  }
-  if (newPosition > oldPosition) {
-    return forward;
+  if (oldTab.index === newTab.index) {
+    return "none";
   }
 
-  return "none";
+  const isLater = newTab.index > oldTab.index;
+  const isReversed = orientation === "horizontal" && getTextDirection(registry) === "rtl";
+
+  return isLater !== isReversed ? forward : backward;
+}
+
+interface ActivationDirectionState {
+  previousValue: TabsTabValue;
+  tabActivationDirection: TabsTabActivationDirection;
+}
+
+interface TabEntry {
+  element: HTMLElement;
+  metadata: TabsTabMetadata;
+  index: number;
+}
+
+interface TabRegistry {
+  byValue: Map<TabsTabValue, TabEntry>;
+  size: number;
+  firstElement: HTMLElement | undefined;
+  textDirection: TextDirection | undefined;
 }
 
 export type TabsRootOrientation = BaseOrientation;

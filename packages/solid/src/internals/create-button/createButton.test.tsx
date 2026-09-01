@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, screen, render } from "@solidjs/testing-library";
-import userEvent from "@testing-library/user-event";
 import type { JSX } from "@solidjs/web";
+import userEvent from "@testing-library/user-event";
 import { flush, omit } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

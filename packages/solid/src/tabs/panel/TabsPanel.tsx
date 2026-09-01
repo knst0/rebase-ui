@@ -1,8 +1,8 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
+import { type Accessor, createEffect, createMemo, createSignal, untrack } from "solid-js";
 
-import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { RenderElement } from "../../internals/render-element";
+import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import { createTransitionStatus, type TransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
@@ -17,20 +17,27 @@ export function TabsPanel<T extends ValidComponent = "div">(props: TabsPanel.Pro
 
   const as = untrack(() => local.as);
 
-  const rootContext = useTabsRootContext();
-
-  const id = createUniqueId();
+  const {
+    value,
+    registerTabPanelElement,
+    getTabPanelIndex,
+    registerMountedTabPanel,
+    tabActivationDirection,
+    orientation,
+    getTabIdByPanelValue,
+    getTabPanelId,
+  } = useTabsRootContext();
 
   const [panelElement, setPanelElement] = createSignal<HTMLElement | null>(null);
 
-  const open = createMemo(() => local.value === rootContext.value());
+  const open = createMemo(() => local.value === value());
 
   const { mounted, setMounted, transitionStatus } = createTransitionStatus(open);
 
   const hidden = () => !mounted();
   const shouldRender = () => local.keepMounted || mounted();
 
-  const index = () => rootContext.getTabPanelIndex(panelElement());
+  const index = () => getTabPanelIndex(panelElement());
 
   createEffect(
     () => ({ render: shouldRender(), element: panelElement() }),
@@ -38,7 +45,7 @@ export function TabsPanel<T extends ValidComponent = "div">(props: TabsPanel.Pro
       if (!render || element === null) {
         return undefined;
       }
-      return rootContext.registerTabPanelElement(element);
+      return registerTabPanelElement(element);
     },
   );
 
@@ -48,41 +55,34 @@ export function TabsPanel<T extends ValidComponent = "div">(props: TabsPanel.Pro
       if (isHidden && !keepMounted) {
         return undefined;
       }
-      return rootContext.registerMountedTabPanel(value, id);
+      return registerMountedTabPanel(value);
     },
   );
 
-  const runOnAnimationsFinished = createAnimationsFinishedRunner(panelElement, () => untrack(open));
-
-  createEffect(
-    () => ({ isOpen: open() }),
-    ({ isOpen }) => {
-      if (isOpen) {
-        return undefined;
+  runOnOpenChangeComplete({
+    open,
+    ref: panelElement,
+    onComplete() {
+      if (!open()) {
+        setMounted(false);
       }
-
-      const abortController = new AbortController();
-
-      runOnAnimationsFinished(() => setMounted(false), abortController.signal);
-
-      return () => {
-        abortController.abort();
-      };
     },
-  );
+  });
 
   const state: TabsPanelState = {
     hidden,
-    orientation: rootContext.orientation,
-    tabActivationDirection: rootContext.tabActivationDirection,
+    orientation,
+    tabActivationDirection,
     transitionStatus,
   };
 
   const panelProps = {
     role: "tabpanel" as const,
-    id,
+    get id() {
+      return getTabPanelId(local.value);
+    },
     get "aria-labelledby"() {
-      return rootContext.getTabIdByPanelValue(local.value);
+      return getTabIdByPanelValue(local.value);
     },
     get hidden() {
       return hidden();

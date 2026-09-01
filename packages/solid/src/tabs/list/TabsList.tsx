@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { createEffect, createSignal, untrack } from "solid-js";
+import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
 
 import { EMPTY_ARRAY } from "#utils";
 
@@ -24,20 +24,39 @@ export function TabsList<T extends ValidComponent = "div">(props: TabsList.Props
   const indicatorUpdateListeners = new Set<() => void>();
   const tabResizeObserverElements = new Set<HTMLElement>();
   let resizeObserver: ResizeObserver | null = null;
+  let pendingFrame: number | undefined;
 
-  createEffect(tabsListElement, (element) => {
-    if (typeof ResizeObserver === "undefined") {
-      return undefined;
+  const notifyIndicatorUpdate = () => {
+    if (pendingFrame !== undefined) {
+      return;
     }
 
-    const observer = new ResizeObserver(() => {
+    pendingFrame = requestAnimationFrame(() => {
+      pendingFrame = undefined;
       for (const listener of indicatorUpdateListeners) {
         listener();
       }
     });
+  };
 
+  const disconnectResizeObserver = () => {
+    if (pendingFrame !== undefined) {
+      cancelAnimationFrame(pendingFrame);
+      pendingFrame = undefined;
+    }
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+  };
+
+  const connectResizeObserver = () => {
+    if (resizeObserver !== null || indicatorUpdateListeners.size === 0 || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(notifyIndicatorUpdate);
     resizeObserver = observer;
 
+    const element = untrack(tabsListElement);
     if (element !== null) {
       observer.observe(element);
     }
@@ -45,23 +64,39 @@ export function TabsList<T extends ValidComponent = "div">(props: TabsList.Props
     for (const tabElement of tabResizeObserverElements) {
       observer.observe(tabElement);
     }
+  };
+
+  createEffect(tabsListElement, (element) => {
+    if (element === null) {
+      return undefined;
+    }
+
+    connectResizeObserver();
+    resizeObserver?.observe(element);
 
     return () => {
-      observer.disconnect();
-      resizeObserver = null;
+      resizeObserver?.unobserve(element);
     };
   });
 
+  onCleanup(disconnectResizeObserver);
+
   const registerIndicatorUpdateListener = (listener: () => void) => {
     indicatorUpdateListeners.add(listener);
+    connectResizeObserver();
+
     return () => {
       indicatorUpdateListeners.delete(listener);
+      if (indicatorUpdateListeners.size === 0) {
+        disconnectResizeObserver();
+      }
     };
   };
 
   const registerTabResizeObserverElement = (element: HTMLElement) => {
     tabResizeObserverElements.add(element);
     resizeObserver?.observe(element);
+
     return () => {
       tabResizeObserverElements.delete(element);
       resizeObserver?.unobserve(element);

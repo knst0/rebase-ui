@@ -29,7 +29,7 @@ describe("<Tabs.Panel />", () => {
     () => ({
       render,
       defaultElement: "div",
-      testAsWith: "section",
+      as: { targetElement: "section" },
       refInstanceof: window.HTMLDivElement,
       stateAttributes: { [TabsPanelDataAttributes.orientation]: "horizontal" },
     }),

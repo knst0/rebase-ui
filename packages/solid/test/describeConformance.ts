@@ -9,7 +9,6 @@ export type ConformanceOptions = {
   as?: { targetElement: keyof JSX.IntrinsicElements };
   stateAttributes?: Record<string, string> | undefined;
   refInstanceof?: abstract new (...args: any[]) => any;
-  testAsWith?: keyof JSX.IntrinsicElements;
 };
 
 function randomStringValue(prefix = "test") {
@@ -33,9 +32,9 @@ export function describeConformance(
       expect(element.tagName).toBe(options.defaultElement!.toUpperCase());
     });
 
-    describe.skipIf(!options.as && !options.testAsWith)("prop: as", () => {
+    describe.skipIf(!options.as)("prop: as", () => {
       it("renders the customized root element", () => {
-        const as = options.as?.targetElement ?? options.testAsWith!;
+        const as = options.as!.targetElement;
         const element = renderRoot({ as });
         expect(element.tagName).toBe(as.toUpperCase());
       });

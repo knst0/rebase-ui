@@ -210,4 +210,68 @@ describe("<Tabs.Root />", () => {
 
     expect(container.firstElementChild).toHaveAttribute(TabsRootDataAttributes.activationDirection, "left");
   });
+
+  it.skipIf(isJSDOM)("mirrors the horizontal activation direction in a right-to-left list", async () => {
+    const user = userEvent.setup();
+    const { container } = render(() => (
+      <Tabs.Root defaultValue="one" dir="rtl">
+        <Tabs.List>
+          <Tabs.Tab value="one">One</Tabs.Tab>
+          <Tabs.Tab value="two">Two</Tabs.Tab>
+        </Tabs.List>
+      </Tabs.Root>
+    ));
+
+    await user.click(screen.getAllByRole("tab")[1]);
+    flush();
+
+    expect(container.firstElementChild).toHaveAttribute(TabsRootDataAttributes.activationDirection, "left");
+
+    await user.click(screen.getAllByRole("tab")[0]);
+    flush();
+
+    expect(container.firstElementChild).toHaveAttribute(TabsRootDataAttributes.activationDirection, "right");
+  });
+
+  it.skipIf(isJSDOM)("reports the vertical activation direction from document order", async () => {
+    const user = userEvent.setup();
+    const { container } = render(() => (
+      <Tabs.Root defaultValue="one" orientation="vertical">
+        <Tabs.List>
+          <Tabs.Tab value="one">One</Tabs.Tab>
+          <Tabs.Tab value="two">Two</Tabs.Tab>
+        </Tabs.List>
+      </Tabs.Root>
+    ));
+
+    await user.click(screen.getAllByRole("tab")[1]);
+    flush();
+
+    expect(container.firstElementChild).toHaveAttribute(TabsRootDataAttributes.activationDirection, "down");
+  });
+
+  it.skipIf(isJSDOM)("reads the activation direction without measuring tab rects", async () => {
+    const user = userEvent.setup();
+    const getBoundingClientRect = vi.spyOn(window.HTMLElement.prototype, "getBoundingClientRect");
+
+    try {
+      const { container } = render(() => (
+        <Tabs.Root defaultValue="one">
+          <Tabs.List>
+            <Tabs.Tab value="one">One</Tabs.Tab>
+            <Tabs.Tab value="two">Two</Tabs.Tab>
+          </Tabs.List>
+        </Tabs.Root>
+      ));
+
+      getBoundingClientRect.mockClear();
+      await user.click(screen.getAllByRole("tab")[1]);
+      flush();
+
+      expect(container.firstElementChild).toHaveAttribute(TabsRootDataAttributes.activationDirection, "right");
+      expect(getBoundingClientRect).not.toHaveBeenCalled();
+    } finally {
+      getBoundingClientRect.mockRestore();
+    }
+  });
 });

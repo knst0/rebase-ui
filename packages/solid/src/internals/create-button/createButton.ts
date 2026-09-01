@@ -4,8 +4,8 @@ import { error } from "#utils";
 
 import type { RebaseUIEvent } from "../../types";
 import { useCompositeRootContext } from "../composite";
+import { createFocusableWhenDisabledProps, type FocusableWhenDisabledProps } from "../createFocusableWhenDisabledProps";
 import { makeEventPreventable } from "../makeEventPreventable";
-import { type FocusableWhenDisabledProps, useFocusableWhenDisabled } from "../useFocusableWhenDisabled";
 
 type ValueOrAccessor<T> = T | (() => T);
 
@@ -58,7 +58,7 @@ export function createButton(parameters: CreateButtonParameters = {}): CreateBut
   const compositeRootContext = useCompositeRootContext();
   const isCompositeItem = () => compositeProp() ?? !!compositeRootContext;
 
-  const { props: focusableWhenDisabledProps } = useFocusableWhenDisabled({
+  const focusableWhenDisabledProps = createFocusableWhenDisabledProps({
     focusableWhenDisabled,
     disabled,
     composite: isCompositeItem,

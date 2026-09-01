@@ -6,6 +6,7 @@ import { createButton } from "../../internals/create-button";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
+import { overrideProps } from "../../internals/overrideProps";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
@@ -107,72 +108,62 @@ export function TabsTab<T extends ValidComponent = "button">(props: TabsTab.Prop
     );
   };
 
-  const tabProps = (externalProps: Record<string, any>) => {
-    const target: Record<string, any> = {};
+  const tabProps = (externalProps: Record<string, any>) =>
+    overrideProps(externalProps, {
+      onClick(event: MouseEvent) {
+        makeEventPreventable(event as any);
+        externalProps.onClick?.(event);
+        if ((event as any).rebaseUIHandlerPrevented) {
+          return;
+        }
 
-    for (const key in externalProps) {
-      if (key === "onClick" || key === "onFocus" || key === "onPointerDown" || key === "onKeyDown") {
-        continue;
-      }
-      Object.defineProperty(target, key, { enumerable: true, configurable: true, get: () => externalProps[key] });
-    }
+        if (active() || disabled()) {
+          return;
+        }
 
-    target.onClick = (event: MouseEvent) => {
-      makeEventPreventable(event as any);
-      externalProps.onClick?.(event);
-      if ((event as any).rebaseUIHandlerPrevented) {
-        return;
-      }
-
-      if (active() || disabled()) {
-        return;
-      }
-
-      activate(event);
-    };
-
-    target.onFocus = (event: FocusEvent) => {
-      externalProps.onFocus?.(event);
-
-      if (active() || disabled()) {
-        return;
-      }
-
-      if (listContext.activateOnFocus() && (!isPressing || isMainButton)) {
         activate(event);
-      }
-    };
+      },
 
-    target.onPointerDown = (event: PointerEvent) => {
-      externalProps.onPointerDown?.(event);
+      onFocus(event: FocusEvent) {
+        externalProps.onFocus?.(event);
 
-      if (active() || disabled()) {
-        return;
-      }
+        if (active() || disabled()) {
+          return;
+        }
 
-      isPressing = true;
-      isMainButton = event.button === 0;
+        if (listContext.activateOnFocus() && (!isPressing || isMainButton)) {
+          activate(event);
+        }
+      },
 
-      const ownerDocument = (event.currentTarget as HTMLElement).ownerDocument;
+      onPointerDown(event: PointerEvent) {
+        externalProps.onPointerDown?.(event);
 
-      const handlePointerEnd = () => {
-        isPressing = false;
-        isMainButton = false;
-        ownerDocument.removeEventListener("pointerup", handlePointerEnd);
-        ownerDocument.removeEventListener("pointercancel", handlePointerEnd);
-      };
+        if (active() || disabled()) {
+          return;
+        }
 
-      ownerDocument.addEventListener("pointerup", handlePointerEnd);
-      ownerDocument.addEventListener("pointercancel", handlePointerEnd);
-    };
+        isPressing = true;
+        isMainButton = event.button === 0;
 
-    target.onKeyDown = (event: KeyboardEvent) => {
-      isNavigating = true;
-      externalProps.onKeyDown?.(event);
-    };
+        const ownerDocument = (event.currentTarget as HTMLElement).ownerDocument;
 
-    return target;
-  };
+        const handlePointerEnd = () => {
+          isPressing = false;
+          isMainButton = false;
+          ownerDocument.removeEventListener("pointerup", handlePointerEnd);
+          ownerDocument.removeEventListener("pointercancel", handlePointerEnd);
+        };
+
+        ownerDocument.addEventListener("pointerup", handlePointerEnd);
+        ownerDocument.addEventListener("pointercancel", handlePointerEnd);
+      },
+
+      onKeyDown(event: KeyboardEvent) {
+        isNavigating = true;
+        externalProps.onKeyDown?.(event);
+      },
+    });
 
   const tabAriaProps = {
     role: "tab" as const,
@@ -201,7 +192,7 @@ export function TabsTab<T extends ValidComponent = "button">(props: TabsTab.Prop
     <RenderElement
       as={as}
       state={state}
-    props={[tabAriaProps, tabProps, elementProps, getButtonProps, composite?.getCompositeProps, { ref }]}
+      props={[tabAriaProps, tabProps, elementProps, getButtonProps, composite?.getCompositeProps, { ref }]}
       stateAttributesMapping={tabsStateAttributesMapping}
     />
   );
