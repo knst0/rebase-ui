@@ -3,7 +3,8 @@ import type { TabsRootState } from "./TabsRoot";
 import * as TabsRootDataAttributes from "./TabsRootDataAttributes";
 
 export const tabsStateAttributesMapping: StateAttributesMapping<TabsRootState> = {
-  tabActivationDirection: (direction) => ({
-    [TabsRootDataAttributes.activationDirection]: direction,
-  }),
+  tabActivationDirection: {
+    keys: [TabsRootDataAttributes.activationDirection],
+    map: (direction) => ({ [TabsRootDataAttributes.activationDirection]: direction }),
+  },
 };

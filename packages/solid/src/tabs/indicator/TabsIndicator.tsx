@@ -2,6 +2,7 @@ import { type JSX, type ValidComponent } from "@solidjs/web";
 import { type Accessor, createMemo, createSignal, onCleanup, untrack } from "solid-js";
 
 import { script as prehydrationScript } from "#prehydration/tabs/indicator";
+import { EMPTY_STATE_MAPPING } from "#utils";
 
 import { PrehydrationScript } from "../../internals/prehydration-script";
 import { RenderElement } from "../../internals/render-element";
@@ -142,8 +143,8 @@ const defaultProps = Object.freeze({
 
 const indicatorStateAttributesMapping: StateAttributesMapping<TabsIndicatorState> = {
   ...tabsStateAttributesMapping,
-  activeTabPosition: () => null,
-  activeTabSize: () => null,
+  activeTabPosition: EMPTY_STATE_MAPPING,
+  activeTabSize: EMPTY_STATE_MAPPING,
 };
 
 const NO_GEOMETRY: Geometry = { isTabSelected: false, left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 };

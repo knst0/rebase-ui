@@ -1,5 +1,7 @@
 import { type Accessor, createMemo, createSignal } from "solid-js";
 
+import { orderByDocumentPosition } from "./documentOrder";
+
 export type ElementMetadata<Metadata> = Metadata | Accessor<Metadata | undefined> | undefined;
 
 export interface ElementRegistry<Metadata> {
@@ -34,8 +36,7 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
   const elements = createMemo(() => {
     version();
 
-    const list = Array.from(entries.keys());
-    list.sort(compareDocumentOrder);
+    const list = orderByDocumentPosition(entries.keys());
 
     const next = new WeakMap<HTMLElement, number>();
     for (let index = 0; index < list.length; index += 1) {
@@ -57,22 +58,4 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
   };
 
   return { register, unregister, elements, indexOf, metadataOf };
-}
-
-function compareDocumentOrder(a: HTMLElement, b: HTMLElement): number {
-  const position = a.compareDocumentPosition(b);
-
-  // Disconnected nodes compare arbitrarily but consistently; keep them in
-  // registration order instead, which `Array.prototype.sort` guarantees.
-  if (position & Node.DOCUMENT_POSITION_DISCONNECTED) {
-    return 0;
-  }
-  if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
-    return -1;
-  }
-  if (position & Node.DOCUMENT_POSITION_PRECEDING) {
-    return 1;
-  }
-
-  return 0;
 }

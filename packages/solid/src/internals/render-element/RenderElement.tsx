@@ -13,8 +13,6 @@ import {
 } from "@solidjs/web";
 import { $PROXY, type Accessor, createMemo, merge, sharedConfig, untrack } from "solid-js";
 
-import { EMPTY_OBJECT } from "#utils";
-
 import { applyStateAttributes, getStateAttributes, type StateAttributesMapping } from "../stateToAttributes";
 import type { RebaseUIComponentProps, WithRebaseUIEvent } from "../types";
 
@@ -97,12 +95,6 @@ function createDomElement(tagName: string, is: string | undefined) {
 
 type PropsSourceList = ReadonlyArray<Record<string, any> | ((props: any) => Record<string, any>) | undefined>;
 
-interface SourceResolution {
-  resolveSource: <S extends Record<string, any>>(source: S) => S;
-  collectRef: (source: any, replacesEarlierRefs: boolean) => void;
-  chainedRef: () => ((element: unknown) => void) | undefined;
-}
-
 function resolveProps<T extends ValidComponent, State extends Record<string, Accessor<unknown>>>(
   state: State | undefined,
   props: RenderElementProps<T, State, undefined>["props"],
@@ -113,26 +105,86 @@ function resolveProps<T extends ValidComponent, State extends Record<string, Acc
   const propsValue = props ?? {};
   const propsSources = (Array.isArray(propsValue) ? propsValue : [propsValue]) as PropsSourceList;
 
-  const stateAttributes = bindsStateDirectly ? EMPTY_OBJECT : getStateAttributes(stateValue, stateAttributesMapping);
-  const helpers = createSourceResolution(stateValue);
+  const resolveSource = createSourceResolver(stateValue);
+  const refs = createRefChain();
+  const layers: Record<string, any>[] = [];
 
-  if (propsSources.some((source) => source !== undefined && typeof source !== "function" && hasDynamicKeys(source))) {
-    return mergeSources(stateAttributes, propsSources, helpers) as ComponentProps<T>;
+  if (!bindsStateDirectly) {
+    const stateAttributes = getStateAttributes(stateValue, stateAttributesMapping);
+    if (Object.keys(stateAttributes).length > 0) {
+      layers.push(stateAttributes);
+    }
   }
 
-  if (hasDynamicKeys(stateAttributes)) {
-    const collapsed = collapseSources(undefined, propsSources, helpers);
-    return mergeAll([stateAttributes, collapsed]) as ComponentProps<T>;
+  for (const source of propsSources) {
+    if (source === undefined) {
+      continue;
+    }
+
+    if (typeof source === "function") {
+      const externalProps = combineLayers(layers.slice());
+      const resolved = createMemo(() => resolveSource(source(externalProps)));
+      const layer = reactiveLayer(resolved);
+
+      layers.push(layer);
+      refs.replaceWith(layer);
+      continue;
+    }
+
+    const layer = resolveSource(source);
+    layers.push(layer);
+    refs.add(layer);
   }
 
-  return collapseSources(stateAttributes, propsSources, helpers) as ComponentProps<T>;
+  const chainedRef = refs.chained();
+  if (chainedRef !== undefined) {
+    layers.push({ ref: chainedRef });
+  }
+
+  return combineLayers(layers) as ComponentProps<T>;
 }
 
-function createSourceResolution<State>(stateValue: State): SourceResolution {
-  let refs = new Set<(element: unknown) => void>();
+function combineLayers(layers: Record<string, any>[]): Record<string, any> {
+  if (layers.length === 0) {
+    return {};
+  }
+  if (layers.length === 1) {
+    return layers[0];
+  }
+  if (layers.some(hasDynamicKeys)) {
+    return merge(...layers);
+  }
 
-  const resolveSource = <S extends Record<string, any>>(source: S): S => {
-    if (!("class" in source) && !("style" in source) && !("children" in source)) return source;
+  const target: Record<string, any> = {};
+
+  for (const layer of layers) {
+    for (const key of Object.keys(layer)) {
+      if (key === "__proto__" || key === "constructor") {
+        continue;
+      }
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(layer, key)!);
+    }
+  }
+
+  return target;
+}
+
+function reactiveLayer(resolved: () => Record<string, any>) {
+  const snapshot = untrack(resolved);
+  const layer: Record<string, any> = {};
+
+  for (const key of Object.keys(snapshot)) {
+    Object.defineProperty(layer, key, { enumerable: true, configurable: true, get: () => resolved()[key] });
+  }
+
+  return layer;
+}
+
+function createSourceResolver<State>(stateValue: State) {
+  return <S extends Record<string, any>>(source: S): S => {
+    if (!("class" in source) && !("style" in source) && !("children" in source)) {
+      return source;
+    }
 
     const resolvedChildren = "children" in source ? createMemo(() => source.children) : undefined;
 
@@ -153,119 +205,38 @@ function createSourceResolution<State>(stateValue: State): SourceResolution {
 
     return target as S;
   };
-
-  const collectRef = (source: any, replacesEarlierRefs: boolean) => {
-    const ref = untrack(() => source?.ref);
-    if (typeof ref !== "function") return;
-    if (replacesEarlierRefs) refs = new Set();
-    refs.add(ref);
-  };
-
-  const chainedRef = () => {
-    if (refs.size < 2) return undefined;
-    const chained = [...refs];
-    return (element: unknown) => {
-      for (const ref of chained) ref(element);
-    };
-  };
-
-  return { resolveSource, collectRef, chainedRef };
 }
 
-function mergeSources(stateAttributes: Record<string, any>, propsSources: PropsSourceList, helpers: SourceResolution) {
-  const { resolveSource, collectRef, chainedRef } = helpers;
-  const sources: any[] = [stateAttributes];
+function createRefChain() {
+  let refs = new Set<(element: unknown) => void>();
 
-  for (const source of propsSources) {
-    if (source === undefined) continue;
-
-    if (typeof source === "function") {
-      const externalProps = mergeAll(sources);
-      const resolved = createMemo(() => resolveSource(source(externalProps)));
-      const flattened = flatten(resolved);
-      sources.push(flattened);
-      collectRef(flattened, true);
-      continue;
-    }
-
-    const resolvedSource = resolveSource(source);
-    sources.push(resolvedSource);
-    collectRef(resolvedSource, false);
-  }
-
-  const ref = chainedRef();
-  if (ref !== undefined) sources.push({ ref });
-
-  return mergeAll(sources);
-}
-
-function collapseSources(stateAttributes: Record<string, any> | undefined, propsSources: PropsSourceList, helpers: SourceResolution) {
-  const { resolveSource, collectRef, chainedRef } = helpers;
-  const descriptors = new Map<string, PropertyDescriptor>();
-  let passthrough: Record<string, any> | undefined;
-
-  const materialize = () => {
-    const target: Record<string, any> = {};
-    for (const [key, descriptor] of descriptors) Object.defineProperty(target, key, descriptor);
-    return target;
+  const readRef = (layer: Record<string, any>) => {
+    const ref = untrack(() => layer?.ref);
+    return typeof ref === "function" ? (ref as (element: unknown) => void) : undefined;
   };
 
-  const define = (key: string, descriptor: PropertyDescriptor) => {
-    if (key === "__proto__" || key === "constructor") return;
-    descriptors.set(key, descriptor);
+  return {
+    add(layer: Record<string, any>) {
+      const ref = readRef(layer);
+      if (ref !== undefined) refs.add(ref);
+    },
+    replaceWith(layer: Record<string, any>) {
+      const ref = readRef(layer);
+      if (ref === undefined) return;
+      refs = new Set([ref]);
+    },
+    chained() {
+      if (refs.size < 2) return undefined;
+      const chained = [...refs];
+      return (element: unknown) => {
+        for (const ref of chained) ref(element);
+      };
+    },
   };
-
-  const absorb = (source: Record<string, any>) => {
-    passthrough = descriptors.size === 0 ? source : undefined;
-    for (const key of Object.keys(source)) define(key, Object.getOwnPropertyDescriptor(source, key)!);
-  };
-
-  if (stateAttributes !== undefined) absorb(stateAttributes);
-
-  for (const source of propsSources) {
-    if (source === undefined) continue;
-
-    if (typeof source === "function") {
-      const externalProps = materialize();
-      const resolved = createMemo(() => resolveSource(source(externalProps)));
-      const snapshot = untrack(resolved);
-
-      passthrough = undefined;
-      for (const key of Object.keys(snapshot)) {
-        define(key, { enumerable: true, configurable: true, get: () => resolved()[key] });
-      }
-
-      collectRef(snapshot, true);
-      continue;
-    }
-
-    const resolvedSource = resolveSource(source);
-    absorb(resolvedSource);
-    collectRef(resolvedSource, false);
-  }
-
-  const ref = chainedRef();
-  if (ref !== undefined) {
-    passthrough = undefined;
-    define("ref", { enumerable: true, configurable: true, value: ref });
-  }
-
-  return passthrough ?? materialize();
 }
 
 function hasDynamicKeys(source: Record<string, any>) {
   return $PROXY in source;
-}
-
-function flatten(resolved: () => Record<string, any>) {
-  const source = untrack(resolved);
-  const target: Record<string, any> = {};
-
-  for (const key of Object.keys(source)) {
-    Object.defineProperty(target, key, { enumerable: true, configurable: true, get: () => resolved()[key] });
-  }
-
-  return target;
 }
 
 function resolveStyle<State>(value: unknown, state: State): unknown {
@@ -283,11 +254,6 @@ function resolveClass<State>(value: unknown, state: State): unknown {
     return value.map((item) => resolveClass(item, state));
   }
   return value;
-}
-
-function mergeAll(sources: any[]) {
-  if (sources.length === 1 && typeof sources[0] !== "function") return sources[0];
-  return merge(...sources);
 }
 
 type PropsSource<T extends ValidComponent, State> = Omit<WithRebaseUIEvent<Partial<ComponentProps<T>>>, "children" | "class" | "style"> &

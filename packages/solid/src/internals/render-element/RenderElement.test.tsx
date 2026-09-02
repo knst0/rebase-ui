@@ -89,7 +89,7 @@ describe("<RenderElement />", () => {
         as="div"
         state={{ active: () => true }}
         stateAttributesMapping={{
-          active: (active) => ({ "data-active": active ? "true" : "false" }),
+          active: { keys: ["data-active"], map: (active) => ({ "data-active": active ? "true" : "false" }) },
         }}
       />,
     );
@@ -98,7 +98,11 @@ describe("<RenderElement />", () => {
 
   it("skips attributes mapped to null", () => {
     const { container } = render(() => (
-      <RenderElement as="div" state={{ active: () => true, hidden: () => true }} stateAttributesMapping={{ active: () => null }} />
+      <RenderElement
+        as="div"
+        state={{ active: () => true, hidden: () => true }}
+        stateAttributesMapping={{ active: { keys: [], map: () => null } }}
+      />
     ));
     const element = container.querySelector("div")!;
     expect(element.hasAttribute("data-active")).toBe(false);
@@ -262,5 +266,142 @@ describe("<RenderElement />", () => {
     const state: Record<string, Accessor<unknown>> = { ...EMPTY_OBJECT };
     state.mutated = () => true;
     expect(() => render(() => <RenderElement as="div" state={state} />)).not.toThrow();
+  });
+});
+
+describe("<RenderElement /> prop layers", () => {
+  it("keeps a props proxy dynamic when its keys appear after creation", () => {
+    function Wrapper(props: Record<string, any>) {
+      return <RenderElement as="div" props={[{ class: "base" }, props]} />;
+    }
+
+    const [extra, setExtra] = createSignal<string | undefined>(undefined, { ownedWrite: true });
+    const { container } = render(() => <Wrapper id="wrapped" title={extra()} />);
+    const element = container.querySelector("div")!;
+
+    expect(element.id).toBe("wrapped");
+    expect(element.classList.contains("base")).toBe(true);
+
+    setExtra("late");
+    flush();
+    expect(element.getAttribute("title")).toBe("late");
+  });
+
+  it("lets a later source win a key contributed by a props proxy", () => {
+    function Wrapper(props: Record<string, any>) {
+      return <RenderElement as="div" props={[props, { id: "last" }]} />;
+    }
+    const { container } = render(() => <Wrapper id="first" />);
+
+    expect(container.querySelector("div")!.id).toBe("last");
+  });
+
+  it("passes the layers below a function source to that source", () => {
+    const seen: Array<Record<string, any>> = [];
+    const { container } = render(() => (
+      <RenderElement
+        as="div"
+        state={{ active: () => true }}
+        props={[
+          { id: "base", title: "kept" },
+          (external) => {
+            seen.push({ ...external });
+            return { id: "override" };
+          },
+        ]}
+      />
+    ));
+
+    const element = container.querySelector("div")!;
+    expect(element.id).toBe("override");
+    expect(element.getAttribute("title")).toBe("kept");
+    expect(seen).toHaveLength(1);
+    expect(seen[0].id).toBe("base");
+    expect(seen[0].title).toBe("kept");
+    // A DOM element binds its state straight to attributes, so state never
+    // becomes a prop layer.
+    expect(seen[0]["data-active"]).toBeUndefined();
+  });
+
+  it("gives a custom component's function source the state attribute layer", () => {
+    let seen: Record<string, any> | undefined;
+
+    render(() => (
+      <RenderElement
+        as={CustomComponent}
+        state={{ active: () => true }}
+        props={[
+          { id: "base" },
+          (external: Record<string, any>) => {
+            seen = { ...external };
+            return {};
+          },
+        ]}
+      />
+    ));
+
+    expect(seen?.id).toBe("base");
+    expect(seen?.["data-active"]).toBe("");
+  });
+
+  it("stacks two function sources so each sees the one before it", () => {
+    const { container } = render(() => (
+      <RenderElement
+        as="div"
+        props={[
+          { id: "a" },
+          (external) => ({ title: external.id }),
+          (external): Record<string, any> => ({ "data-seen": `${external.id}:${external.title}` }),
+        ]}
+      />
+    ));
+
+    const element = container.querySelector("div")!;
+    expect(element.getAttribute("title")).toBe("a");
+    expect(element.getAttribute("data-seen")).toBe("a:a");
+  });
+
+  it("ignores undefined entries in the props array", () => {
+    const { container } = render(() => <RenderElement as="div" props={[undefined, { id: "only" }, undefined]} />);
+    expect(container.querySelector("div")!.id).toBe("only");
+  });
+
+  it("does not let a source define __proto__ or constructor", () => {
+    const polluted = { id: "safe" } as Record<string, any>;
+    Object.defineProperty(polluted, "__proto__", { value: { polluted: true }, enumerable: true, configurable: true });
+
+    const { container } = render(() => <RenderElement as="div" state={{ active: () => true }} props={[polluted]} />);
+    const element = container.querySelector("div")!;
+
+    expect(element.id).toBe("safe");
+    expect(({} as any).polluted).toBeUndefined();
+  });
+
+  it("keeps state attributes reactive through a collapsed layer stack", () => {
+    const [active, setActive] = createSignal(false, { ownedWrite: true });
+    const { container } = render(() => <RenderElement as="div" state={{ active }} props={[{ id: "a" }, { title: "b" }]} />);
+    const element = container.querySelector("div")!;
+
+    expect(element.hasAttribute("data-active")).toBe(false);
+    setActive(true);
+    flush();
+    expect(element.getAttribute("data-active")).toBe("");
+    expect(element.id).toBe("a");
+    expect(element.getAttribute("title")).toBe("b");
+  });
+
+  it("still resolves class callbacks on a source that also carries a ref", () => {
+    let captured: HTMLElement | undefined;
+    const { container } = render(() => (
+      <RenderElement
+        as="div"
+        state={{ active: () => true }}
+        props={[{ class: (state: any) => (state.active() ? "on" : "off"), ref: (element: HTMLElement) => (captured = element) }]}
+      />
+    ));
+
+    const element = container.querySelector("div")!;
+    expect(element.classList.contains("on")).toBe(true);
+    expect(captured).toBe(element);
   });
 });

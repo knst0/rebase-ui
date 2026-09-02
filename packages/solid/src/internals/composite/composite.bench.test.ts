@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { sortByDocumentPosition } from "./composite";
 import { createElementRegistry } from "./registry/createElementRegistry";
+import { compareDocumentOrder } from "./registry/documentOrder";
 
 const report: string[] = [];
 
@@ -17,13 +18,16 @@ function record(line: string) {
 let comparisons = 0;
 let mapAllocations = 0;
 let arrayAllocations = 0;
+let nodeVisits = 0;
 
 const nativeCompare = Element.prototype.compareDocumentPosition;
+const nativeCreateTreeWalker = Document.prototype.createTreeWalker;
 
 function resetCounters() {
   comparisons = 0;
   mapAllocations = 0;
   arrayAllocations = 0;
+  nodeVisits = 0;
 }
 
 beforeEach(() => {
@@ -32,10 +36,20 @@ beforeEach(() => {
     comparisons += 1;
     return nativeCompare.call(this, other);
   };
+  Document.prototype.createTreeWalker = function instrumented(this: Document, ...args: [Node]) {
+    const walker = nativeCreateTreeWalker.apply(this, args);
+    const nextNode = walker.nextNode.bind(walker);
+    walker.nextNode = () => {
+      nodeVisits += 1;
+      return nextNode();
+    };
+    return walker;
+  } as typeof nativeCreateTreeWalker;
 });
 
 afterEach(() => {
   Element.prototype.compareDocumentPosition = nativeCompare;
+  Document.prototype.createTreeWalker = nativeCreateTreeWalker;
 });
 
 function createItems(count: number) {
@@ -99,6 +113,18 @@ interface MountResult {
   maps: number;
   arrays: number;
   visits: number;
+  nodes: number;
+}
+
+/** The sort-based ordering that the tree walk replaced. */
+function mountSorted(count: number): MountResult {
+  const { elements } = createItems(count);
+  resetCounters();
+
+  const shuffled = [...elements].sort(() => Math.random() - 0.5);
+  shuffled.sort(compareDocumentOrder);
+
+  return { comparisons, maps: mapAllocations, arrays: arrayAllocations, visits: count, nodes: 0 };
 }
 
 function mountLegacy(count: number): MountResult {
@@ -117,7 +143,7 @@ function mountLegacy(count: number): MountResult {
       registry.indexOf(element);
     }
 
-    const result = { comparisons, maps: mapAllocations, arrays: arrayAllocations, visits: registry.visits() };
+    const result = { comparisons, maps: mapAllocations, arrays: arrayAllocations, visits: registry.visits(), nodes: nodeVisits };
     dispose();
     return result;
   });
@@ -142,7 +168,7 @@ function mountNew(count: number): MountResult {
       visits += 1;
     }
 
-    const result = { comparisons, maps: mapAllocations, arrays: arrayAllocations, visits };
+    const result = { comparisons, maps: mapAllocations, arrays: arrayAllocations, visits, nodes: nodeVisits };
     dispose();
     return result;
   });
@@ -151,28 +177,47 @@ function mountNew(count: number): MountResult {
 const SIZES = [10, 50, 200];
 
 describe("benchmark: registration and index lookup (experiments 2, 3, 5)", () => {
-  it("reduces document-position comparisons on mount", () => {
+  it("eliminates document-position comparisons on mount", () => {
     record("");
     record("compareDocumentPosition calls during mount");
-    record("  items |    before |    after | factor");
+    record("  items | insertion sort |   full sort | tree walk");
 
     const results = SIZES.map((size) => {
-      const before = mountLegacy(size).comparisons;
-      const after = mountNew(size).comparisons;
+      const insertion = mountLegacy(size).comparisons;
+      const sorted = mountSorted(size).comparisons;
+      const walked = mountNew(size).comparisons;
       record(
-        `  ${String(size).padStart(5)} | ${String(before).padStart(9)} | ${String(after).padStart(8)} | ${(before / after).toFixed(1)}x`,
+        `  ${String(size).padStart(5)} | ${String(insertion).padStart(14)} | ${String(sorted).padStart(11)} | ${String(walked).padStart(9)}`,
       );
-      return { size, before, after };
+      return { size, insertion, sorted, walked };
     });
 
-    for (const { size, before, after } of results) {
-      expect(after).toBeLessThan(before);
-      // O(n log n) with slack, versus the previous O(n^2 / 2).
-      expect(after).toBeLessThan(size * Math.log2(size) * 2);
+    for (const { size, insertion, sorted, walked } of results) {
+      expect(insertion).toBe((size * (size - 1)) / 2);
+      // The sort was already better than insertion, but still `n log n` DOM calls.
+      expect(sorted).toBeGreaterThan(size);
+      expect(sorted).toBeLessThan(insertion);
+      // The tree walk makes no pairwise comparisons at all.
+      expect(walked).toBe(0);
     }
+  });
 
-    // The gap widens with size, i.e. the growth rate itself improved.
-    expect(results[2].before / results[2].after).toBeGreaterThan((results[0].before / results[0].after) * 3);
+  it("replaces n log n comparisons with a single linear traversal", () => {
+    record("");
+    record("DOM operations to order the items (lower is better)");
+    record("  items | sort compares | walk node visits | factor");
+
+    for (const size of SIZES) {
+      const sorted = mountSorted(size).comparisons;
+      const nodes = mountNew(size).nodes;
+      record(
+        `  ${String(size).padStart(5)} | ${String(sorted).padStart(13)} | ${String(nodes).padStart(16)} | ${(sorted / nodes).toFixed(1)}x`,
+      );
+
+      // One visit per item, versus `n log n` comparisons that each walk the tree.
+      expect(nodes).toBe(size);
+      expect(nodes).toBeLessThan(sorted);
+    }
   });
 
   it("makes index lookup O(1) instead of a linear scan", () => {

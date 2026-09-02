@@ -200,3 +200,76 @@ describe("useCompositeRoot scroll behavior", () => {
     expect(scrollBehavior.mock.calls.at(-1)?.[0].container).toBe(container.firstElementChild);
   });
 });
+
+describe("useCompositeRoot tab stop ownership (experiment 6)", () => {
+  it("exposes exactly one tab stop", () => {
+    renderComposite({ count: 5 });
+    flush();
+
+    expect(tabIndexes()).toEqual(["0", "-1", "-1", "-1", "-1"]);
+    expect(tabIndexes().filter((value) => value === "0")).toHaveLength(1);
+  });
+
+  it("puts the tab stop on the active item rather than the first-created one", () => {
+    renderComposite({ count: 4, activeIndex: 2 });
+    flush();
+
+    expect(tabIndexes()).toEqual(["-1", "-1", "0", "-1"]);
+  });
+
+  it("keeps exactly one tab stop when items are created out of document order", () => {
+    render(() => (
+      <CompositeRoot orientation="horizontal">
+        <div style={{ display: "contents" }}>
+          <CompositeItem as="button" props={{ children: "second" } as Record<string, unknown>} />
+        </div>
+        <CompositeItem as="button" props={{ children: "first" } as Record<string, unknown>} />
+      </CompositeRoot>
+    ));
+    flush();
+
+    const tabStops = screen.getAllByRole("button").filter((element) => element.getAttribute("tabindex") === "0");
+
+    expect(tabStops).toHaveLength(1);
+    // Document order decides, not creation order.
+    expect(tabStops[0].textContent).toBe("second");
+  });
+
+  it("moves the single tab stop when items are added before the current one", () => {
+    const [count, setCount] = createSignal(2, { ownedWrite: true });
+
+    render(() => (
+      <CompositeRoot orientation="horizontal">
+        <For each={Array.from({ length: count() }, (_, index) => index)}>
+          {(index) => <CompositeItem as="button" props={{ children: `item ${index}` } as Record<string, unknown>} />}
+        </For>
+      </CompositeRoot>
+    ));
+    flush();
+
+    expect(tabIndexes()).toEqual(["0", "-1"]);
+
+    setCount(4);
+    flush();
+
+    expect(tabIndexes()).toEqual(["0", "-1", "-1", "-1"]);
+    expect(tabIndexes().filter((value) => value === "0")).toHaveLength(1);
+  });
+
+  it("still has one tab stop after navigating", () => {
+    renderComposite({ count: 4 });
+    flush();
+
+    screen.getAllByRole("button")[0].focus();
+    pressKey(ARROW_RIGHT);
+    flush();
+
+    expect(tabIndexes()).toEqual(["-1", "0", "-1", "-1"]);
+
+    pressKey(ARROW_LEFT);
+    flush();
+
+    expect(tabIndexes()).toEqual(["0", "-1", "-1", "-1"]);
+    expect(tabIndexes().filter((value) => value === "0")).toHaveLength(1);
+  });
+});

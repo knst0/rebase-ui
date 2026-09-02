@@ -1,3 +1,4 @@
+import { isServer } from "@solidjs/web";
 import { createEffect, createMemo, createSignal, flush, untrack } from "solid-js";
 
 import {
@@ -153,7 +154,13 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
   });
 
   let claimedTabStops = 0;
-  const claimInitialTabIndex = () => (claimedTabStops++ === untrack(highlightedIndex) ? 0 : -1);
+
+  const claimInitialTabIndex = () => {
+    if (!isServer) {
+      return -1;
+    }
+    return claimedTabStops++ === untrack(highlightedIndex) ? 0 : -1;
+  };
 
   let tabStopElement: HTMLElement | null = null;
 

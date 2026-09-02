@@ -1,4 +1,4 @@
-export { NOOP, EMPTY_ARRAY, EMPTY_OBJECT } from "./empty";
+export { NOOP, EMPTY_ARRAY, EMPTY_OBJECT, EMPTY_STATE_MAPPING } from "./empty";
 export { error } from "./error";
 export { serializeValue } from "./serializeValue";
 export { stringifyLocale } from "./stringifyLocale";

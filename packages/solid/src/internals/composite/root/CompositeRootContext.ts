@@ -13,9 +13,12 @@ export interface CompositeRootContext {
   /** Document-order position of a registered element, or `-1`. Reactive and O(1). */
   indexOf: (element: HTMLElement | null) => number;
   /**
-   * Reserves the static `tabIndex` an item renders with, before any element exists.
-   * Returns `0` for the item whose render position matches the highlighted index so
-   * server-rendered and pre-effect markup still exposes exactly one tab stop.
+   * The static `tabIndex` an item renders with, before any element exists.
+   *
+   * On the server this is `0` for the item whose render position matches the
+   * highlighted index, so server-rendered markup still exposes exactly one tab
+   * stop. On the client it is always `-1`: the root promotes the real tab stop
+   * from document order once the elements exist.
    */
   claimInitialTabIndex: () => number;
   registerItem: (element: HTMLElement, metadata?: CompositeItemMetadata) => void;

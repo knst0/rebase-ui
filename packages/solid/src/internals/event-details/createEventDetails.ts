@@ -1,5 +1,3 @@
-import { EMPTY_OBJECT } from "#utils";
-
 import { REASONS } from "./reasons";
 
 interface ReasonToEventMap {
@@ -108,6 +106,43 @@ export type RebaseUIGenericEventDetails<Reason extends string, CustomProperties 
   ? RebaseUIGenericEventDetail<Reason, CustomProperties> & {}
   : never;
 
+const PLACEHOLDER_EVENT_TYPE = "rebase-ui";
+
+/**
+ * Event details are allocated on every emitted event, so they are classes rather
+ * than object literals: `cancel` and `allowPropagation` live on the prototype
+ * instead of being a fresh closure per instance, and the flags they set are
+ * plain fields instead of getters over captured variables.
+ *
+ * The methods read `this`, so they must be called as `details.cancel()` rather
+ * than pulled off the object first.
+ */
+class ChangeEventDetails<Reason extends string> {
+  isCanceled = false;
+  isPropagationAllowed = false;
+
+  constructor(
+    readonly reason: Reason,
+    readonly event: ReasonToEvent<Reason>,
+    readonly trigger: Element | undefined,
+  ) {}
+
+  cancel(): void {
+    this.isCanceled = true;
+  }
+
+  allowPropagation(): void {
+    this.isPropagationAllowed = true;
+  }
+}
+
+class GenericEventDetails<Reason extends string> {
+  constructor(
+    readonly reason: Reason,
+    readonly event: ReasonToEvent<Reason>,
+  ) {}
+}
+
 /**
  * Creates a Rebase UI event details object with the given reason and utilities
  * for preventing Rebase UI's internal event handling.
@@ -118,28 +153,13 @@ export function createChangeEventDetails<Reason extends string, CustomProperties
   trigger?: Element,
   customProperties?: CustomProperties,
 ): RebaseUIChangeEventDetails<Reason, CustomProperties> {
-  let canceled = false;
-  let allowPropagation = false;
-  const custom = customProperties ?? (EMPTY_OBJECT as CustomProperties);
-  const details: RebaseUIChangeEventDetail<Reason, CustomProperties> = {
-    reason,
-    event: (event ?? new Event("rebase-ui")) as ReasonToEvent<Reason>,
-    cancel() {
-      canceled = true;
-    },
-    allowPropagation() {
-      allowPropagation = true;
-    },
-    get isCanceled() {
-      return canceled;
-    },
-    get isPropagationAllowed() {
-      return allowPropagation;
-    },
-    trigger,
-    ...custom,
-  };
-  return details as RebaseUIChangeEventDetails<Reason, CustomProperties>;
+  const details = new ChangeEventDetails(reason, (event ?? new Event(PLACEHOLDER_EVENT_TYPE)) as ReasonToEvent<Reason>, trigger);
+
+  if (customProperties !== undefined) {
+    Object.assign(details, customProperties);
+  }
+
+  return details as unknown as RebaseUIChangeEventDetails<Reason, CustomProperties>;
 }
 
 export function createGenericEventDetails<Reason extends keyof ReasonToEventMap, CustomProperties extends object = {}>(
@@ -147,11 +167,11 @@ export function createGenericEventDetails<Reason extends keyof ReasonToEventMap,
   event?: ReasonToEvent<Reason>,
   customProperties?: CustomProperties,
 ): RebaseUIGenericEventDetails<Reason, CustomProperties> {
-  const custom = customProperties ?? (EMPTY_OBJECT as CustomProperties);
-  const details: RebaseUIGenericEventDetail<Reason, CustomProperties> = {
-    reason,
-    event: (event ?? new Event("rebase-ui")) as ReasonToEvent<Reason>,
-    ...custom,
-  };
-  return details as RebaseUIGenericEventDetails<Reason, CustomProperties>;
+  const details = new GenericEventDetails(reason, (event ?? new Event(PLACEHOLDER_EVENT_TYPE)) as ReasonToEvent<Reason>);
+
+  if (customProperties !== undefined) {
+    Object.assign(details, customProperties);
+  }
+
+  return details as unknown as RebaseUIGenericEventDetails<Reason, CustomProperties>;
 }
