@@ -3,7 +3,7 @@ import { createSignal, type Accessor, untrack, createMemo } from "solid-js";
 export interface ControllableProps<T> {
   value: Accessor<T | undefined>;
   defaultValue: Accessor<T | undefined>;
-  onChange: (value: T) => void;
+  onChange?: (value: T) => void;
 }
 
 export interface ControllablePropsWithDefaultValue<T> extends Omit<ControllableProps<T>, "defaultValue"> {
@@ -23,7 +23,7 @@ export function createControllableSignal<T>(props: ControllableProps<T>): [Acces
     if (untrack(props.value) === undefined) {
       setInternalValue(() => next);
     }
-    props.onChange(next);
+    props.onChange?.(next);
   };
 
   return [value, setValue];

@@ -6,10 +6,6 @@ import type { CollapsibleRootChangeEventDetails, CollapsibleRootState } from "./
 
 export interface CollapsibleRootContext {
   /**
-   * The fallback `id` attribute of the panel.
-   */
-  defaultPanelId: string;
-  /**
    * Whether the component should ignore user interaction.
    */
   disabled: Accessor<boolean>;
@@ -34,10 +30,10 @@ export interface CollapsibleRootContext {
   /**
    * The `id` attribute of the panel.
    */
-  panelId: Accessor<string | undefined>;
+  panelId: Accessor<string>;
   setMounted: Setter<boolean>;
   setOpen: (open: boolean) => void;
-  setPanelIdState: (update: (currentId: string | null | undefined) => string | null | undefined) => void;
+  setPanelId: Setter<string>;
   state: CollapsibleRootState;
   transitionStatus: Accessor<TransitionStatus>;
 }

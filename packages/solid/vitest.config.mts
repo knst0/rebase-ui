@@ -7,6 +7,7 @@ export default mergeConfig(
   defineProject({
     define: {
       "process.env.NODE_ENV": JSON.stringify("test"),
+      "process.env.REBASE_UI_BENCH": JSON.stringify(process.env.REBASE_UI_BENCH ?? ""),
     },
   }),
 );

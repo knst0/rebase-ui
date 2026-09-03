@@ -66,6 +66,77 @@ describe("<Collapsible.Trigger />", () => {
     expect(trigger).not.toHaveAttribute("aria-controls");
   });
 
+  it("uses a custom panel id for `aria-controls`", async () => {
+    render(() => (
+      <Collapsible.Root defaultOpen>
+        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+        <Collapsible.Panel id="custom-panel">Content</Collapsible.Panel>
+      </Collapsible.Root>
+    ));
+
+    expect(screen.getByRole("button")).toHaveAttribute("aria-controls", "custom-panel");
+  });
+
+  it("keeps the panel id in the DOM without `aria-controls` when closed with `keepMounted`", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <Collapsible.Root defaultOpen>
+        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+        <Collapsible.Panel id="kept-panel" keepMounted>
+          Content
+        </Collapsible.Panel>
+      </Collapsible.Root>
+    ));
+
+    const trigger = screen.getByRole("button");
+    await user.click(trigger);
+    flush();
+
+    expect(screen.getByText("Content")).toHaveAttribute("id", "kept-panel");
+    expect(trigger).not.toHaveAttribute("aria-controls");
+  });
+
+  it("keeps the panel id in the DOM without `aria-controls` when closed with `hiddenUntilFound`", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <Collapsible.Root defaultOpen>
+        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+        <Collapsible.Panel id="findable-panel" hiddenUntilFound>
+          Content
+        </Collapsible.Panel>
+      </Collapsible.Root>
+    ));
+
+    const trigger = screen.getByRole("button");
+    await user.click(trigger);
+    flush();
+
+    expect(screen.getByText("Content")).toHaveAttribute("id", "findable-panel");
+    expect(trigger).not.toHaveAttribute("aria-controls");
+  });
+
+  it("reuses the same panel id after reopening", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <Collapsible.Root>
+        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+        <Collapsible.Panel>Content</Collapsible.Panel>
+      </Collapsible.Root>
+    ));
+
+    const trigger = screen.getByRole("button");
+    await user.click(trigger);
+    flush();
+    const panelId = trigger.getAttribute("aria-controls");
+
+    await user.click(trigger);
+    flush();
+    await user.click(trigger);
+    flush();
+
+    expect(trigger).toHaveAttribute("aria-controls", panelId);
+  });
+
   it("toggles on Enter and Space key presses", async () => {
     const user = userEvent.setup();
     render(() => (

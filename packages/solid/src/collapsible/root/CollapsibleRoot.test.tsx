@@ -4,20 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
-import { describeConformance } from "#test-utils";
+import { describeConformance, nextFrames } from "#test-utils";
 
 import * as Collapsible from "../index.parts";
 import * as CollapsibleRootDataAttributes from "./CollapsibleRootDataAttributes";
-
-const nextFrames = () =>
-  new Promise<void>((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        flush();
-        resolve();
-      });
-    });
-  });
 
 describe("<Collapsible.Root />", () => {
   describeConformance(

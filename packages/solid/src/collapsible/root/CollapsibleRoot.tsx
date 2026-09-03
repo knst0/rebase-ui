@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
+import { type Accessor, createSignal, createUniqueId, untrack } from "solid-js";
 
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
@@ -26,24 +26,11 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
   const [open, setOpen] = createControllableSignal({
     value: () => local.open,
     defaultValue: () => local.defaultOpen,
-    onChange: () => {},
   });
 
   const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, true, true);
 
-  const defaultPanelId = createUniqueId();
-
-  // `undefined` uses the initial generated fallback; `null` means the panel unmounted.
-  const [registeredPanelId, setRegisteredPanelId] = createSignal<string | null | undefined>(undefined);
-
-  const panelId = createMemo(() => {
-    const registeredId = registeredPanelId();
-    return registeredId === null ? undefined : (registeredId ?? defaultPanelId);
-  });
-
-  const setPanelIdState = (update: (currentId: string | null | undefined) => string | null | undefined) => {
-    setRegisteredPanelId(update);
-  };
+  const [panelId, setPanelId] = createSignal(createUniqueId());
 
   const onOpenChange = (nextOpen: boolean, eventDetails: CollapsibleRootChangeEventDetails) => {
     local.onOpenChange?.(nextOpen, eventDetails);
@@ -69,7 +56,6 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
   };
 
   const contextValue: CollapsibleRootContext = {
-    defaultPanelId,
     disabled,
     handleTrigger,
     mounted,
@@ -78,7 +64,7 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
     panelId,
     setMounted,
     setOpen,
-    setPanelIdState,
+    setPanelId,
     state,
     transitionStatus,
   };

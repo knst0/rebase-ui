@@ -1,4 +1,5 @@
 import { fireEvent } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 
 /**
  * Whether the test runs in JSDOM environment
@@ -20,6 +21,33 @@ export type IfEquals<T, U, Y = unknown, N = never> = (<G>() => G extends T ? 1 :
  * @param _actual
  */
 export function expectType<Expected, Actual>(_actual: IfEquals<Actual, Expected, Actual>): void {}
+
+/**
+ * Waits for two animation frames and flushes pending reactive work.
+ */
+export const nextFrames = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        flush();
+        resolve();
+      });
+    });
+  });
+
+/**
+ * Runs `fn` with real animations enabled, restoring the previous value of
+ * `globalThis.REBASE_UI_ANIMATIONS_DISABLED` afterwards.
+ */
+export async function withRealAnimations<T>(fn: () => T | Promise<T>): Promise<T> {
+  const previous = globalThis.REBASE_UI_ANIMATIONS_DISABLED;
+  globalThis.REBASE_UI_ANIMATIONS_DISABLED = false;
+  try {
+    return await fn();
+  } finally {
+    globalThis.REBASE_UI_ANIMATIONS_DISABLED = previous;
+  }
+}
 
 export function pressKey(key: string) {
   const element = document.activeElement;

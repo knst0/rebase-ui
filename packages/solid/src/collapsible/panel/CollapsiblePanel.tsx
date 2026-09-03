@@ -1,4 +1,4 @@
-import type { JSX, ValidComponent } from "@solidjs/web";
+import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, untrack } from "solid-js";
 
 import { mergeRefs } from "../../internals/mergeRefs";
@@ -9,8 +9,7 @@ import type { RebaseUIComponentProps } from "../../internals/types";
 import type { CollapsibleRootState } from "../root/CollapsibleRoot";
 import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
 import { collapsibleStateAttributesMapping } from "../root/stateAttributesMapping";
-import * as CollapsiblePanelCssVars from "./CollapsiblePanelCssVars";
-import { createCollapsiblePanel } from "./createCollapsiblePanel";
+import { type CollapsiblePanelSizing, createCollapsiblePanel } from "./createCollapsiblePanel";
 
 export function CollapsiblePanel<T extends ValidComponent = "div">(props: CollapsiblePanel.Props<T>) {
   const [local, elementProps] = split(props as CollapsiblePanel.Props, { default: defaultProps }, [
@@ -18,6 +17,7 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
     "hiddenUntilFound",
     "keepMounted",
     "id",
+    "sizing",
   ]);
 
   const as = untrack(() => local.as);
@@ -35,16 +35,12 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
   }
 
   const registeredId = untrack(() => local.id) || undefined;
-  const id = registeredId ?? rootContext.defaultPanelId;
+  const id = untrack(() => registeredId ?? rootContext.panelId());
 
   createEffect(
-    () => ({ registeredId }),
-    ({ registeredId }) => {
-      rootContext.setPanelIdState((currentId) => registeredId ?? (currentId === null ? undefined : currentId));
-
-      return () => {
-        rootContext.setPanelIdState((currentId) => (currentId === registeredId ? null : currentId));
-      };
+    () => ({ panelId: id }),
+    ({ panelId }: { panelId: string }) => {
+      rootContext.setPanelId(panelId);
     },
   );
 
@@ -57,6 +53,7 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
     open: rootContext.open,
     setMounted: rootContext.setMounted,
     setOpen: rootContext.setOpen,
+    sizing: () => local.sizing,
     transitionStatus: rootContext.transitionStatus,
   });
 
@@ -68,24 +65,6 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
     transitionStatus: panel.transitionStatus,
   };
 
-  const dimensionsStyle = (externalProps: Record<string, any>) => ({
-    style: {
-      ...(externalProps.style as JSX.CSSProperties | undefined),
-      [CollapsiblePanelCssVars.collapsiblePanelHeight]: panel.height() === undefined ? "auto" : `${panel.height()}px`,
-      [CollapsiblePanelCssVars.collapsiblePanelWidth]: panel.width() === undefined ? "auto" : `${panel.width()}px`,
-    } as JSX.CSSProperties,
-  });
-
-  const preventOpenAnimationStyle = (externalProps: Record<string, any>) =>
-    panel.shouldPreventOpenAnimation()
-      ? {
-          style: {
-            ...(externalProps.style as JSX.CSSProperties | undefined),
-            animationName: "none",
-          } as JSX.CSSProperties,
-        }
-      : ({} as Record<string, never>);
-
   const refProps = (externalProps: Record<string, any>) => ({
     ref: mergeRefs<HTMLElement>(externalProps.ref, panel.ref),
   });
@@ -95,7 +74,7 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
       as={as}
       enabled={shouldRender}
       state={state}
-      props={[panel.props, elementProps, dimensionsStyle, preventOpenAnimationStyle, refProps]}
+      props={[panel.props, elementProps, refProps]}
       stateAttributesMapping={collapsibleStateAttributesMapping}
     />
   );
@@ -105,6 +84,7 @@ const defaultProps = Object.freeze({
   as: "div",
   hiddenUntilFound: false,
   keepMounted: false,
+  sizing: "auto",
 } satisfies Partial<CollapsiblePanel.Props>);
 
 export interface CollapsiblePanelState extends CollapsibleRootState {
@@ -134,6 +114,19 @@ export interface CollapsiblePanelOwnProps {
    * The `id` attribute of the panel.
    */
   id?: string | undefined;
+  /**
+   * How the panel determines its animated size.
+   *
+   * - `measured` publishes the `--collapsible-panel-height` and
+   *   `--collapsible-panel-width` custom properties.
+   * - `native` performs no measurement and relies on
+   *   `interpolate-size: allow-keywords`, so consumer CSS animates to `auto`.
+   * - `auto` selects `native` when `globalThis.REBASE_UI_EXPERIMENTAL_NATIVE_SIZING`
+   *   is set and the engine supports it, and `measured` otherwise.
+   *
+   * @default 'auto'
+   */
+  sizing?: CollapsiblePanelSizing | undefined;
 }
 
 export type CollapsiblePanelProps<T extends ValidComponent = "div"> = CollapsiblePanelOwnProps &
