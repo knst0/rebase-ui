@@ -20,6 +20,7 @@
     "oxlint": "^1.80.0",
     "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^7.0.2",
+    "ultracite": "^7.10.7",
     "vitest": "^5.0.0-rc.4"
   },
   "devEngines": {
