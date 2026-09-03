@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { DEFAULT_EXTENSIONS, fileRoutes } from "filesystem-routing/vite";
 import rehypeSlug from "rehype-slug";
 import { defineConfig } from "vite";
-import znaki, { local, tabler } from "znaki/vite";
+import znaki, { tabler } from "znaki/vite";
 
 import { componentsNav, rehypeCodeValue } from "./plugins/index.ts";
 

@@ -33,7 +33,7 @@
       "default": "./src/tabs/indicator/prehydrationScript.min.ts"
     },
     "#test-utils": "./test/index.ts",
-    "#utils": "./src/internals/utils/index.ts"
+    "#utils/*": "./src/internals/utils/*.ts"
   },
   "exports": {
     "./accordion": "./src/accordion/index.ts",

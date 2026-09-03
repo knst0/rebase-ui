@@ -33,15 +33,9 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
-      path: "/(main)";
+      path: "/(main)/components";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
       $$route?: undefined;
     },
     {
@@ -57,9 +51,27 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/(main)/components";
+      path: "/(main)/components/tabs";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/button";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)")>;
       $$route?: undefined;
     }
   ];
@@ -97,6 +109,22 @@ declare module "virtual:file-routes" {
           $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
           $$route?: undefined;
           children: readonly [
+            {
+              path: "/tabs";
+              id: "/tabs";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/button";
+              id: "/button";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
             {
               path: "/separator";
               id: "/separator";

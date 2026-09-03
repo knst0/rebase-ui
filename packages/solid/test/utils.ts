@@ -1,7 +1,9 @@
+import { fireEvent } from "@solidjs/testing-library";
+
 /**
  * Whether the test runs in JSDOM environment
  */
-export const isJSDOM = /jsdom/.test(window.navigator.userAgent);
+export const isJSDOM = window.navigator.userAgent.includes("jsdom");
 
 // https://stackoverflow.com/questions/53807517/how-to-test-if-two-types-are-exactly-the-same
 export type IfEquals<T, U, Y = unknown, N = never> = (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2 ? Y : N;
@@ -28,4 +30,3 @@ export function pressKey(key: string) {
   fireEvent.keyDown(element, { key });
   fireEvent.keyUp(element, { key });
 }
-import { fireEvent } from "@solidjs/testing-library";

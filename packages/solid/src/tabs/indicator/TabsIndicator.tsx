@@ -1,8 +1,8 @@
-import { type JSX, type ValidComponent } from "@solidjs/web";
+import type { JSX, ValidComponent } from "@solidjs/web";
 import { type Accessor, createMemo, createSignal, onCleanup, untrack } from "solid-js";
 
 import { script as prehydrationScript } from "#prehydration/tabs/indicator";
-import { EMPTY_STATE_MAPPING } from "#utils";
+import { EMPTY_STATE_MAPPING } from "#utils/empty";
 
 import { PrehydrationScript } from "../../internals/prehydration-script";
 import { RenderElement } from "../../internals/render-element";
@@ -113,7 +113,7 @@ export function TabsIndicator<T extends ValidComponent = "span">(props: TabsIndi
         [TabsIndicatorCssVars.activeTabBottom]: `${bottom}px`,
         [TabsIndicatorCssVars.activeTabWidth]: `${width}px`,
         [TabsIndicatorCssVars.activeTabHeight]: `${height}px`,
-      } as JSX.CSSProperties;
+      };
     },
     get hidden() {
       return !displayIndicator();

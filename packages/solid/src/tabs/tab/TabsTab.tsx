@@ -12,7 +12,7 @@ import { split } from "../../internals/split";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { useTabsListContext } from "../list/TabsListContext";
 import { tabsStateAttributesMapping } from "../root/stateAttributesMapping";
-import { TabsRoot } from "../root/TabsRoot";
+import type { TabsRoot } from "../root/TabsRoot";
 import { useTabsRootContext } from "../root/TabsRootContext";
 
 export function TabsTab<T extends ValidComponent = "button">(props: TabsTab.Props<T>) {

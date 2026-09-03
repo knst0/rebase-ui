@@ -1,7 +1,7 @@
 import type { ValidComponent } from "@solidjs/web";
 import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
 
-import { EMPTY_ARRAY } from "#utils";
+import { EMPTY_ARRAY } from "#utils/empty";
 
 import { CompositeRoot, type DisabledIndices } from "../../internals/composite";
 import { split } from "../../internals/split";

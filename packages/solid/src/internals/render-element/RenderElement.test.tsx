@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web";
 import { type Accessor, createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
-import { EMPTY_OBJECT } from "#utils";
+import { EMPTY_OBJECT } from "#utils/empty";
 
 import { RenderElement } from "./RenderElement";
 

@@ -43,7 +43,7 @@ function nest(flat: Omit<NavHeading, "children">[]): NavHeading[] {
 
   for (const heading of flat) {
     const node: NavHeading = { ...heading, children: [] };
-    while (stack.length > 0 && stack[stack.length - 1]!.depth >= node.depth) stack.pop();
+    while (stack.length > 0 && stack[stack.length - 1].depth >= node.depth) stack.pop();
     (stack[stack.length - 1]?.children ?? root).push(node);
     stack.push(node);
   }
@@ -57,9 +57,9 @@ function parse(source: string): { title?: string; headings: NavHeading[] } {
   const flat: Omit<NavHeading, "children">[] = [];
 
   for (const [, hashes, raw] of source.replace(FENCE, "").matchAll(HEADING)) {
-    const title = plainText(raw!);
+    const title = plainText(raw);
     if (title === "") continue;
-    flat.push({ id: slugger.slug(title), title, depth: hashes!.length });
+    flat.push({ id: slugger.slug(title), title, depth: hashes.length });
   }
 
   return {

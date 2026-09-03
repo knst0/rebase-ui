@@ -1,4 +1,4 @@
-import { REASONS } from "./reasons";
+import type { REASONS } from "./reasons";
 
 interface ReasonToEventMap {
   [REASONS.none]: Event;

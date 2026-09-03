@@ -200,7 +200,7 @@ describe("<Tabs.List />", () => {
         }
       }
 
-      window.ResizeObserver = SpyResizeObserver as unknown as typeof ResizeObserver;
+      window.ResizeObserver = SpyResizeObserver;
       return { instances, restore: () => (window.ResizeObserver = native) };
     }
 
@@ -261,7 +261,7 @@ describe("<Tabs.List />", () => {
 
         try {
           for (let entry = 0; entry < 4; entry++) {
-            observer.callback([] as unknown as ResizeObserverEntry[], null as unknown as ResizeObserver);
+            observer.callback([], null as unknown as ResizeObserver);
           }
 
           await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));

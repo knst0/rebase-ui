@@ -138,11 +138,11 @@ export function describeConformance(
       });
 
       it("forwards the `style` prop", () => {
-        expect((renderRoot({ style: { color: "green" } }) as HTMLElement).style.color).toBe("green");
+        expect(renderRoot({ style: { color: "green" } }).style.color).toBe("green");
       });
 
       it("forwards the `style` prop defined as a function of state", () => {
-        expect((renderRoot({ style: () => ({ color: "green" }) }) as HTMLElement).style.color).toBe("green");
+        expect(renderRoot({ style: () => ({ color: "green" }) }).style.color).toBe("green");
       });
 
       it("calls the style function with the component state", () => {

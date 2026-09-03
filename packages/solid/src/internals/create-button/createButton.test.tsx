@@ -93,7 +93,7 @@ describe("useButton", () => {
           return;
         }
 
-        (inner as HTMLElement).focus();
+        inner.focus();
 
         inner.dispatchEvent(
           new KeyboardEvent("keydown", {
@@ -234,7 +234,7 @@ describe("useButton", () => {
 
     it("returns tabIndex in getButtonProps when host component is not BUTTON", () => {
       function TestButton() {
-        let ref: HTMLSpanElement | null = null;
+        const ref: HTMLSpanElement | null = null;
         const { getButtonProps, buttonRef } = createButton({ native: false });
         mergeRefs(ref, buttonRef);
 
@@ -576,7 +576,7 @@ describe("useButton", () => {
         return <span {...getButtonProps(props)} />;
       }
 
-      const preventRebaseUIHandler = (event: any) => (event as RebaseUIEvent<Event>).preventRebaseUIHandler();
+      const preventRebaseUIHandler = (event: any) => (event as RebaseUIEvent).preventRebaseUIHandler();
 
       render(() => <TestButton tabindex={0} onKeyDown={preventRebaseUIHandler} onKeyUp={preventRebaseUIHandler} onClick={handleClick} />);
 

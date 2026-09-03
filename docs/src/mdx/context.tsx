@@ -4,6 +4,7 @@ import { highlight } from "sugar-high";
 import { lang } from "sugar-high/lang";
 
 import type { RehypeCodeValuePreProps } from "../../plugins";
+
 export type Context = {
   [T in keyof JSX.IntrinsicElements]?: (props: ComponentProps<T>) => JSX.Element | JSX.Element[];
 };

@@ -1,4 +1,4 @@
-import { type Accessor, createEffect, untrack } from "solid-js";
+import { type Accessor, createEffect } from "solid-js";
 
 import { createAnimationsFinishedRunner } from "./createAnimationsFinishedRunner";
 

@@ -102,7 +102,7 @@ describe("<Button />", () => {
   });
 
   describe("prop: disabled", () => {
-    it("native button: uses the disabled attribute and is not focusable", () => {
+    it("native button: uses the disabled attribute and is not focusable", async () => {
       const handleClick = vi.fn();
       const handleMouseDown = vi.fn();
       const handlePointerDown = vi.fn();
@@ -119,9 +119,9 @@ describe("<Button />", () => {
       expect(button.hasAttribute(ButtonDataAttributes.disabled)).toBe(true);
       expect(button.hasAttribute("aria-disabled")).toBe(false);
 
-      user.click(button);
-      user.keyboard("[Enter]");
-      user.keyboard("[Space]");
+      await user.click(button);
+      await user.keyboard("[Enter]");
+      await user.keyboard("[Space]");
 
       expect(handleClick).not.toHaveBeenCalled();
       expect(handleMouseDown).not.toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe("<Button />", () => {
       expect(handleKeyDown).not.toHaveBeenCalled();
     });
 
-    it("custom element: applies aria-disabled and is not focusable", () => {
+    it("custom element: applies aria-disabled and is not focusable", async () => {
       const handleClick = vi.fn();
       const handleMouseDown = vi.fn();
       const handlePointerDown = vi.fn();
@@ -155,9 +155,9 @@ describe("<Button />", () => {
       expect(button.getAttribute("aria-disabled")).toBe("true");
       expect(button.getAttribute("tabindex")).toBe("-1");
 
-      user.click(button);
-      user.keyboard("[Enter]");
-      user.keyboard("[Space]");
+      await user.click(button);
+      await user.keyboard("[Enter]");
+      await user.keyboard("[Space]");
 
       expect(handleClick).not.toHaveBeenCalled();
       expect(handleMouseDown).not.toHaveBeenCalled();
@@ -167,7 +167,7 @@ describe("<Button />", () => {
   });
 
   describe("prop: focusableWhenDisabled", () => {
-    it("native button: prevents interactions but remains focusable", () => {
+    it("native button: prevents interactions but remains focusable", async () => {
       const handleClick = vi.fn();
       const handleMouseDown = vi.fn();
       const handlePointerDown = vi.fn();
@@ -193,9 +193,9 @@ describe("<Button />", () => {
       expect(button.getAttribute("tabindex")).toBe("0");
 
       button.focus();
-      user.click(button);
-      user.keyboard("[Enter]");
-      user.keyboard("[Space]");
+      await user.click(button);
+      await user.keyboard("[Enter]");
+      await user.keyboard("[Space]");
 
       expect(handleClick).not.toHaveBeenCalled();
       expect(handleMouseDown).not.toHaveBeenCalled();
@@ -234,14 +234,14 @@ describe("<Button />", () => {
       expect(button.getAttribute("aria-disabled")).toBe("true");
 
       button.focus();
-      user.click(button);
-      user.keyboard("[Enter]");
-      user.keyboard("[Space]");
+      await user.click(button);
+      await user.keyboard("[Enter]");
+      await user.keyboard("[Space]");
 
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
-    it("custom element: prevents interactions but remains focusable", () => {
+    it("custom element: prevents interactions but remains focusable", async () => {
       const handleClick = vi.fn();
       const handleMouseDown = vi.fn();
       const handlePointerDown = vi.fn();
@@ -269,9 +269,9 @@ describe("<Button />", () => {
       expect(button.getAttribute("tabindex")).toBe("0");
 
       button.focus();
-      user.click(button);
-      user.keyboard("[Enter]");
-      user.keyboard("[Space]");
+      await user.click(button);
+      await user.keyboard("[Enter]");
+      await user.keyboard("[Space]");
 
       expect(handleClick).not.toHaveBeenCalled();
       expect(handleMouseDown).not.toHaveBeenCalled();

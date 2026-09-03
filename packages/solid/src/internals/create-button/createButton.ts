@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onSettled, untrack } from "solid-js";
 
-import { error } from "#utils";
+import { error } from "#utils/error";
 
 import type { RebaseUIEvent } from "../../types";
 import { useCompositeRootContext } from "../composite";
@@ -180,7 +180,7 @@ export function createButton(parameters: CreateButtonParameters = {}): CreateBut
   };
 
   const getButtonProps = (externalProps: GenericButtonProps = {}): GenericButtonProps => {
-    externalHandlers = externalProps as ExternalHandlers;
+    externalHandlers = externalProps;
 
     const props: GenericButtonProps = {};
 

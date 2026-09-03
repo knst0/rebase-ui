@@ -221,9 +221,9 @@ describe("useCompositeRoot tab stop ownership (experiment 6)", () => {
     render(() => (
       <CompositeRoot orientation="horizontal">
         <div style={{ display: "contents" }}>
-          <CompositeItem as="button" props={{ children: "second" } as Record<string, unknown>} />
+          <CompositeItem as="button" props={{ children: "second" }} />
         </div>
-        <CompositeItem as="button" props={{ children: "first" } as Record<string, unknown>} />
+        <CompositeItem as="button" props={{ children: "first" }} />
       </CompositeRoot>
     ));
     flush();
@@ -241,7 +241,7 @@ describe("useCompositeRoot tab stop ownership (experiment 6)", () => {
     render(() => (
       <CompositeRoot orientation="horizontal">
         <For each={Array.from({ length: count() }, (_, index) => index)}>
-          {(index) => <CompositeItem as="button" props={{ children: `item ${index}` } as Record<string, unknown>} />}
+          {(index) => <CompositeItem as="button" props={{ children: `item ${index}` }} />}
         </For>
       </CompositeRoot>
     ));
