@@ -19,7 +19,8 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
   const entries = new Map<HTMLElement, ElementMetadata<Metadata>>();
   const [version, setVersion] = createSignal(0, { ownedWrite: true });
 
-  let indices = new WeakMap<HTMLElement, number>();
+  let indices: WeakMap<HTMLElement, number> | undefined;
+  let indexedList: readonly HTMLElement[] | undefined;
 
   const register = (element: HTMLElement, metadata?: ElementMetadata<Metadata>) => {
     entries.set(element, metadata);
@@ -35,21 +36,26 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
 
   const elements = createMemo(() => {
     version();
-
-    const list = orderByDocumentPosition(entries.keys());
-
-    const next = new WeakMap<HTMLElement, number>();
-    for (let index = 0; index < list.length; index += 1) {
-      next.set(list[index], index);
-    }
-    indices = next;
-
-    return list;
+    return orderByDocumentPosition(entries.keys());
   });
 
   const indexOf = (element: HTMLElement | null) => {
-    elements();
-    return element === null ? -1 : (indices.get(element) ?? -1);
+    if (element === null) {
+      return -1;
+    }
+
+    const list = elements();
+
+    if (indices === undefined || indexedList !== list) {
+      const next = new WeakMap<HTMLElement, number>();
+      for (let index = 0; index < list.length; index += 1) {
+        next.set(list[index], index);
+      }
+      indices = next;
+      indexedList = list;
+    }
+
+    return indices.get(element) ?? -1;
   };
 
   const metadataOf = (element: HTMLElement) => {

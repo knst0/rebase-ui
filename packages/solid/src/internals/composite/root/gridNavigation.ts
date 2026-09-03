@@ -46,19 +46,57 @@ export type CompositeGridNavigator = (state: CompositeGridNavigationState) => nu
 export function gridNavigation(config: CompositeGridConfig): CompositeGridNavigator {
   const { cols, dense = false, itemSizes } = config;
 
+  const sizesCache = new Map<number, GridItemSize[]>();
+  const unknownSizeCache = new WeakMap<GridItemSize[], (number | undefined)[]>();
+  const uniformSizeDepth = new Map<number, (number | undefined)[]>();
+
+  const resolveSizes = (length: number): GridItemSize[] => {
+    if (itemSizes !== undefined) {
+      return itemSizes;
+    }
+    let sizes = sizesCache.get(length);
+    if (sizes === undefined) {
+      sizes = Array.from({ length }, () => ({ width: 1, height: 1 }));
+      sizesCache.set(length, sizes);
+    }
+    return sizes;
+  };
+
+  const resolveCellMap = (sizes: GridItemSize[]): (number | undefined)[] => {
+    if (itemSizes !== undefined) {
+      let cellMap = unknownSizeCache.get(sizes);
+      if (cellMap === undefined) {
+        cellMap = createGridCellMap(sizes, cols, dense);
+        unknownSizeCache.set(sizes, cellMap);
+      }
+      return cellMap;
+    }
+    let cellMap = uniformSizeDepth.get(sizes.length);
+    if (cellMap === undefined) {
+      cellMap = createGridCellMap(sizes, cols, dense);
+      uniformSizeDepth.set(sizes.length, cellMap);
+    }
+    return cellMap;
+  };
+
   return (state) => {
     const { disabledIndices, elements, event, highlightedIndex, loopFocus, maxIndex, minIndex, onLoop, orientation, rtl } = state;
 
-    const sizes = itemSizes || Array.from({ length: elements.length }, () => ({ width: 1, height: 1 }));
+    const sizes = resolveSizes(elements.length);
+    const cellMap = resolveCellMap(sizes);
 
-    // Work in hypothetical 1x1 cell indices, then convert back to item indices.
-    const cellMap = createGridCellMap(sizes, cols, dense);
-    const minGridIndex = cellMap.findIndex((index) => index != null && !isListIndexDisabled(elements, index, disabledIndices));
-    const maxGridIndex = cellMap.reduce(
-      (foundIndex: number, index, cellIndex) =>
-        index != null && !isListIndexDisabled(elements, index, disabledIndices) ? cellIndex : foundIndex,
-      -1,
-    );
+    let minGridIndex = -1;
+    let maxGridIndex = -1;
+    for (let cellIndex = 0; cellIndex < cellMap.length; cellIndex += 1) {
+      const itemIndex = cellMap[cellIndex];
+      if (itemIndex === undefined || isListIndexDisabled(elements, itemIndex, disabledIndices)) {
+        continue;
+      }
+      if (minGridIndex === -1) {
+        minGridIndex = cellIndex;
+      }
+      maxGridIndex = cellIndex;
+    }
 
     const cellIndex = getGridNavigatedIndex(
       cellMap.map((itemIndex) => (itemIndex != null ? elements[itemIndex] : null)),

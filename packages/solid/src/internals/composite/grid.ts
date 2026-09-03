@@ -25,6 +25,18 @@ export function isDifferentGridRow(index: number, cols: number, prevRow: number)
 
 /** For each cell index, gets the item index that occupies that cell. */
 export function createGridCellMap(sizes: GridItemSize[], cols: number, dense: boolean): (number | undefined)[] {
+  let uniform = sizes.length > 0;
+  for (const size of sizes) {
+    if (size.width !== 1 || size.height !== 1) {
+      uniform = false;
+      break;
+    }
+  }
+
+  if (uniform) {
+    return Array.from({ length: sizes.length }, (_, index) => index);
+  }
+
   const cellMap: (number | undefined)[] = [];
   let startIndex = 0;
 
@@ -72,7 +84,8 @@ export function getGridCellIndexOfCorner(
     return -1;
   }
 
-  const firstCellIndex = cellMap.indexOf(index);
+  const corners = getCellCorners(cellMap);
+  const firstCellIndex = corners.first.get(index) ?? -1;
   const sizeItem = sizes[index];
 
   switch (corner) {
@@ -83,15 +96,43 @@ export function getGridCellIndexOfCorner(
     case "bl":
       return sizeItem ? firstCellIndex + (sizeItem.height - 1) * cols : firstCellIndex;
     case "br":
-      return cellMap.lastIndexOf(index);
+      return corners.last.get(index) ?? -1;
     default:
       return -1;
   }
 }
 
+const cellCornerCache = new WeakMap<(number | undefined)[], { first: Map<number, number>; last: Map<number, number> }>();
+
+function getCellCorners(cellMap: (number | undefined)[]): { first: Map<number, number>; last: Map<number, number> } {
+  let corners = cellCornerCache.get(cellMap);
+  if (corners === undefined) {
+    corners = { first: new Map(), last: new Map() };
+    for (let cellIndex = 0; cellIndex < cellMap.length; cellIndex += 1) {
+      const itemIndex = cellMap[cellIndex];
+      if (itemIndex === undefined) {
+        continue;
+      }
+      if (!corners.first.has(itemIndex)) {
+        corners.first.set(itemIndex, cellIndex);
+      }
+      corners.last.set(itemIndex, cellIndex);
+    }
+    cellCornerCache.set(cellMap, corners);
+  }
+  return corners;
+}
+
 /** Gets all cell indices that correspond to the specified item indices. */
 export function getGridCellIndices(indices: (number | undefined)[], cellMap: (number | undefined)[]): number[] {
-  return cellMap.flatMap((index, cellIndex) => (indices.includes(index) ? [cellIndex] : []));
+  const indexSet = new Set(indices);
+  const result: number[] = [];
+  for (let cellIndex = 0; cellIndex < cellMap.length; cellIndex += 1) {
+    if (indexSet.has(cellMap[cellIndex])) {
+      result.push(cellIndex);
+    }
+  }
+  return result;
 }
 
 export interface GetGridNavigatedIndexOptions {

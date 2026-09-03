@@ -61,6 +61,14 @@ export function split(props: Record<string, any>, ...args: any[]): any[] {
 }
 
 function forwardProp(target: Record<string, any>, props: Record<string, any>, key: string, defaults: Record<string, any> | undefined) {
+  if (defaults === undefined || !(key in defaults)) {
+    const descriptor = Object.getOwnPropertyDescriptor(props, key);
+    if (descriptor !== undefined && descriptor.get === undefined && descriptor.set === undefined) {
+      Object.defineProperty(target, key, { enumerable: true, configurable: true, writable: true, value: descriptor.value });
+      return;
+    }
+  }
+
   const get = defaults !== undefined && key in defaults ? () => (key in props ? props[key] : defaults[key]) : () => props[key];
 
   Object.defineProperty(target, key, { enumerable: true, configurable: true, get });
