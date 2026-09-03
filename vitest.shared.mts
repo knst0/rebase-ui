@@ -1,7 +1,7 @@
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import viteConfig from "@rebase-ui/monorepo-tests/vite.config.ts";
+import viteConfig from "@rebase-ui/monorepo-tests/vite.shared.config.ts";
 import { playwright } from "@vitest/browser-playwright";
 import type { UserWorkspaceConfig } from "vitest/node";
 

@@ -4,7 +4,7 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    "./vite.config.ts": "./vite.config.ts"
+    "./vite.shared.config.ts": "./vite.shared.config.ts"
   },
   "scripts": {
     "test": "vitest"

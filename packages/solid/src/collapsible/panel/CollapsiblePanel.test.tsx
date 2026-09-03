@@ -9,6 +9,27 @@ import { describeConformance, nextFrames } from "#test-utils";
 import * as Collapsible from "../index.parts";
 import * as CollapsiblePanelDataAttributes from "./CollapsiblePanelDataAttributes";
 
+function renderCollapsible(rootProps: Collapsible.Root.Props = {}, panelProps: Collapsible.Panel.Props = {}) {
+  const result = render(() => (
+    <Collapsible.Root {...rootProps}>
+      <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+      <Collapsible.Panel {...panelProps}>Content</Collapsible.Panel>
+    </Collapsible.Root>
+  ));
+
+  return {
+    container: result.container,
+    trigger: screen.getByRole("button"),
+    panel: () => screen.queryByText("Content"),
+  };
+}
+
+async function clickTrigger(user: ReturnType<typeof userEvent.setup>, trigger: HTMLElement) {
+  await user.click(trigger);
+  flush();
+  await nextFrames();
+}
+
 describe("<Collapsible.Panel />", () => {
   describeConformance(
     (props) => (
@@ -23,127 +44,78 @@ describe("<Collapsible.Panel />", () => {
     }),
   );
 
-  it("does not render the panel while closed", async () => {
-    render(() => (
-      <Collapsible.Root>
-        <Collapsible.Panel>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+  it("does not render the panel while closed", () => {
+    const { panel } = renderCollapsible();
 
-    expect(screen.queryByText("Content")).not.toBeInTheDocument();
+    expect(panel()).not.toBeInTheDocument();
   });
 
   it("renders the panel when opened", async () => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger, panel } = renderCollapsible();
 
-    await user.click(screen.getByRole("button"));
-    flush();
-    await nextFrames();
+    await clickTrigger(user, trigger);
 
-    const panel = screen.getByText("Content");
-
-    expect(panel).toBeVisible();
-    expect(panel).not.toHaveAttribute("hidden");
-    expect(panel).toHaveAttribute(CollapsiblePanelDataAttributes.open, "");
+    expect(panel()).toBeVisible();
+    expect(panel()).not.toHaveAttribute("hidden");
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.open, "");
   });
 
   it("keeps the panel mounted with `keepMounted`", async () => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel keepMounted>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger, panel } = renderCollapsible({}, { keepMounted: true });
 
-    const panel = screen.getByText("Content");
+    expect(panel()).toHaveAttribute("hidden");
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.closed, "");
 
-    expect(panel).toHaveAttribute("hidden");
-    expect(panel).toHaveAttribute(CollapsiblePanelDataAttributes.closed, "");
+    await clickTrigger(user, trigger);
 
-    await user.click(screen.getByRole("button"));
-    flush();
-    await nextFrames();
-
-    expect(panel).not.toHaveAttribute("hidden");
-    expect(panel).toHaveAttribute(CollapsiblePanelDataAttributes.open, "");
+    expect(panel()).not.toHaveAttribute("hidden");
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.open, "");
   });
 
-  it("sets the panel id and links it to the trigger", async () => {
-    render(() => (
-      <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel id="custom-panel">Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+  it.each([
+    ["a custom", { id: "custom-panel" }, "custom-panel"],
+    ["a generated", {}, undefined],
+  ])("links %s panel id to the trigger", (_name, panelProps, expectedId) => {
+    const { trigger, panel } = renderCollapsible({ defaultOpen: true }, panelProps);
 
-    expect(screen.getByText("Content")).toHaveAttribute("id", "custom-panel");
-    expect(screen.getByRole("button")).toHaveAttribute("aria-controls", "custom-panel");
-  });
-
-  it("renders a generated panel id by default", async () => {
-    render(() => (
-      <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
-
-    const panelId = screen.getByText("Content").id;
+    const panelId = expectedId ?? panel()!.id;
 
     expect(panelId).toBeTruthy();
-    expect(screen.getByRole("button")).toHaveAttribute("aria-controls", panelId);
+    expect(panel()).toHaveAttribute("id", panelId);
+    expect(trigger).toHaveAttribute("aria-controls", panelId);
   });
 
   it("keeps the panel in the DOM with `hiddenUntilFound` and reveals it on `beforematch`", async () => {
     const onOpenChange = vi.fn();
-    const { container } = render(() => (
-      <Collapsible.Root onOpenChange={onOpenChange}>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel hiddenUntilFound>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { container, trigger, panel } = renderCollapsible({ onOpenChange }, { hiddenUntilFound: true });
 
-    const panel = screen.getByText("Content");
+    expect(panel()).toHaveAttribute("hidden", "until-found");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
 
-    expect(panel).toHaveAttribute("hidden", "until-found");
-    expect(screen.getByRole("button")).toHaveAttribute("aria-expanded", "false");
-
-    panel.dispatchEvent(new Event("beforematch"));
+    panel()!.dispatchEvent(new Event("beforematch"));
     flush();
     await nextFrames();
 
     expect(onOpenChange).toHaveBeenCalledTimes(1);
     expect(onOpenChange.mock.calls[0][0]).toBe(true);
     expect(onOpenChange.mock.calls[0][1].reason).toBe("none");
-    expect(panel).not.toHaveAttribute("hidden");
-    expect(screen.getByRole("button")).toHaveAttribute("aria-expanded", "true");
-    expect(container.contains(panel)).toBe(true);
+    expect(panel()).not.toHaveAttribute("hidden");
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(container.contains(panel())).toBe(true);
   });
 
-  it("supports canceling the `beforematch` open change", async () => {
+  it("supports canceling the `beforematch` open change", () => {
     const onOpenChange = vi.fn((_open: boolean, eventDetails: Collapsible.Root.ChangeEventDetails) => {
       eventDetails.cancel();
     });
-    render(() => (
-      <Collapsible.Root onOpenChange={onOpenChange}>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel hiddenUntilFound>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { panel } = renderCollapsible({ onOpenChange }, { hiddenUntilFound: true });
 
-    const panel = screen.getByText("Content");
-
-    panel.dispatchEvent(new Event("beforematch"));
+    panel()!.dispatchEvent(new Event("beforematch"));
     flush();
 
     expect(onOpenChange).toHaveBeenCalledTimes(1);
-    expect(panel).toHaveAttribute("hidden", "until-found");
+    expect(panel()).toHaveAttribute("hidden", "until-found");
   });
 });

@@ -9,6 +9,25 @@ import { describeConformance } from "#test-utils";
 import * as Collapsible from "../index.parts";
 import * as CollapsibleTriggerDataAttributes from "./CollapsibleTriggerDataAttributes";
 
+function renderCollapsible(rootProps: Collapsible.Root.Props = {}, panelProps: Collapsible.Panel.Props = {}) {
+  render(() => (
+    <Collapsible.Root {...rootProps}>
+      <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+      <Collapsible.Panel {...panelProps}>Content</Collapsible.Panel>
+    </Collapsible.Root>
+  ));
+
+  return {
+    trigger: screen.getByRole("button"),
+    panel: () => screen.queryByText("Content"),
+  };
+}
+
+async function clickTrigger(user: ReturnType<typeof userEvent.setup>, trigger: HTMLElement) {
+  await user.click(trigger);
+  flush();
+}
+
 describe("<Collapsible.Trigger />", () => {
   describeConformance(
     (props) => (
@@ -24,137 +43,71 @@ describe("<Collapsible.Trigger />", () => {
 
   it("toggles on click and updates the ARIA attributes", async () => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
-
-    const trigger = screen.getByRole("button");
+    const { trigger, panel } = renderCollapsible();
 
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(trigger).not.toHaveAttribute("aria-controls");
     expect(trigger).not.toHaveAttribute(CollapsibleTriggerDataAttributes.panelOpen);
 
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
 
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(trigger).toHaveAttribute(CollapsibleTriggerDataAttributes.panelOpen, "");
-    expect(trigger.getAttribute("aria-controls")).toBe(screen.getByText("Content").id);
+    expect(trigger).toHaveAttribute("aria-controls", panel()!.id);
   });
 
-  it("does not render `aria-controls` when the panel is unmounted", async () => {
+  it("drops `aria-controls` when the panel unmounts on close", async () => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger } = renderCollapsible({ defaultOpen: true });
 
-    const trigger = screen.getByRole("button");
-    const panelId = trigger.getAttribute("aria-controls");
+    expect(trigger.getAttribute("aria-controls")).toBeTruthy();
 
-    expect(panelId).toBeTruthy();
-
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
 
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(trigger).not.toHaveAttribute("aria-controls");
   });
 
-  it("uses a custom panel id for `aria-controls`", async () => {
-    render(() => (
-      <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel id="custom-panel">Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
-
-    expect(screen.getByRole("button")).toHaveAttribute("aria-controls", "custom-panel");
-  });
-
-  it("keeps the panel id in the DOM without `aria-controls` when closed with `keepMounted`", async () => {
+  it.each([
+    ["keepMounted", { id: "kept-panel", keepMounted: true }],
+    ["hiddenUntilFound", { id: "findable-panel", hiddenUntilFound: true }],
+  ])("keeps the panel id in the DOM without `aria-controls` when closed with `%s`", async (_name, panelProps) => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel id="kept-panel" keepMounted>
-          Content
-        </Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger, panel } = renderCollapsible({ defaultOpen: true }, panelProps);
 
-    const trigger = screen.getByRole("button");
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
 
-    expect(screen.getByText("Content")).toHaveAttribute("id", "kept-panel");
-    expect(trigger).not.toHaveAttribute("aria-controls");
-  });
-
-  it("keeps the panel id in the DOM without `aria-controls` when closed with `hiddenUntilFound`", async () => {
-    const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root defaultOpen>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel id="findable-panel" hiddenUntilFound>
-          Content
-        </Collapsible.Panel>
-      </Collapsible.Root>
-    ));
-
-    const trigger = screen.getByRole("button");
-    await user.click(trigger);
-    flush();
-
-    expect(screen.getByText("Content")).toHaveAttribute("id", "findable-panel");
+    expect(panel()).toHaveAttribute("id", panelProps.id);
     expect(trigger).not.toHaveAttribute("aria-controls");
   });
 
   it("reuses the same panel id after reopening", async () => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger } = renderCollapsible();
 
-    const trigger = screen.getByRole("button");
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
     const panelId = trigger.getAttribute("aria-controls");
 
-    await user.click(trigger);
-    flush();
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
+    await clickTrigger(user, trigger);
 
     expect(trigger).toHaveAttribute("aria-controls", panelId);
   });
 
-  it("toggles on Enter and Space key presses", async () => {
+  it.each([
+    ["Enter", "{Enter}"],
+    ["Space", " "],
+  ])("toggles on %s", async (_name, key) => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel keepMounted>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger } = renderCollapsible({}, { keepMounted: true });
 
-    const trigger = screen.getByRole("button");
     trigger.focus();
-
-    await user.keyboard("{Enter}");
+    await user.keyboard(key);
     flush();
 
     expect(trigger).toHaveAttribute("aria-expanded", "true");
 
-    await user.keyboard(" ");
+    await user.keyboard(key);
     flush();
 
     expect(trigger).toHaveAttribute("aria-expanded", "false");
@@ -173,8 +126,7 @@ describe("<Collapsible.Trigger />", () => {
 
     expect(trigger).not.toHaveAttribute("disabled");
 
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
 
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByText("Content")).toHaveAttribute("hidden");
@@ -182,17 +134,9 @@ describe("<Collapsible.Trigger />", () => {
 
   it("inherits `disabled` from the root", async () => {
     const user = userEvent.setup();
-    render(() => (
-      <Collapsible.Root disabled>
-        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
-        <Collapsible.Panel keepMounted>Content</Collapsible.Panel>
-      </Collapsible.Root>
-    ));
+    const { trigger } = renderCollapsible({ disabled: true }, { keepMounted: true });
 
-    const trigger = screen.getByRole("button");
-
-    await user.click(trigger);
-    flush();
+    await clickTrigger(user, trigger);
 
     expect(trigger).toHaveAttribute("aria-expanded", "false");
   });

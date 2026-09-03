@@ -1,14 +1,25 @@
 import { TransitionStatusDataAttributes } from "../../internals/transition-status";
 
 /**
- * Present when the collapsible panel is open.
+ * Indicates the index of the accordion item.
+ * @type {number}
+ */
+export const index = "data-index";
+
+/**
+ * Present when the accordion panel is open.
  */
 export const open = "data-open";
 
 /**
- * Present when the collapsible panel is closed.
+ * Indicates the orientation of the accordion.
  */
-export const closed = "data-closed";
+export const orientation = "data-orientation";
+
+/**
+ * Present when the accordion item is disabled.
+ */
+export const disabled = "data-disabled";
 
 /**
  * Present when the panel begins animating in.
