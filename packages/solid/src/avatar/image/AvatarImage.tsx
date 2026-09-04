@@ -1,5 +1,5 @@
-import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createEffect, createSignal, onCleanup, untrack } from "solid-js";
+import { isServer, type ValidComponent } from "@solidjs/web";
+import { type Accessor, createEffect, createRenderEffect, createSignal, onCleanup, untrack } from "solid-js";
 
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
@@ -14,7 +14,6 @@ import type { RebaseUIEvent } from "../../types";
 import type { AvatarRootState, ImageLoadingStatus } from "../root/AvatarRoot";
 import { useAvatarRootContext } from "../root/AvatarRootContext";
 import { avatarStateAttributesMapping } from "../root/stateAttributesMapping";
-import { createImageLoadingStatus } from "./createImageLoadingStatus";
 
 /**
  * The image to display in the avatar. The element stays mounted while it loads
@@ -30,12 +29,41 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
 
   const { setImageLoadingStatus } = useAvatarRootContext();
 
-  const { status, setStatus, setImageElement } = createImageLoadingStatus(() => elementProps.src as string | undefined, {
-    referrerPolicy: () => elementProps.referrerpolicy as string | undefined,
-    crossOrigin: () => elementProps.crossorigin as string | undefined,
-    sizes: () => elementProps.sizes as string | undefined,
-    srcSet: () => elementProps.srcset as string | undefined,
-  });
+  const [status, setStatus] = createSignal<ImageLoadingStatus>("idle", { ownedWrite: true });
+  const [element, setElement] = createSignal<HTMLImageElement | undefined>(undefined);
+
+  if (!isServer) {
+    let previousSource: string | undefined;
+
+    createRenderEffect(
+      () => ({
+        image: element(),
+        src: elementProps.src as string | undefined,
+        srcSet: elementProps.srcset as string | undefined,
+        sizes: elementProps.sizes as string | undefined,
+        crossOrigin: elementProps.crossorigin as string | undefined,
+        referrerPolicy: elementProps.referrerpolicy as string | undefined,
+      }),
+      (deps) => {
+        if (!deps.src && !deps.srcSet) {
+          previousSource = undefined;
+          setStatus("error");
+          return;
+        }
+
+        const source = `${deps.src ?? ""}|${deps.srcSet ?? ""}`;
+        const sourceChanged = previousSource !== undefined && previousSource !== source;
+        previousSource = source;
+
+        if (deps.image === undefined || sourceChanged || !deps.image.complete) {
+          setStatus("loading");
+          return;
+        }
+
+        setStatus(deps.image.naturalWidth > 0 ? "loaded" : "error");
+      },
+    );
+  }
 
   createEffect(status, (value) => {
     if (value !== "idle") {
@@ -51,8 +79,6 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
   const isVisible = () => status() === "loaded";
   const { setMounted, transitionStatus } = createTransitionStatus(isVisible);
 
-  const [element, setElement] = createSignal<HTMLImageElement | undefined>(undefined);
-
   runOnOpenChangeComplete({
     open: isVisible,
     ref: element,
@@ -66,18 +92,14 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
   const state: AvatarImageState = {
     imageLoadingStatus: status,
     // The element never unmounts, so an exit transition would play and then
-    // reverse itself once the status resolves again. The `data-loading` and
-    // `data-error` hooks cover the not-loaded states instead.
+    // reverse itself once the status resolves again.
     transitionStatus: () => (transitionStatus() === "ending" ? undefined : transitionStatus()),
   };
 
   const imageProps = (externalProps: Record<string, any>) =>
     overrideProps(externalProps, {
-      ref: mergeRefs<HTMLImageElement>(externalProps.ref, setElement, setImageElement),
+      ref: mergeRefs<HTMLImageElement>(externalProps.ref, setElement),
 
-      // Until the image is displayable the fallback owns the accessible name.
-      // Without this both would be exposed to assistive technology at once,
-      // including in server-rendered markup.
       get "aria-hidden"() {
         return status() !== "loaded" ? "true" : undefined;
       },

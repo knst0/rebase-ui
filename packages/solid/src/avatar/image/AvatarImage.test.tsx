@@ -30,7 +30,6 @@ describe("<Avatar.Image />", () => {
       defaultElement: "img",
       as: { targetElement: "div" },
       refInstanceof: window.HTMLImageElement,
-      stateAttributes: { "data-loading": "" },
     },
   );
 
@@ -109,7 +108,7 @@ describe("<Avatar.Image />", () => {
     flush();
 
     expect(onLoadingStatusChange.mock.calls.map(([status]) => status)).toEqual(["error"]);
-    expect(screen.getByTestId("image")).toHaveAttribute("data-error");
+    expect(screen.getByTestId("image")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByText("JD")).not.toBe(null);
   });
 
@@ -191,59 +190,8 @@ describe("<Avatar.Image />", () => {
 
       flush();
 
-      expect(screen.getByTestId("image")).toHaveAttribute("data-loading");
+      expect(screen.getByTestId("image")).toHaveAttribute("aria-hidden", "true");
       expect(screen.getByTestId("fallback")).not.toBe(null);
-    });
-  });
-
-  describe("state `data-*` attributes", () => {
-    it("sets `data-loading` while loading", () => {
-      render(() => (
-        <Avatar.Root>
-          <Avatar.Image data-testid="image" src="avatar.png" />
-        </Avatar.Root>
-      ));
-
-      flush();
-
-      const image = screen.getByTestId("image");
-
-      expect(image).toHaveAttribute("data-loading");
-      expect(image).not.toHaveAttribute("data-error");
-    });
-
-    it("swaps `data-loading` for `data-error` when the image fails", async () => {
-      render(() => (
-        <Avatar.Root>
-          <Avatar.Image data-testid="image" src={BROKEN_IMAGE} />
-        </Avatar.Root>
-      ));
-
-      const image = screen.getByTestId("image");
-
-      await vi.waitFor(() => {
-        flush();
-        expect(image).toHaveAttribute("data-error");
-      });
-
-      expect(image).not.toHaveAttribute("data-loading");
-    });
-
-    it("clears both attributes once the image loads", async () => {
-      render(() => (
-        <Avatar.Root>
-          <Avatar.Image data-testid="image" src={LOADABLE_IMAGE} />
-        </Avatar.Root>
-      ));
-
-      const image = screen.getByTestId("image");
-
-      await vi.waitFor(() => {
-        flush();
-        expect(image).not.toHaveAttribute("data-loading");
-      });
-
-      expect(image).not.toHaveAttribute("data-error");
     });
   });
 
@@ -278,9 +226,11 @@ describe("<Avatar.Image />", () => {
     });
 
     it("keeps the image hidden from assistive technology after an error", async () => {
+      const onLoadingStatusChange = vi.fn();
+
       render(() => (
         <Avatar.Root>
-          <Avatar.Image alt="Jane Doe" data-testid="image" src={BROKEN_IMAGE} />
+          <Avatar.Image alt="Jane Doe" data-testid="image" onLoadingStatusChange={onLoadingStatusChange} src={BROKEN_IMAGE} />
           <Avatar.Fallback>JD</Avatar.Fallback>
         </Avatar.Root>
       ));
@@ -289,7 +239,7 @@ describe("<Avatar.Image />", () => {
 
       await vi.waitFor(() => {
         flush();
-        expect(image).toHaveAttribute("data-error");
+        expect(onLoadingStatusChange).toHaveBeenCalledWith("error");
       });
 
       expect(image).toHaveAttribute("aria-hidden", "true");
@@ -312,7 +262,7 @@ describe("<Avatar.Image />", () => {
         expect(onLoad).toHaveBeenCalledTimes(1);
       });
 
-      expect(screen.getByTestId("image")).not.toHaveAttribute("data-loading");
+      expect(screen.getByTestId("image")).not.toHaveAttribute("aria-hidden");
     });
 
     it("calls the user onError handler", async () => {
@@ -329,7 +279,7 @@ describe("<Avatar.Image />", () => {
         expect(onError).toHaveBeenCalledTimes(1);
       });
 
-      expect(screen.getByTestId("image")).toHaveAttribute("data-error");
+      expect(screen.getByTestId("image")).toHaveAttribute("aria-hidden", "true");
     });
 
     it("lets a user handler prevent the status update", () => {
@@ -352,7 +302,7 @@ describe("<Avatar.Image />", () => {
       fireEvent.load(screen.getByTestId("image"));
       flush();
 
-      expect(screen.getByTestId("image")).toHaveAttribute("data-loading");
+      expect(screen.getByTestId("image")).toHaveAttribute("aria-hidden", "true");
       expect(onLoadingStatusChange.mock.calls.map(([status]) => status)).toEqual(["loading"]);
       expect(screen.getByText("JD")).not.toBe(null);
     });

@@ -44,16 +44,18 @@ describe("<Avatar.Fallback />", () => {
   });
 
   it("renders when the image fails to load", async () => {
+    const onLoadingStatusChange = vi.fn();
+
     render(() => (
       <Avatar.Root>
-        <Avatar.Image data-testid="image" src={BROKEN_IMAGE} />
+        <Avatar.Image data-testid="image" onLoadingStatusChange={onLoadingStatusChange} src={BROKEN_IMAGE} />
         <Avatar.Fallback data-testid="fallback">JD</Avatar.Fallback>
       </Avatar.Root>
     ));
 
     await vi.waitFor(() => {
       flush();
-      expect(screen.getByTestId("image")).toHaveAttribute("data-error");
+      expect(onLoadingStatusChange).toHaveBeenCalledWith("error");
     });
 
     expect(screen.getByTestId("fallback")).not.toBe(null);

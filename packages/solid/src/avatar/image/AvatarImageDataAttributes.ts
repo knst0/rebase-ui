@@ -1,14 +1,14 @@
-import { TransitionStatusDataAttributes } from '../../internals/transition-status';
+import { TransitionStatusDataAttributes } from "../../internals/transition-status";
 
 /**
  * Present while the image is loading.
  */
-export const loading = 'data-loading';
+export const loading = "data-loading";
 
 /**
  * Present when the image failed to load.
  */
-export const error = 'data-error';
+export const error = "data-error";
 
 /**
  * Present when the image begins animating in.

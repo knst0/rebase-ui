@@ -22,12 +22,13 @@ describe("<Avatar.Root />", () => {
     expect(screen.getByTestId("root")).toContainElement(screen.getByText("JD"));
   });
 
-  it("has no loading state attributes while idle", () => {
-    render(() => <Avatar.Root data-testid="root" />);
+  it("renders the fallback when it has no image", () => {
+    render(() => (
+      <Avatar.Root data-testid="root">
+        <Avatar.Fallback data-testid="fallback">JD</Avatar.Fallback>
+      </Avatar.Root>
+    ));
 
-    const root = screen.getByTestId("root");
-
-    expect(root).not.toHaveAttribute("data-loading");
-    expect(root).not.toHaveAttribute("data-error");
+    expect(screen.getByTestId("fallback")).not.toBe(null);
   });
 });
