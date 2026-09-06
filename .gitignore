@@ -48,3 +48,7 @@ test/profile/output/
 
 # temporary files
 .tmp-up/
+.eve
+
+.vercel
+.env*

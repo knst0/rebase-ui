@@ -10,7 +10,7 @@
     "test": "vitest"
   },
   "devDependencies": {
-    "@solidjs/vite-plugin": "^3.0.0-next.36",
+    "@solidjs/vite-plugin": "^3.0.0-next.39",
     "@testing-library/jest-dom": "^7.0.1",
     "vite": "^8.2.2"
   }
