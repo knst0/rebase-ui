@@ -1,0 +1,45 @@
+---
+title: Accordion
+description: A set of collapsible panels with headings.
+---
+
+# Accordion
+
+A set of collapsible panels with headings.
+
+<Demo hero />
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Accordion } from "@rebase-ui/solid/accordion";
+
+<Accordion.Root>
+  <Accordion.Item>
+    <Accordion.Header>
+      <Accordion.Trigger />
+    </Accordion.Header>
+    <Accordion.Panel />
+  </Accordion.Item>
+</Accordion.Root>;
+```
+
+## Examples
+
+### Open multiple panels
+
+You can set up the accordion to allow multiple panels to be open at the same time using the `multiple` prop.
+
+<Demo multiple />
+
+### Hidden until found
+
+The `hiddenUntilFound` prop hides closed panels with `hidden="until-found"` so the browser can search their contents and reveal the matching panel automatically. It can be set on each `Accordion.Panel`, or once on `Accordion.Root` to apply to all panels.
+
+To try it, press Ctrl+F (Cmd+F on macOS) and search for “restocking”—the browser opens the closed panel containing the match. When `hiddenUntilFound` is enabled, closed panels always remain mounted in the DOM, which also makes their contents indexable by search engines.
+
+Older browsers that don’t support `hidden="until-found"` keep panels hidden until their trigger opens them, and find-in-page skips over the contents.
+
+<Demo hidden-until-found />
