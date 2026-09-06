@@ -10,6 +10,12 @@ import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/
 import type { CollapsibleRootState } from "../root/CollapsibleRoot";
 import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
 
+/**
+ * A button that opens and closes the collapsible panel.
+ * Renders a `<button>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/collapsible)
+ */
 export function CollapsibleTrigger<T extends ValidComponent = "button">(props: CollapsibleTrigger.Props<T>) {
   const [local, elementProps] = split(props as CollapsibleTrigger.Props, { default: defaultProps }, ["as", "disabled", "nativeButton"]);
 

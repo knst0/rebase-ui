@@ -8,17 +8,37 @@ export interface CreateTransitionStatusReturnValue {
   transitionStatus: Accessor<TransitionStatus>;
 }
 
+export interface CreateTransitionStatusOptions {
+  /**
+   * Enables the `"idle"` state between `"starting"` and `"ending"`.
+   * @default false
+   */
+  enableIdleState?: boolean | undefined;
+  /**
+   * Delays the `"ending"` state by one animation frame.
+   * @default false
+   */
+  deferEndingState?: boolean | undefined;
+  /**
+   * Whether the element stays in the DOM once it is no longer open. The
+   * `"ending"` state exists to animate an element on its way out, so an element
+   * that never unmounts would otherwise start an exit transition and reverse it
+   * as soon as it opens again.
+   * @default false
+   */
+  alwaysMounted?: boolean | undefined;
+}
+
 /**
  * Provides a status string for CSS animations.
  * @param open - whether the element is open.
- * @param enableIdleState - enables the `"idle"` state between `"starting"` and `"ending"`.
- * @param deferEndingState - delays the `"ending"` state by one animation frame.
+ * @param options - see {@link CreateTransitionStatusOptions}.
  */
 export function createTransitionStatus(
   open: Accessor<boolean>,
-  enableIdleState: boolean = false,
-  deferEndingState: boolean = false,
+  options: CreateTransitionStatusOptions = {},
 ): CreateTransitionStatusReturnValue {
+  const { enableIdleState = false, deferEndingState = false, alwaysMounted = false } = options;
   const initiallyOpen = untrack(open);
 
   const [transitionStatus, setTransitionStatus] = createSignal<TransitionStatus>(initiallyOpen && enableIdleState ? "idle" : undefined);
@@ -33,12 +53,19 @@ export function createTransitionStatus(
         return;
       }
 
-      if (!isOpen && isMounted && status !== "ending" && !deferEndingState) {
+      if (!isOpen && isMounted && status !== "ending" && !deferEndingState && !alwaysMounted) {
         setTransitionStatus("ending");
         return;
       }
 
       if (!isOpen && !isMounted && status === "ending") {
+        setTransitionStatus(undefined);
+        return;
+      }
+
+      // An always-mounted element never reaches `"ending"`, so nothing else
+      // clears the entry status it kept from the last time it opened.
+      if (!isOpen && alwaysMounted && status !== undefined) {
         setTransitionStatus(undefined);
       }
     },
@@ -47,7 +74,7 @@ export function createTransitionStatus(
   createRenderEffect(
     () => ({ open: open(), mounted: mounted(), status: transitionStatus() }),
     ({ open: isOpen, mounted: isMounted, status }) => {
-      if (isOpen || !isMounted || status === "ending" || !deferEndingState) {
+      if (isOpen || !isMounted || status === "ending" || !deferEndingState || alwaysMounted) {
         return undefined;
       }
 

@@ -17,6 +17,12 @@ import * as AccordionPanelCssVars from "./AccordionPanelCssVars";
 
 const panelStateAttributesMapping = accordionStateAttributesMapping as StateAttributesMapping<AccordionPanelState>;
 
+/**
+ * A collapsible panel with the accordion item contents.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/accordion)
+ */
 export function AccordionPanel<T extends ValidComponent = "div">(props: AccordionPanel.Props<T>) {
   const [local, elementProps] = split(props as AccordionPanel.Props, { default: defaultProps }, [
     "as",

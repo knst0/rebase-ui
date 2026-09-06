@@ -8,6 +8,12 @@ import type { AccordionItemState } from "../item/AccordionItem";
 import { useAccordionItemContext } from "../item/AccordionItemContext";
 import { accordionStateAttributesMapping } from "../item/stateAttributesMapping";
 
+/**
+ * A heading that labels the corresponding panel.
+ * Renders an `<h3>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/accordion)
+ */
 export function AccordionHeader<T extends ValidComponent = "h3">(props: AccordionHeader.Props<T>) {
   const [local, elementProps] = split(props as AccordionHeader.Props, { default: defaultProps }, ["as"]);
 

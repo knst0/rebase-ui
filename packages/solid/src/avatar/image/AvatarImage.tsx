@@ -16,8 +16,7 @@ import { useAvatarRootContext } from "../root/AvatarRootContext";
 import { avatarStateAttributesMapping } from "../root/stateAttributesMapping";
 
 /**
- * The image to display in the avatar. The element stays mounted while it loads
- * and reports its status from its own `load` and `error` events.
+ * The image to be displayed in the avatar.
  * Renders an `<img>` element.
  *
  * Documentation: [Rebase UI Avatar](https://rebase-ui.knst.dev/components/avatar)
@@ -77,7 +76,7 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
   });
 
   const isVisible = () => status() === "loaded";
-  const { setMounted, transitionStatus } = createTransitionStatus(isVisible);
+  const { setMounted, transitionStatus } = createTransitionStatus(isVisible, { alwaysMounted: true });
 
   runOnOpenChangeComplete({
     open: isVisible,
@@ -91,9 +90,7 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
 
   const state: AvatarImageState = {
     imageLoadingStatus: status,
-    // The element never unmounts, so an exit transition would play and then
-    // reverse itself once the status resolves again.
-    transitionStatus: () => (transitionStatus() === "ending" ? undefined : transitionStatus()),
+    transitionStatus,
   };
 
   const imageProps = (externalProps: Record<string, any>) =>

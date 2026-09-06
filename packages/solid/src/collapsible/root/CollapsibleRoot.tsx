@@ -10,6 +10,12 @@ import type { RebaseUIComponentProps } from "../../internals/types";
 import { CollapsibleRootContext } from "./CollapsibleRootContext";
 import { collapsibleStateAttributesMapping } from "./stateAttributesMapping";
 
+/**
+ * Groups all parts of the collapsible.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/collapsible)
+ */
 export function CollapsibleRoot<T extends ValidComponent = "div">(props: CollapsibleRoot.Props<T>) {
   const [local, elementProps] = split(props as CollapsibleRoot.Props, { default: defaultProps }, [
     "as",
@@ -28,7 +34,7 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
     defaultValue: () => local.defaultOpen,
   });
 
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, true, true);
+  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
 
   const [panelId, setPanelId] = createSignal(createUniqueId());
 

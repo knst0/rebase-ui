@@ -11,6 +11,12 @@ import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
 import { collapsibleStateAttributesMapping } from "../root/stateAttributesMapping";
 import { type CollapsiblePanelSizing, createCollapsiblePanel } from "./createCollapsiblePanel";
 
+/**
+ * A panel with the collapsible contents.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/collapsible)
+ */
 export function CollapsiblePanel<T extends ValidComponent = "div">(props: CollapsiblePanel.Props<T>) {
   const [local, elementProps] = split(props as CollapsiblePanel.Props, { default: defaultProps }, [
     "as",

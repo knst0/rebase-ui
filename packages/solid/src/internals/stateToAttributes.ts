@@ -38,18 +38,24 @@ export function getStateAttributes<State extends Record<string, Accessor<unknown
 ): Record<string, string> {
   const attributes: Record<string, string> = {};
 
-  for (const key in state) {
-    // Widens the mapping so `map` accepts the `unknown` returned by unwrapStateValue.
-    // oxlint-disable-next-line no-unnecessary-type-assertion
-    const mapping = (customMapping as AnyMapping | undefined)?.[key];
+  if (customMapping !== undefined) {
+    const mappings = customMapping as AnyMapping;
 
-    if (mapping !== undefined) {
+    for (const key in mappings) {
+      const mapping = mappings[key];
+      if (mapping === undefined || !(key in state)) {
+        continue;
+      }
+
       for (const name of mapping.keys) {
         define(attributes, name, () => mapping.map(unwrapStateValue(state[key]))?.[name]);
       }
-      continue;
     }
 
+    return attributes;
+  }
+
+  for (const key in state) {
     define(attributes, `data-${key.toLowerCase()}`, () => toStateAttributeValue(unwrapStateValue(state[key])));
   }
 

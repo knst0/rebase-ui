@@ -5,6 +5,12 @@ import { RenderElement } from "../internals/render-element";
 import { split } from "../internals/split";
 import type { Orientation, RebaseUIComponentProps } from "../internals/types";
 
+/**
+ * A separator element accessible to screen readers.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Separator](https://rebase-ui.knst.dev/components/separator)
+ */
 export function Separator<T extends ValidComponent = "div">(props: Separator.Props<T>) {
   const [local, elementProps] = split(props as Separator.Props, { default: defaultProps }, ["as", "orientation"]);
 

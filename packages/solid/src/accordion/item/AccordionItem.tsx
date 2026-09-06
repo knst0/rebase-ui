@@ -16,6 +16,12 @@ import { useAccordionRootContext } from "../root/AccordionRootContext";
 import { AccordionItemContext } from "./AccordionItemContext";
 import { accordionStateAttributesMapping } from "./stateAttributesMapping";
 
+/**
+ * Groups an accordion header with the corresponding panel.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/accordion)
+ */
 export function AccordionItem<T extends ValidComponent = "div">(props: AccordionItem.Props<T>) {
   const [local, elementProps] = split(props as AccordionItem.Props, { default: defaultProps }, ["as", "disabled", "onOpenChange", "value"]);
 
@@ -48,7 +54,7 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
     defaultValue: () => false,
   });
 
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, true, true);
+  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
 
   const [panelId, setPanelId] = createSignal(createUniqueId());
   const [triggerId, setTriggerId] = createSignal(createUniqueId());

@@ -10,6 +10,12 @@ import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { AccordionRootContext } from "./AccordionRootContext";
 
+/**
+ * Groups all parts of the accordion.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/accordion)
+ */
 export function AccordionRoot<Value = any, T extends ValidComponent = "div">(props: AccordionRoot.Props<Value, T>) {
   const [local, elementProps] = split(props as AccordionRoot.Props, { default: defaultProps }, [
     "as",
@@ -17,7 +23,6 @@ export function AccordionRoot<Value = any, T extends ValidComponent = "div">(pro
     "disabled",
     "hiddenUntilFound",
     "keepMounted",
-    "loopFocus",
     "multiple",
     "onValueChange",
     "value",
@@ -146,14 +151,6 @@ export interface AccordionRootOwnProps<Value = any> {
    * @default false
    */
   keepMounted?: boolean | undefined;
-  /**
-   * Deprecated following the [APG guidance update](https://github.com/w3c/aria-practices/pull/3434)
-   * to remove roving focus.
-   *
-   * This prop no longer affects keyboard focus behavior.
-   * @deprecated
-   */
-  loopFocus?: boolean | undefined;
   /**
    * Event handler called when an accordion item is expanded or collapsed.
    * Provides the new value as an argument.

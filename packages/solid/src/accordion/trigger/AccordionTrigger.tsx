@@ -2,30 +2,21 @@ import type { ValidComponent } from "@solidjs/web";
 import { createEffect, untrack } from "solid-js";
 
 import { useCollapsibleRootContext } from "../../collapsible/root/CollapsibleRootContext";
+import { triggerOpenStateMapping } from "../../internals/collapsibleOpenStateMapping";
 import { createButton } from "../../internals/create-button";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
-import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import type { AccordionItemState } from "../item/AccordionItem";
 import { useAccordionItemContext } from "../item/AccordionItemContext";
-import * as AccordionTriggerDataAttributes from "./AccordionTriggerDataAttributes";
 
-const PANEL_OPEN_HOOK = { [AccordionTriggerDataAttributes.panelOpen]: "" };
-
-const triggerStateAttributesMapping: StateAttributesMapping<AccordionItemState> = {
-  open: {
-    keys: [AccordionTriggerDataAttributes.panelOpen],
-    map: (value) => (value ? PANEL_OPEN_HOOK : null),
-  },
-  hidden: { keys: [], map: () => null },
-  index: { keys: [], map: () => null },
-  orientation: { keys: [], map: () => null },
-  transitionStatus: { keys: [], map: () => null },
-  value: { keys: [], map: () => null },
-};
-
+/**
+ * A button that opens and closes the corresponding panel.
+ * Renders a `<button>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/accordion)
+ */
 export function AccordionTrigger<T extends ValidComponent = "button">(props: AccordionTrigger.Props<T>) {
   const [local, elementProps] = split(props as AccordionTrigger.Props, { default: defaultProps }, ["as", "disabled", "id", "nativeButton"]);
 
@@ -76,7 +67,7 @@ export function AccordionTrigger<T extends ValidComponent = "button">(props: Acc
       as={as}
       state={state}
       props={[triggerProps, elementProps, refProps, getButtonProps]}
-      stateAttributesMapping={triggerStateAttributesMapping}
+      stateAttributesMapping={triggerOpenStateMapping}
     />
   );
 }
@@ -86,7 +77,7 @@ const defaultProps = Object.freeze({
   nativeButton: true,
 } satisfies Partial<AccordionTrigger.Props>);
 
-export type AccordionTriggerState = AccordionItemState;
+export interface AccordionTriggerState extends AccordionItemState {}
 
 export interface AccordionTriggerOwnProps extends NativeButtonProps {
   /**
