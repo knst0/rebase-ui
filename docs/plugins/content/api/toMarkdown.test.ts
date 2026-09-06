@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { ApiComponent } from "./apiReference";
-import { apiToMarkdown } from "./apiToMarkdown";
-import type { PageMeta } from "./frontmatter";
+import type { PageMeta } from "../frontmatter";
+import { apiToMarkdown } from "./toMarkdown";
+import type { ApiComponent } from "./types";
 
 const component: ApiComponent = {
   name: "Avatar",

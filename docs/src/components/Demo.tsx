@@ -78,8 +78,14 @@ export function Demo(props: { name: string; variants: DemoVariant[]; components:
               </div>
             </Show>
           </div>
-          <Collapsible.Panel class='border-t border-border'>
-            <CodeBlock value={files()[fileIndex()]?.value ?? ""} language={files()[fileIndex()]?.language} collapsible open={open()} class='border-none' />
+          <Collapsible.Panel class="border-border border-t">
+            <CodeBlock
+              value={files()[fileIndex()]?.value ?? ""}
+              language={files()[fileIndex()]?.language}
+              collapsible
+              open={open()}
+              class="border-none"
+            />
           </Collapsible.Panel>
         </Collapsible.Root>
       </Show>

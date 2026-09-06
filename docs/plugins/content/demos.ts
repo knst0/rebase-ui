@@ -1,5 +1,7 @@
-import { readdir, readFile, stat } from "fs/promises";
-import { dirname, extname, join } from "path";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { dirname, extname, join } from "node:path";
+
+import { titleFromSlug } from "../shared/text";
 
 export const DEMOS_DIR = "_demos";
 
@@ -30,14 +32,8 @@ const VARIANT_TITLES: Record<string, string> = {
   tailwind: "Tailwind",
 };
 
-export function titleFromSlug(slug: string): string {
-  return (
-    VARIANT_TITLES[slug] ??
-    slug
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-  );
+function variantTitle(slug: string): string {
+  return VARIANT_TITLES[slug] ?? titleFromSlug(slug);
 }
 
 function languageOf(file: string): string {
@@ -60,7 +56,7 @@ async function readVariant(dir: string, entry: string, id: string): Promise<Demo
 
   files.push({ name: entry, language: languageOf(entry), value: await readFile(source, "utf8") });
 
-  return { id, title: titleFromSlug(id), files };
+  return { id, title: variantTitle(id), files };
 }
 
 async function siblingFiles(dir: string, entry: string): Promise<DemoFile[]> {
@@ -77,7 +73,7 @@ async function siblingFiles(dir: string, entry: string): Promise<DemoFile[]> {
   return files;
 }
 
-async function readDirectoryDemo(dir: string, name: string): Promise<Demo> {
+async function readDirectoryDemo(dir: string, name: string): Promise<Demo | undefined> {
   if (typeof process === "undefined" || process.env.NODE_ENV !== "development") return undefined;
   const entries = await readdir(dir);
   const variants: DemoVariant[] = [];
@@ -105,7 +101,7 @@ export async function collectDemo(mdxFile: string, name: string): Promise<Demo |
       const value = await readFile(file, "utf8");
       const variant: DemoVariant = {
         id: name,
-        title: titleFromSlug(name),
+        title: variantTitle(name),
         files: [{ name: name + extension, language: languageOf(file), value }],
       };
       variant.files.push(...(await siblingFiles(root, name + extension)));
@@ -134,4 +130,14 @@ export async function listDemos(mdxFile: string): Promise<string[]> {
   }
 
   return [...names].sort();
+}
+
+export function demoToMarkdown(demo: Demo): string {
+  const blocks = demo.variants.flatMap((variant) => {
+    const title = demo.variants.length > 1 ? `### ${variant.title}` : "";
+    const files = variant.files.map((file) => "```" + file.language + "\n" + file.value + "\n```").join("\n\n");
+    return [title, files].filter(Boolean);
+  });
+
+  return blocks.join("\n\n");
 }

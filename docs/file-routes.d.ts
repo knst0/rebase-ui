@@ -91,6 +91,12 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/avatar/types";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
     }
   ];
   export default routes;
@@ -170,6 +176,14 @@ declare module "virtual:file-routes" {
             {
               path: "/collapsible/";
               id: "/collapsible/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/avatar/types";
+              id: "/avatar/types";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

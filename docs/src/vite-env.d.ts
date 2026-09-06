@@ -4,7 +4,7 @@
 /// <reference types="../znaki.d.ts" />
 
 declare module "virtual:components-nav" {
-  import type { NavHeading, NavItem } from "../plugins/componentsNav.ts";
+  import type { NavHeading, NavItem } from "../plugins";
   export type { NavHeading, NavItem };
   export const nav: NavItem[];
   export default nav;

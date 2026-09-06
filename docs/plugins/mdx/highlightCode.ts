@@ -3,7 +3,7 @@ import { lang } from "sugar-high/lang";
 
 const MAGIC = /^\s*(?:\/\/|\{?\s*\/\*|#|<!--)\s*@highlight-(text|line|next-line|start|end)\b(.*?)(?:\*\/\s*\}?|-->)?\s*$/;
 
-type Directive = { kind: "text"; needles: string[] } | { kind: "line" } | { kind: "next-line" } | { kind: "start" } | { kind: "end" };
+type Directive = { kind: "text"; searchTerms: string[] } | { kind: "line" } | { kind: "next-line" } | { kind: "start" } | { kind: "end" };
 
 function parseDirective(line: string): Directive | undefined {
   const match = MAGIC.exec(line);
@@ -11,22 +11,22 @@ function parseDirective(line: string): Directive | undefined {
   const [, name, rest] = match;
   if (name === "text") {
     const quoted = [...rest.matchAll(/"([^"]*)"|'([^']*)'/g)].map((entry) => entry[1] ?? entry[2]);
-    return { kind: "text", needles: quoted.length > 0 ? quoted : [rest.trim()] };
+    return { kind: "text", searchTerms: quoted.length > 0 ? quoted : [rest.trim()] };
   }
   return { kind: name as Exclude<Directive["kind"], "text"> };
 }
 
-type Analysis = {
+type HighlightDirectives = {
   code: string;
   highlightedLines: Set<number>;
-  needles: string[];
+  searchTerms: string[];
 };
 
-function analyze(source: string): Analysis {
+function parseHighlightDirectives(source: string): HighlightDirectives {
   const input = source.split("\n");
   const output: string[] = [];
   const highlightedLines = new Set<number>();
-  const needles: string[] = [];
+  const searchTerms: string[] = [];
 
   let range = false;
   let markNext = false;
@@ -44,7 +44,7 @@ function analyze(source: string): Analysis {
 
     switch (directive.kind) {
       case "text":
-        needles.push(...directive.needles.filter((needle) => needle !== ""));
+        searchTerms.push(...directive.searchTerms.filter((term) => term !== ""));
         break;
       case "line":
         if (output.length > 0) highlightedLines.add(output.length - 1);
@@ -63,7 +63,7 @@ function analyze(source: string): Analysis {
     }
   }
 
-  return { code: output.join("\n"), highlightedLines, needles };
+  return { code: output.join("\n"), highlightedLines, searchTerms };
 }
 
 const HTML_ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -74,7 +74,7 @@ function escapeHtml(value: string): string {
 
 type Segment = { tag: boolean; value: string };
 
-function segmentize(html: string): Segment[] {
+function splitHtmlSegments(html: string): Segment[] {
   const segments: Segment[] = [];
   let cursor = 0;
   while (cursor < html.length) {
@@ -93,8 +93,8 @@ function segmentize(html: string): Segment[] {
   return segments;
 }
 
-function markInLine(lineHtml: string, needles: string[]): string {
-  const segments = segmentize(lineHtml);
+function applyTextMarks(lineHtml: string, searchTerms: string[]): string {
+  const segments = splitHtmlSegments(lineHtml);
   const text = segments
     .filter((segment) => !segment.tag)
     .map((segment) => segment.value)
@@ -103,8 +103,8 @@ function markInLine(lineHtml: string, needles: string[]): string {
   const marked = new Array<boolean>(text.length).fill(false);
   let any = false;
 
-  for (const needle of needles) {
-    const target = escapeHtml(needle);
+  for (const term of searchTerms) {
+    const target = escapeHtml(term);
     if (target === "") continue;
     let from = 0;
     while (true) {
@@ -159,7 +159,7 @@ export type HighlightCodeOptions = {
 };
 
 export function highlightCode(source: string, options: HighlightCodeOptions = {}): string {
-  const { code, highlightedLines, needles } = analyze(source);
+  const { code, highlightedLines, searchTerms } = parseHighlightDirectives(source);
   const resolved = lang(options.language ?? "") ?? "typescript";
 
   const html = highlight(code, {
@@ -169,10 +169,10 @@ export function highlightCode(source: string, options: HighlightCodeOptions = {}
     },
   });
 
-  if (needles.length === 0) return html;
+  if (searchTerms.length === 0) return html;
 
   return html
     .split("\n")
-    .map((lineHtml) => markInLine(lineHtml, needles))
+    .map((lineHtml) => applyTextMarks(lineHtml, searchTerms))
     .join("\n");
 }

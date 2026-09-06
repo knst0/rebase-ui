@@ -1,10 +1,6 @@
-import type { Element as HastElement, Root as HastRoot, RootContent as HastContent } from "hast";
+import type { Element as HastElement, Root as HastRoot } from "hast";
 
-function hastText(node: HastContent): string {
-  if (node.type === "text") return node.value;
-  if (node.type === "element") return node.children.map(hastText).join("");
-  return "";
-}
+import { hastText } from "../shared/hast";
 
 function hastLanguage(node: HastElement): string | undefined {
   const className: unknown = node.properties?.className;

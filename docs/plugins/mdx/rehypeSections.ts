@@ -1,7 +1,7 @@
 import { basename, dirname } from "node:path";
 
-import { parseFrontmatter, type SectionId } from "./frontmatter";
-import { mdxJsx, type HastContent, type HastRoot } from "./hast";
+import { parseFrontmatter, type SectionId } from "../content/frontmatter";
+import { mdxJsxElement, type HastContent, type HastRoot } from "../shared/hast";
 import type { DemoVFile } from "./rehypeDemo";
 
 type SectionsTransformer = (tree: HastRoot, file: DemoVFile) => undefined;
@@ -27,7 +27,7 @@ function fillSlug(node: HastContent, slug: string): void {
   const candidate = node as unknown as Required<Pick<JsxNode, "attributes">>;
   candidate.attributes ??= [];
   if (candidate.attributes.some((attribute) => attribute.type === "mdxJsxAttribute" && attribute.name === "slug")) return;
-  const [filled] = (mdxJsx("x", { slug }) as unknown as Required<Pick<JsxNode, "attributes">>).attributes;
+  const [filled] = (mdxJsxElement("x", { slug }) as unknown as Required<Pick<JsxNode, "attributes">>).attributes;
   candidate.attributes.push(filled);
 }
 
@@ -55,7 +55,7 @@ export function rehypeSections(options: RehypeSectionsOptions = {}): UnifiedPlug
     const title = options.siteName === undefined ? meta.title : `${meta.title} – ${options.siteName}`;
     const head: HastContent[] = [titleNode(title)];
     if (meta.description !== undefined)
-      head.push(mdxJsx("Meta", { name: "description", content: meta.description }) as unknown as HastContent);
+      head.push(mdxJsxElement("Meta", { name: "description", content: meta.description }) as unknown as HastContent);
 
     tree.children.unshift(...head);
 
@@ -67,7 +67,7 @@ export function rehypeSections(options: RehypeSectionsOptions = {}): UnifiedPlug
         fillSlug(existing, slug);
         continue;
       }
-      tree.children.push(mdxJsx(name, { slug }) as unknown as HastContent);
+      tree.children.push(mdxJsxElement(name, { slug }) as unknown as HastContent);
     }
   };
 

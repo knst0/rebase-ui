@@ -3,13 +3,13 @@ import { join } from "node:path";
 
 import type { Plugin } from "vite";
 
-import { collectApi, type ApiReferenceOptions } from "./apiReference";
-import { apiToMarkdown } from "./apiToMarkdown";
-import { collectDemo } from "./demos";
-import { parseFrontmatter } from "./frontmatter";
+import { collectApi } from "../content/api/collect";
+import { apiToMarkdown } from "../content/api/toMarkdown";
+import type { ApiReferenceOptions } from "../content/api/types";
+import { collectDemo, demoToMarkdown } from "../content/demos";
+import { parseFrontmatter, stripFrontmatter } from "../content/frontmatter";
 
 const DEMO_TAG = /<Demo\s+([^>]*?)\/>/g;
-const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---\r?\n/;
 const LINK = /\(\/components\/([a-z0-9-]+)\/?\)/g;
 
 function demoTagName(attributes: string): string | undefined {
@@ -18,26 +18,14 @@ function demoTagName(attributes: string): string | undefined {
   return /^([A-Za-z0-9_-]+)/.exec(attributes.trim())?.[1];
 }
 
-function demoMarkdown(demo: Awaited<ReturnType<typeof collectDemo>>): string {
-  if (demo === undefined) return "";
-
-  return demo.variants
-    .flatMap((variant) => {
-      const title = demo.variants.length > 1 ? `### ${variant.title}\n\n` : "";
-      const files = variant.files.map((file) => "```" + file.language + "\n" + file.value + "\n```").join("\n\n");
-      return title + files;
-    })
-    .join("\n\n");
-}
-
 async function expandBody(source: string, mdxFile: string): Promise<string> {
-  let body = source.replace(FRONTMATTER, "");
+  let body = stripFrontmatter(source, { trailingNewline: true });
 
   const demoMatches = [...body.matchAll(DEMO_TAG)];
   for (const match of demoMatches) {
     const name = demoTagName(match[1]);
-    const markdown = name === undefined ? "" : demoMarkdown(await collectDemo(mdxFile, name));
-    body = body.replace(match[0], markdown);
+    const demo = name === undefined ? undefined : await collectDemo(mdxFile, name);
+    body = body.replace(match[0], demo === undefined ? "" : demoToMarkdown(demo));
   }
 
   body = body.replace(LINK, (_, slug: string) => `(/components/${slug}.md)`);

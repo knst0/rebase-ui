@@ -1,7 +1,7 @@
+import type { ComponentProps } from "@solidjs/web";
 import { omit, Show } from "solid-js";
 
-import { highlightCode } from "../../plugins/highlightCode";
-import type { ComponentProps } from "@solidjs/web";
+import { highlightCode } from "../../plugins/mdx/highlightCode";
 import { cx } from "../utils/cva";
 
 export type CodeBlockProps = ComponentProps<"div"> & {
@@ -13,7 +13,7 @@ export type CodeBlockProps = ComponentProps<"div"> & {
 };
 
 export function CodeBlock(props: CodeBlockProps) {
-  const rest = omit(props, "value", "language", "title", "collapsible", "open", "class")
+  const rest = omit(props, "value", "language", "title", "collapsible", "open", "class");
   return (
     <div class={cx("squircle border-border bg-bg-code max-w-full overflow-hidden rounded-lg border shadow", props.class)} {...rest}>
       <Show when={props.title}>

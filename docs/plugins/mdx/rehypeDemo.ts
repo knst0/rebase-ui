@@ -1,7 +1,7 @@
 import { relative } from "node:path";
 
-import { collectDemo, DEMOS_DIR, type Demo, type DemoVariant } from "./demos";
-import { mdxJsx, type HastContent, type HastRoot } from "./hast";
+import { collectDemo, DEMOS_DIR, type Demo, type DemoVariant } from "../content/demos";
+import { identifierArrayExpression, mdxJsxElement, mdxjsEsmImport, type HastContent, type HastRoot } from "../shared/hast";
 
 type JsxNode = {
   type: "mdxJsxFlowElement";
@@ -45,51 +45,6 @@ function identifier(demoName: string, variantId: string): string {
   return `Demo_${clean(demoName)}_${clean(variantId)}`;
 }
 
-function importNode(name: string, from: string): HastContent {
-  return {
-    type: "mdxjsEsm",
-    value: `import ${name} from ${JSON.stringify(from)};`,
-    data: {
-      estree: {
-        type: "Program",
-        sourceType: "module",
-        comments: [],
-        body: [
-          {
-            type: "ImportDeclaration",
-            specifiers: [{ type: "ImportDefaultSpecifier", local: { type: "Identifier", name } }],
-            source: { type: "Literal", value: from, raw: JSON.stringify(from) },
-            attributes: [],
-          },
-        ],
-      },
-    },
-  } as unknown as HastContent;
-}
-
-function componentExpression(names: string[]): unknown {
-  return {
-    type: "mdxJsxAttributeValueExpression",
-    value: `[${names.join(", ")}]`,
-    data: {
-      estree: {
-        type: "Program",
-        sourceType: "module",
-        comments: [],
-        body: [
-          {
-            type: "ExpressionStatement",
-            expression: {
-              type: "ArrayExpression",
-              elements: names.map((name) => ({ type: "Identifier", name })),
-            },
-          },
-        ],
-      },
-    },
-  };
-}
-
 export type RehypeDemoOptions = {
   cwd?: string;
 };
@@ -129,10 +84,10 @@ export function rehypeDemo(options: RehypeDemoOptions = {}): UnifiedPlugin {
       for (const variant of demo.variants) {
         const local = identifier(demo.name, variant.id);
         identifiers.push(local);
-        imports.push(importNode(local, importSpecifier(demo, variant)));
+        imports.push(mdxjsEsmImport(local, importSpecifier(demo, variant)));
       }
 
-      const element = mdxJsx("Demo", {
+      const element = mdxJsxElement("Demo", {
         name: demo.name,
         variants: demo.variants.map((variant) => ({ id: variant.id, title: variant.title, files: variant.files })),
       }) as unknown as JsxNode;
@@ -140,7 +95,7 @@ export function rehypeDemo(options: RehypeDemoOptions = {}): UnifiedPlugin {
       element.attributes.push({
         type: "mdxJsxAttribute",
         name: "components",
-        value: componentExpression(identifiers),
+        value: identifierArrayExpression(identifiers),
       });
 
       next.push(element as unknown as HastContent);

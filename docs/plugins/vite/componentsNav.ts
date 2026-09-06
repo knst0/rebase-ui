@@ -11,8 +11,10 @@ import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import type { Plugin } from "vite";
 
-import { collectApi, type ApiReferenceOptions } from "./apiReference";
-import { parseFrontmatter, type SectionId } from "./frontmatter";
+import { collectApi } from "../content/api/collect";
+import type { ApiReferenceOptions } from "../content/api/types";
+import { parseFrontmatter, stripFrontmatter, type SectionId } from "../content/frontmatter";
+import { slugify, titleFromSlug } from "../shared/text";
 
 const VIRTUAL_ID = "virtual:components-nav";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
@@ -31,13 +33,6 @@ export type NavItem = {
   headings: NavHeading[];
   children?: NavItem[];
 };
-
-function titleFromSlug(slug: string): string {
-  return slug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
 
 function nest(flat: Omit<NavHeading, "children">[]): NavHeading[] {
   const root: NavHeading[] = [];
@@ -75,6 +70,10 @@ function parseHeadings(body: string): { top: string | undefined; flat: { hash: s
   return { top, flat };
 }
 
+const SECTION_HEADINGS: Partial<Record<SectionId, { id: string; title: string }>> = {
+  api: { id: "api-reference", title: "API reference" },
+};
+
 function appendGenerated(
   flat: { hash: string; title: string; depth: number }[],
   sections: SectionId[],
@@ -97,17 +96,13 @@ function appendGenerated(
   return result;
 }
 
-const SECTION_HEADINGS: Partial<Record<SectionId, { id: string; title: string }>> = {
-  api: { id: "api-reference", title: "API reference" },
-};
-
 function parse(
   source: string,
   filePath: string,
   generated: Record<SectionId, NavHeading[]>,
 ): { title: string; top: string | undefined; headings: NavHeading[] } {
   const meta = parseFrontmatter(source, filePath);
-  const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
+  const body = stripFrontmatter(source);
   const { top, flat } = parseHeadings(body);
   const withGenerated = appendGenerated(flat, meta.sections, generated);
 
@@ -116,10 +111,7 @@ function parse(
 
 function apiHeadings(parts: { name: string }[]): NavHeading[] {
   return parts.map((part) => ({
-    id: part.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, ""),
+    id: slugify(part.name),
     title: part.name,
     depth: 0,
     children: [],

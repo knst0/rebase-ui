@@ -4,7 +4,7 @@ export default function ExampleAccordion() {
   return (
     <Accordion.Root
       hiddenUntilFound
-      class="flex w-full max-w-80 flex-col border border-neutral-950 text-neutral-950 dark:border-white dark:text-white bg-neutral-50 dark:bg-neutral-950"
+      class="flex w-full max-w-80 flex-col border border-neutral-950 bg-neutral-50 text-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white"
     >
       <Accordion.Item>
         <Accordion.Header>

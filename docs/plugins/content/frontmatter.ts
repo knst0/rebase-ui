@@ -1,6 +1,6 @@
 import { parse } from "yaml";
 
-export type SectionId = "demo" | "api" | "types";
+export type SectionId = "demo" | "anatomy" | "api" | "types";
 
 export type PageMeta = {
   title: string;
@@ -9,7 +9,7 @@ export type PageMeta = {
   sections: SectionId[];
 };
 
-const SECTION_IDS: SectionId[] = ["demo", "api", "types"];
+const SECTION_IDS: SectionId[] = ["demo", "anatomy", "api", "types"];
 const DEFAULT_SECTIONS: SectionId[] = ["api"];
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---/;
 
@@ -48,4 +48,9 @@ export function parseFrontmatter(source: string, filePath: string): PageMeta {
     description: typeof data.description === "string" ? data.description : undefined,
     sections,
   };
+}
+
+export function stripFrontmatter(source: string, options: { trailingNewline?: boolean } = {}): string {
+  const pattern = options.trailingNewline ? /^---\r?\n[\s\S]*?\r?\n---\r?\n/ : /^---\r?\n[\s\S]*?\r?\n---/;
+  return source.replace(pattern, "");
 }
