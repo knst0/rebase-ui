@@ -1,35 +1,56 @@
-import { For } from "solid-js";
+import { For, lazy } from "solid-js";
 
-import { Separator } from "#components";
+type DemoModule = typeof import("./components/accordion/_demos/hero");
+
+type ComponentItem = {
+  name: string;
+  url: string;
+  component: ReturnType<typeof lazy>;
+};
+
+const demoModules = import.meta.glob<DemoModule>("./components/*/_demos/hero.tsx");
+
+function getSlug(path: string): string | undefined {
+  return path.match(/\/components\/([^/]+)\/_demos\//)?.[1];
+}
+
+function titleFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+const components: ComponentItem[] = Object.entries(demoModules)
+  .flatMap(([path, loader]) => {
+    const slug = getSlug(path);
+
+    if (!slug) return [];
+
+    return {
+      name: titleFromSlug(slug),
+      url: `/components/${slug}`,
+      component: lazy(loader),
+    };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+function ComponentCard(props: ComponentItem) {
+  return (
+    <li class="border-gray-6 relative flex aspect-square items-center justify-center border-r border-b">
+      <a href={props.url} class="text-gray-11 hover:text-gray-12 absolute top-4 left-4 transition-colors" textContent={props.name} />
+      <props.component />
+    </li>
+  );
+}
 
 export default function Home() {
   return (
     <main class="m-4 lg:m-16">
       <ul class="border-gray-6 grid grid-cols-1 border-t border-l md:grid-cols-[repeat(auto-fit,minmax(380px,1fr))]">
-        <For each={COMPONENTS}>
-          {(item) => (
-            <li class="border-gray-6 relative flex aspect-square items-center justify-center border-r border-b">
-              <a class="text-gray-11 absolute top-4 left-4" href={item.url} textContent={item.name} />
-              {item.component}
-            </li>
-          )}
-        </For>
+        <For each={components}>{(component) => <ComponentCard {...component} />}</For>
       </ul>
     </main>
   );
 }
-
-const COMPONENTS = [
-  {
-    name: "Separator",
-    url: "/components/separator",
-    component: () => (
-      <div class="flex gap-4">
-        <p>Home</p>
-        <Separator orientation="vertical" />
-        <p>Log in</p>
-        <p>Sign up</p>
-      </div>
-    ),
-  },
-] as const;
