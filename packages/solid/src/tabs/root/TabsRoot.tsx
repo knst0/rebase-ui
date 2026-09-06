@@ -12,6 +12,12 @@ import { tabsStateAttributesMapping } from "./stateAttributesMapping";
 import { TabsRootContext } from "./TabsRootContext";
 import { tabsValueKey } from "./tabsValueKey";
 
+/**
+ * Groups the tabs and the corresponding panels.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/tabs)
+ */
 export function TabsRoot<T extends ValidComponent = "div">(props: TabsRoot.Props<T>) {
   const [local, elementProps] = split(props as TabsRoot.Props, { default: defaultProps }, [
     "as",

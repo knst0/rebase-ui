@@ -1,15 +1,15 @@
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createSignal, createUniqueId, untrack } from "solid-js";
 
-import type { CollapsibleRootChangeEventDetails, CollapsibleRootState } from "../../collapsible/root/CollapsibleRoot";
+import type { CollapsibleRootChangeEventDetails } from "../../collapsible/root/CollapsibleRoot";
 import { CollapsibleRootContext } from "../../collapsible/root/CollapsibleRootContext";
+import { createCollapsibleRoot } from "../../collapsible/root/createCollapsibleRoot";
 import { useCompositeListItem } from "../../internals/composite";
-import { createControllableSignal } from "../../internals/createControllableSignal";
-import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
+import { REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
-import { createTransitionStatus, type TransitionStatus } from "../../internals/transition-status";
+import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import type { AccordionRootState } from "../root/AccordionRoot";
 import { useAccordionRootContext } from "../root/AccordionRootContext";
@@ -49,48 +49,14 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
     rootContext.handleValueChange(value(), nextOpen, eventDetails);
   };
 
-  const [open, setOpen] = createControllableSignal<boolean>({
-    value: isOpen,
-    defaultValue: () => false,
-  });
-
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
-
-  const [panelId, setPanelId] = createSignal(createUniqueId());
   const [triggerId, setTriggerId] = createSignal(createUniqueId());
-
-  const handleTrigger = (event: MouseEvent | KeyboardEvent) => {
-    const nextOpen = !untrack(open);
-    const eventDetails = createChangeEventDetails(REASONS.triggerPress, event);
-
-    onOpenChange(nextOpen, eventDetails);
-
-    if (eventDetails.isCanceled) {
-      return;
-    }
-
-    setOpen(nextOpen);
-  };
-
-  const collapsibleState: CollapsibleRootState = {
-    open,
+  const collapsibleContext: CollapsibleRootContext = createCollapsibleRoot({
+    defaultOpen: () => false,
     disabled,
-    transitionStatus,
-  };
-
-  const collapsibleContext: CollapsibleRootContext = {
-    disabled,
-    handleTrigger,
-    mounted,
     onOpenChange,
-    open,
-    panelId,
-    setMounted,
-    setOpen,
-    setPanelId,
-    state: collapsibleState,
-    transitionStatus,
-  };
+    open: isOpen,
+  });
+  const mounted = collapsibleContext.mounted;
 
   const state: AccordionItemState = {
     ...rootContext.state,
@@ -98,7 +64,7 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
     hidden: () => !isOpen() && !mounted(),
     index,
     open: isOpen,
-    transitionStatus,
+    transitionStatus: collapsibleContext.transitionStatus,
   };
 
   const accordionItemContext: AccordionItemContext = {

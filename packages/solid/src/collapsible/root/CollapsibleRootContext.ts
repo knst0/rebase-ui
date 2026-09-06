@@ -3,8 +3,9 @@ import type { Accessor, Setter } from "solid-js";
 import { createContext, useContext } from "../../internals/context";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { CollapsibleRootChangeEventDetails, CollapsibleRootState } from "./CollapsibleRoot";
+import type { CreateCollapsibleRootReturnValue } from "./createCollapsibleRoot";
 
-export interface CollapsibleRootContext {
+export interface CollapsibleRootContext extends CreateCollapsibleRootReturnValue {
   /**
    * Whether the component should ignore user interaction.
    */

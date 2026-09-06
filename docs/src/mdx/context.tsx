@@ -1,11 +1,11 @@
 import { Meta, Title } from "@solidjs/meta";
 import type { JSX, ComponentProps } from "@solidjs/web";
-import { createContext, omit, Show, useContext } from "solid-js";
+import { createContext, useContext } from "solid-js";
 
 import type { RehypeCodeValuePreProps } from "../../plugins";
-import { highlightCode } from "../../plugins/highlightCode";
+import { CodeBlock } from "../components/CodeBlock";
+import { Demo } from "../components/Demo";
 import { ApiReference } from "./ApiReference";
-import { Demo } from "./Demo";
 import { ReferenceTable } from "./ReferenceTable";
 import { TypePopover } from "./TypePopover";
 
@@ -35,19 +35,7 @@ const DEFAULT_VALUE: Context = {
   },
   p: (props) => <p class="text-fg/70 mb-4" {...props} />,
   pre: (props: ComponentProps<"pre"> & RehypeCodeValuePreProps) => {
-    const rest = omit(props, "language", "value", "title");
-    return (
-      <div class="squircle border-border bg-bg-code my-4 max-w-full overflow-x-auto rounded-lg border shadow">
-        <Show when={props.title}>
-          <div class="border-border flex h-9 items-center justify-between border-b pr-1.5 pl-3">
-            <span textContent={props.title as string} class="text-fg/70 text-sm" />
-          </div>
-        </Show>
-        <pre class="w-max min-w-full p-4 text-sm" {...rest}>
-          <code innerHTML={highlightCode(props.value as string, { language: props.language })} />
-        </pre>
-      </div>
-    );
+    return <CodeBlock value={props.value as string} language={props.language} title={props.title as string} />;
   },
   code: (props) => <code class="border-border rounded border px-1 py-0.25 text-sm" {...props} />,
   a: (props) => <a class="text-accent underline underline-offset-2" {...props} />,

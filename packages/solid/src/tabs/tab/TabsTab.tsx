@@ -15,6 +15,12 @@ import { tabsStateAttributesMapping } from "../root/stateAttributesMapping";
 import type { TabsRoot } from "../root/TabsRoot";
 import { useTabsRootContext } from "../root/TabsRootContext";
 
+/**
+ * An individual interactive tab button that toggles the corresponding panel.
+ * Renders a `<button>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/tabs)
+ */
 export function TabsTab<T extends ValidComponent = "button">(props: TabsTab.Props<T>) {
   const [local, elementProps] = split(props as TabsTab.Props, { default: defaultProps }, ["as", "disabled", "id", "nativeButton", "value"]);
 

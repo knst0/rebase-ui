@@ -1,28 +1,19 @@
+import { Collapsible } from "@rebase-ui/solid/collapsible";
 import { Dynamic } from "@solidjs/web";
 import { For, Show, createMemo, createSignal } from "solid-js";
 import type { Component } from "solid-js";
 import { Icon } from "znaki/solid";
 
-import type { DemoFile, DemoVariant } from "../../plugins";
-import { highlightCode } from "../../plugins/highlightCode";
-
-function Source(props: { file: DemoFile }) {
-  return (
-    <pre class="w-max min-w-full p-4 text-sm">
-      <code innerHTML={highlightCode(props.file.value, { language: props.file.language })} />
-    </pre>
-  );
-}
+import type { DemoVariant } from "../../plugins";
+import { CodeBlock } from "./CodeBlock";
 
 export function Demo(props: { name: string; variants: DemoVariant[]; components: Component[] }) {
   const [variant, setVariant] = createSignal(0);
   const [file, setFile] = createSignal(0);
-  const [open, setOpen] = createSignal(true);
-
+  const [open, setOpen] = createSignal(false);
   const index = createMemo(() => Math.min(variant(), props.variants.length - 1));
   const files = createMemo(() => props.variants[index()]?.files ?? []);
   const fileIndex = createMemo(() => Math.min(file(), Math.max(files().length - 1, 0)));
-  const active = createMemo(() => files()[fileIndex()]);
   const preview = createMemo(() => props.components[index()]);
 
   return (
@@ -34,22 +25,20 @@ export function Demo(props: { name: string; variants: DemoVariant[]; components:
           </div>
         )}
       </Show>
-
       <Show when={files().length > 0}>
-        <div class="squircle border-border bg-bg-code mt-3 overflow-hidden rounded-lg border shadow">
-          <div class="border-border flex h-9 items-center gap-1 border-b px-1.5">
-            <button
-              type="button"
-              class="text-fg/60 hover:text-fg flex items-center gap-1 rounded px-1.5 py-1 text-sm"
-              onClick={() => setOpen(!open())}
-            >
+        <Collapsible.Root
+          open={open()}
+          onOpenChange={setOpen}
+          class="squircle border-border bg-bg-code mt-3 overflow-hidden rounded-lg border shadow"
+        >
+          <div class="flex h-9 items-center gap-1 px-1.5">
+            <Collapsible.Trigger class="text-fg/60 hover:text-fg flex items-center gap-1 rounded px-1.5 py-1 text-sm">
               <span class={["transition-transform", { "rotate-90": open() }]}>
                 <Icon name="tabler:chevron-right" size={14} />
               </span>
-              <span textContent="Code" />
-            </button>
-
-            <Show when={open()}>
+              <span>Code</span>
+            </Collapsible.Trigger>
+            <Show when={open() && files().length > 1}>
               <div class="ml-1 flex items-center gap-0.5 overflow-x-auto">
                 <For each={files()}>
                   {(item, at) => (
@@ -57,19 +46,16 @@ export function Demo(props: { name: string; variants: DemoVariant[]; components:
                       type="button"
                       class={[
                         "rounded px-2 py-1 text-xs whitespace-nowrap transition-colors",
-                        {
-                          "bg-bg text-fg": at() === fileIndex(),
-                          "text-fg/50 hover:text-fg": at() !== fileIndex(),
-                        },
+                        { "bg-bg text-fg": at() === fileIndex(), "text-fg/50 hover:text-fg": at() !== fileIndex() },
                       ]}
-                      textContent={item.name}
                       onClick={() => setFile(at())}
-                    />
+                    >
+                      {item.name}
+                    </button>
                   )}
                 </For>
               </div>
             </Show>
-
             <Show when={props.variants.length > 1}>
               <div class="ml-auto flex items-center gap-0.5">
                 <For each={props.variants}>
@@ -78,31 +64,24 @@ export function Demo(props: { name: string; variants: DemoVariant[]; components:
                       type="button"
                       class={[
                         "rounded px-2 py-1 text-xs whitespace-nowrap transition-colors",
-                        {
-                          "bg-bg text-fg": at() === index(),
-                          "text-fg/50 hover:text-fg": at() !== index(),
-                        },
+                        { "bg-bg text-fg": at() === index(), "text-fg/50 hover:text-fg": at() !== index() },
                       ]}
-                      textContent={item.title}
                       onClick={() => {
                         setVariant(at());
                         setFile(0);
                       }}
-                    />
+                    >
+                      {item.title}
+                    </button>
                   )}
                 </For>
               </div>
             </Show>
           </div>
-
-          <Show when={open() && active()}>
-            {(item) => (
-              <div class="max-w-full overflow-x-auto">
-                <Source file={item()} />
-              </div>
-            )}
-          </Show>
-        </div>
+          <Collapsible.Panel class='border-t border-border'>
+            <CodeBlock value={files()[fileIndex()]?.value ?? ""} language={files()[fileIndex()]?.language} collapsible open={open()} class='border-none' />
+          </Collapsible.Panel>
+        </Collapsible.Root>
       </Show>
     </div>
   );

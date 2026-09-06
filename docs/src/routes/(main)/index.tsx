@@ -38,7 +38,7 @@ const components: ComponentItem[] = Object.entries(demoModules)
 
 function ComponentCard(props: ComponentItem) {
   return (
-    <li class="border-gray-6 relative flex aspect-square items-center justify-center border-r border-b">
+    <li class="border-border relative flex aspect-square items-center justify-center border-r border-b">
       <a href={props.url} class="text-gray-11 hover:text-gray-12 absolute top-4 left-4 transition-colors" textContent={props.name} />
       <props.component />
     </li>
@@ -47,8 +47,8 @@ function ComponentCard(props: ComponentItem) {
 
 export default function Home() {
   return (
-    <main class="m-4 lg:m-16">
-      <ul class="border-gray-6 grid grid-cols-1 border-t border-l md:grid-cols-[repeat(auto-fit,minmax(380px,1fr))]">
+    <main class="col-span-2 m-4 lg:m-16">
+      <ul class="border-border grid border-t border-l md:grid-cols-[repeat(auto-fit,minmax(380px,1fr))]">
         <For each={components}>{(component) => <ComponentCard {...component} />}</For>
       </ul>
     </main>

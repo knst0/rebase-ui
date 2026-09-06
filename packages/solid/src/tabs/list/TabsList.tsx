@@ -11,6 +11,12 @@ import type { TabsRootState } from "../root/TabsRoot";
 import { useTabsRootContext } from "../root/TabsRootContext";
 import { TabsListContext } from "./TabsListContext";
 
+/**
+ * Groups the individual tab buttons.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/tabs)
+ */
 export function TabsList<T extends ValidComponent = "div">(props: TabsList.Props<T>) {
   const [local, elementProps] = split(props as TabsList.Props, { default: defaultProps }, ["as", "activateOnFocus", "loopFocus"]);
 

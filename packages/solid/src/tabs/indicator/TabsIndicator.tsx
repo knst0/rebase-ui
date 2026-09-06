@@ -17,6 +17,12 @@ import { useTabsRootContext } from "../root/TabsRootContext";
 import type { TabsTabPosition, TabsTabSize } from "../tab/TabsTab";
 import * as TabsIndicatorCssVars from "./TabsIndicatorCssVars";
 
+/**
+ * A visual indicator that can be styled to match the position of the currently active tab.
+ * Renders a `<span>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/tabs)
+ */
 export function TabsIndicator<T extends ValidComponent = "span">(props: TabsIndicator.Props<T>) {
   const [local, elementProps] = split(props as TabsIndicator.Props, { default: defaultProps }, ["as", "renderBeforeHydration"]);
 

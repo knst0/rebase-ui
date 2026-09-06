@@ -12,6 +12,12 @@ import type { TabsRootState } from "../root/TabsRoot";
 import { useTabsRootContext } from "../root/TabsRootContext";
 import type { TabsTab } from "../tab/TabsTab";
 
+/**
+ * A panel displayed when the corresponding tab is active.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/tabs)
+ */
 export function TabsPanel<T extends ValidComponent = "div">(props: TabsPanel.Props<T>) {
   const [local, elementProps] = split(props as TabsPanel.Props, { default: defaultProps }, ["as", "keepMounted", "value"]);
 

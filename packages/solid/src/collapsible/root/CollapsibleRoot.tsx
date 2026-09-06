@@ -1,13 +1,13 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createSignal, createUniqueId, untrack } from "solid-js";
+import { type Accessor, untrack } from "solid-js";
 
-import { createControllableSignal } from "../../internals/createControllableSignal";
-import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
+import { REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
-import { createTransitionStatus, type TransitionStatus } from "../../internals/transition-status";
+import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { CollapsibleRootContext } from "./CollapsibleRootContext";
+import { createCollapsibleRoot } from "./createCollapsibleRoot";
 import { collapsibleStateAttributesMapping } from "./stateAttributesMapping";
 
 /**
@@ -29,51 +29,14 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
 
   const disabled = () => local.disabled;
 
-  const [open, setOpen] = createControllableSignal({
-    value: () => local.open,
-    defaultValue: () => local.defaultOpen,
+  const contextValue = createCollapsibleRoot({
+    defaultOpen: () => local.defaultOpen,
+    disabled,
+    onOpenChange: local.onOpenChange,
+    open: () => local.open,
   });
 
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
-
-  const [panelId, setPanelId] = createSignal(createUniqueId());
-
-  const onOpenChange = (nextOpen: boolean, eventDetails: CollapsibleRootChangeEventDetails) => {
-    local.onOpenChange?.(nextOpen, eventDetails);
-  };
-
-  const handleTrigger = (event: MouseEvent | KeyboardEvent) => {
-    const nextOpen = !untrack(open);
-    const eventDetails = createChangeEventDetails(REASONS.triggerPress, event);
-
-    onOpenChange(nextOpen, eventDetails);
-
-    if (eventDetails.isCanceled) {
-      return;
-    }
-
-    setOpen(nextOpen);
-  };
-
-  const state: CollapsibleRootState = {
-    open,
-    disabled,
-    transitionStatus,
-  };
-
-  const contextValue: CollapsibleRootContext = {
-    disabled,
-    handleTrigger,
-    mounted,
-    onOpenChange,
-    open,
-    panelId,
-    setMounted,
-    setOpen,
-    setPanelId,
-    state,
-    transitionStatus,
-  };
+  const state = contextValue.state;
 
   return (
     <CollapsibleRootContext value={contextValue}>
