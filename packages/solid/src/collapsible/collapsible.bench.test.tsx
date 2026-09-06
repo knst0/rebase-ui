@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 import { countCalls, countLayoutReads, isJSDOM, median, nextFrames, withRealAnimations } from "#test-utils";
 
 import * as Collapsible from "./index.parts";
-import { supportsInterpolateSize } from "./panel/panelStrategy";
 
 const CYCLES = 20;
 const enabled = process.env.REBASE_UI_BENCH === "1";
@@ -46,28 +45,13 @@ async function settle(element: HTMLElement) {
   }
 }
 
-const nativeScenarios = {
-  "native-transition": `
-    .bench-panel {
-      overflow: hidden;
-      height: auto;
-      transition: height 20ms linear;
-    }
-    .bench-panel[data-starting-style], .bench-panel[data-ending-style], .bench-panel[data-closed] { height: 0; }
-  `,
-  "native-none": `
-    .bench-panel { overflow: hidden; }
-  `,
-};
-
-async function runScenario(css: string, sizing: "auto" | "native" = "auto") {
+async function runScenario(css: string) {
   const removeStyle = injectStyle(css);
   const tally = countCalls();
   const resolveStyle = tally.wrap(() => ({ color: "black" }) as const);
 
   const panelProps = {
     class: "bench-panel",
-    sizing,
     keepMounted: true,
     get style() {
       return resolveStyle();
@@ -118,15 +102,10 @@ describe.skipIf(!enabled || isJSDOM)("collapsible bench", () => {
     const rows: Record<string, unknown>[] = [];
 
     await withRealAnimations(async () => {
-      const allScenarios: [string, string, "auto" | "native"][] = [
-        ...Object.entries(scenarios).map(([name, css]) => [name, css, "auto"] as [string, string, "auto"]),
-        ...(supportsInterpolateSize()
-          ? Object.entries(nativeScenarios).map(([name, css]) => [name, css, "native"] as [string, string, "native"])
-          : []),
-      ];
+      const allScenarios: [string, string][] = Object.entries(scenarios);
 
-      for (const [name, css, sizing] of allScenarios) {
-        const { counts, propResolutions, medianMs } = await runScenario(css, sizing);
+      for (const [name, css] of allScenarios) {
+        const { counts, propResolutions, medianMs } = await runScenario(css);
         rows.push({
           scenario: name,
           getComputedStyle: counts.getComputedStyle,

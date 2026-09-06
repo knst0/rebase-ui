@@ -9,7 +9,7 @@ import type { RebaseUIComponentProps } from "../../internals/types";
 import type { CollapsibleRootState } from "../root/CollapsibleRoot";
 import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
 import { collapsibleStateAttributesMapping } from "../root/stateAttributesMapping";
-import { type CollapsiblePanelSizing, createCollapsiblePanel } from "./createCollapsiblePanel";
+import { createCollapsiblePanel } from "./createCollapsiblePanel";
 
 /**
  * A panel with the collapsible contents.
@@ -23,7 +23,6 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
     "hiddenUntilFound",
     "keepMounted",
     "id",
-    "sizing",
   ]);
 
   const as = untrack(() => local.as);
@@ -59,7 +58,6 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
     open: rootContext.open,
     setMounted: rootContext.setMounted,
     setOpen: rootContext.setOpen,
-    sizing: () => local.sizing,
     transitionStatus: rootContext.transitionStatus,
   });
 
@@ -90,7 +88,6 @@ const defaultProps = Object.freeze({
   as: "div",
   hiddenUntilFound: false,
   keepMounted: false,
-  sizing: "auto",
 } satisfies Partial<CollapsiblePanel.Props>);
 
 export interface CollapsiblePanelState extends CollapsibleRootState {
@@ -120,19 +117,6 @@ export interface CollapsiblePanelOwnProps {
    * The `id` attribute of the panel.
    */
   id?: string | undefined;
-  /**
-   * How the panel determines its animated size.
-   *
-   * - `measured` publishes the `--collapsible-panel-height` and
-   *   `--collapsible-panel-width` custom properties.
-   * - `native` performs no measurement and relies on
-   *   `interpolate-size: allow-keywords`, so consumer CSS animates to `auto`.
-   * - `auto` selects `native` when `globalThis.REBASE_UI_EXPERIMENTAL_NATIVE_SIZING`
-   *   is set and the engine supports it, and `measured` otherwise.
-   *
-   * @default 'auto'
-   */
-  sizing?: CollapsiblePanelSizing | undefined;
 }
 
 export type CollapsiblePanelProps<T extends ValidComponent = "div"> = CollapsiblePanelOwnProps &

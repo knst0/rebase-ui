@@ -194,7 +194,7 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
         hasSetDefaultIndex = true;
 
         const activeItem = items.find((item) => item.hasAttribute(ACTIVE_COMPOSITE_ITEM)) ?? null;
-        const activeIndex = activeItem ? registry.indexOf(activeItem) : -1;
+        const activeIndex = activeItem ? untrack(() => registry.indexOf(activeItem)) : -1;
 
         if (activeIndex !== -1) {
           setHighlightedIndex(activeIndex);
