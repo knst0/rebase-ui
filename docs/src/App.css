@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "components/styles/index.css";
 
 @font-face {
   font-family: "Inter Variable";
@@ -22,7 +21,7 @@
 }
 
 @theme {
-  --color-*: initial;
+  /*--color-*: initial;*/
   /*--color-gray-1: light-dark(oklch(99.36% 0.0013 106.42), oklch(17.15% 0.0019 106.59));*/
   /*--color-gray-2: light-dark(oklch(97.87% 0.0016 106.43), oklch(21.74% 0.002 106.56));*/
   /*--color-gray-3: light-dark(oklch(95.48% 0.0018 67.8), oklch(24.95% 0.0012 106.49));*/
@@ -74,6 +73,19 @@
   ::selection {
     background: var(--color-highlight);
     color: var(--color-bg);
+  }
+
+  .sh__line--highlighted {
+    display: inline-block;
+    width: 100%;
+    background: color-mix(in oklab, var(--color-highlight) 16%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-highlight);
+  }
+
+  .sh__mark {
+    background: color-mix(in oklab, var(--color-highlight) 28%, transparent);
+    padding: 0.05em 0.15em;
+    color: inherit;
   }
 
   html {

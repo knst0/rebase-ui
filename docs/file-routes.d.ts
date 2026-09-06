@@ -33,9 +33,9 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
-      path: "/(main)/components";
+      path: "/(main)";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)")>;
       $$route?: undefined;
     },
     {
@@ -45,33 +45,51 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/separator";
+      path: "/(main)/components/accordion/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/tabs";
+      path: "/(main)/components/avatar/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/button";
+      path: "/(main)/components/button/";
       page: true;
       $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/collapsible/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/separator/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/tabs/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
       $$route?: undefined;
     },
     {
       path: "/(main)/";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)")>;
       $$route?: undefined;
     }
   ];
@@ -110,24 +128,48 @@ declare module "virtual:file-routes" {
           $$route?: undefined;
           children: readonly [
             {
-              path: "/tabs";
-              id: "/tabs";
+              path: "/tabs/";
+              id: "/tabs/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
               children?: undefined;
             },
             {
-              path: "/button";
-              id: "/button";
+              path: "/avatar/";
+              id: "/avatar/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
               children?: undefined;
             },
             {
-              path: "/separator";
-              id: "/separator";
+              path: "/button/";
+              id: "/button/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/accordion/";
+              id: "/accordion/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/separator/";
+              id: "/separator/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/collapsible/";
+              id: "/collapsible/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

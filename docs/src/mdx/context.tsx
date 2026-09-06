@@ -1,11 +1,15 @@
+import { Meta, Title } from "@solidjs/meta";
 import type { JSX, ComponentProps } from "@solidjs/web";
 import { createContext, omit, Show, useContext } from "solid-js";
-import { highlight } from "sugar-high";
-import { lang } from "sugar-high/lang";
 
 import type { RehypeCodeValuePreProps } from "../../plugins";
+import { highlightCode } from "../../plugins/highlightCode";
+import { ApiReference } from "./ApiReference";
+import { Demo } from "./Demo";
+import { ReferenceTable } from "./ReferenceTable";
+import { TypePopover } from "./TypePopover";
 
-export type Context = {
+export type Context = Record<string, ((props: never) => JSX.Element | JSX.Element[]) | undefined> & {
   [T in keyof JSX.IntrinsicElements]?: (props: ComponentProps<T>) => JSX.Element | JSX.Element[];
 };
 
@@ -40,12 +44,27 @@ const DEFAULT_VALUE: Context = {
           </div>
         </Show>
         <pre class="w-max min-w-full p-4 text-sm" {...rest}>
-          <code innerHTML={highlight(props.value as string, { lang: lang(props.language as string) ?? "typescript" })} />
+          <code innerHTML={highlightCode(props.value as string, { language: props.language })} />
         </pre>
       </div>
     );
   },
-  code: (props) => <code class="bg-gray-1 border-gray-6 rounded border px-1 py-0.25 text-sm" {...props} />,
+  code: (props) => <code class="border-border rounded border px-1 py-0.25 text-sm" {...props} />,
+  a: (props) => <a class="text-accent underline underline-offset-2" {...props} />,
+  ul: (props) => <ul class="text-fg/70 mb-4 list-disc space-y-1 pl-5" {...props} />,
+  ol: (props) => <ol class="text-fg/70 mb-4 list-decimal space-y-1 pl-5" {...props} />,
+  li: (props) => <li {...props} />,
+  strong: (props) => <strong class="text-fg font-semibold" {...props} />,
+  em: (props) => <em {...props} />,
+  blockquote: (props) => <blockquote class="border-border text-fg/60 my-4 border-l-2 pl-4" {...props} />,
+  hr: (props) => <hr class="border-border my-8" {...props} />,
+  h4: (props) => <h4 id={props.id} class="mt-8 mb-2 block font-semibold" style="scroll-margin-top: 32px;" {...props} />,
+  Meta,
+  Title,
+  Demo,
+  ReferenceTable,
+  ApiReference,
+  TypePopover,
 };
 
 const Context = createContext<Context>(DEFAULT_VALUE);

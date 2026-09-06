@@ -9,3 +9,10 @@ declare module "virtual:components-nav" {
   export const nav: NavItem[];
   export default nav;
 }
+
+declare module "virtual:api-reference" {
+  import type { ApiComponent } from "../plugins";
+
+  export const api: Record<string, ApiComponent>;
+  export default api;
+}

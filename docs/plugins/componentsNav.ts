@@ -2,7 +2,17 @@ import { readdir, readFile } from "node:fs/promises";
 import { extname, join, relative } from "node:path";
 
 import GithubSlugger from "github-slugger";
+import type { Heading, Root as MdastRoot } from "mdast";
+import { toString as mdastToString } from "mdast-util-to-string";
+import remarkFrontmatter from "remark-frontmatter";
+import remarkGfm from "remark-gfm";
+import remarkParse from "remark-parse";
+import { unified } from "unified";
+import { visit } from "unist-util-visit";
 import type { Plugin } from "vite";
+
+import { collectApi, type ApiReferenceOptions } from "./apiReference";
+import { parseFrontmatter, type SectionId } from "./frontmatter";
 
 const VIRTUAL_ID = "virtual:components-nav";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
@@ -17,24 +27,16 @@ export type NavHeading = {
 export type NavItem = {
   title: string;
   path: string;
+  top?: string;
   headings: NavHeading[];
   children?: NavItem[];
 };
-
-const FRONTMATTER_TITLE = /^---\r?\n[\s\S]*?^title:\s*(?:"([^"]*)"|'([^']*)'|(.+?))\s*$[\s\S]*?^---/m;
-const FENCE = /^(?:```|~~~)[\s\S]*?^(?:```|~~~)\s*$/gm;
-const HEADING = /^(#{1,6})\s+(.+?)\s*#*\s*$/gm;
-const INLINE_MARKUP = /`([^`]*)`|\*\*([^*]*)\*\*|\*([^*]*)\*|_([^_]*)_|\[([^\]]*)\]\([^)]*\)|\{[^}]*\}/g;
 
 function titleFromSlug(slug: string): string {
   return slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-}
-
-function plainText(value: string): string {
-  return value.replace(INLINE_MARKUP, (_, code, bold, em, under, link) => code ?? bold ?? em ?? under ?? link ?? "").trim();
 }
 
 function nest(flat: Omit<NavHeading, "children">[]): NavHeading[] {
@@ -51,42 +53,113 @@ function nest(flat: Omit<NavHeading, "children">[]): NavHeading[] {
   return root;
 }
 
-function parse(source: string): { title?: string; headings: NavHeading[] } {
-  const frontmatter = FRONTMATTER_TITLE.exec(source);
+const markdownParser = unified().use(remarkParse).use(remarkFrontmatter).use(remarkGfm);
+
+function parseHeadings(body: string): { top: string | undefined; flat: { hash: string; title: string; depth: number }[] } {
+  const tree = markdownParser.parse(body) as MdastRoot;
   const slugger = new GithubSlugger();
-  const flat: Omit<NavHeading, "children">[] = [];
+  const flat: { hash: string; title: string; depth: number }[] = [];
+  let top: string | undefined;
 
-  for (const [, hashes, raw] of source.replace(FENCE, "").matchAll(HEADING)) {
-    const title = plainText(raw);
-    if (title === "") continue;
-    flat.push({ id: slugger.slug(title), title, depth: hashes.length });
-  }
+  visit(tree, "heading", (node: Heading) => {
+    const title = mdastToString(node).trim();
+    if (title === "") return;
+    const hash = slugger.slug(title);
+    if (node.depth === 1) {
+      top ??= hash;
+      return;
+    }
+    flat.push({ hash, title, depth: node.depth });
+  });
 
-  return {
-    title: frontmatter?.[1] ?? frontmatter?.[2] ?? frontmatter?.[3] ?? flat.find((h) => h.depth === 1)?.title,
-    headings: nest(flat),
-  };
+  return { top, flat };
 }
 
-async function scan(dir: string, base: string): Promise<NavItem[]> {
+function appendGenerated(
+  flat: { hash: string; title: string; depth: number }[],
+  sections: SectionId[],
+  generated: Record<SectionId, NavHeading[]>,
+): Omit<NavHeading, "children">[] {
+  const result: Omit<NavHeading, "children">[] = flat.map((heading) => ({
+    id: heading.hash,
+    title: heading.title,
+    depth: heading.depth,
+  }));
+
+  for (const section of sections) {
+    const heading = SECTION_HEADINGS[section];
+    const items = generated[section];
+    if (heading === undefined || items === undefined || items.length === 0) continue;
+    result.push({ id: heading.id, title: heading.title, depth: 2 });
+    for (const item of items) result.push({ id: item.id, title: item.title, depth: 3 });
+  }
+
+  return result;
+}
+
+const SECTION_HEADINGS: Partial<Record<SectionId, { id: string; title: string }>> = {
+  api: { id: "api-reference", title: "API reference" },
+};
+
+function parse(
+  source: string,
+  filePath: string,
+  generated: Record<SectionId, NavHeading[]>,
+): { title: string; top: string | undefined; headings: NavHeading[] } {
+  const meta = parseFrontmatter(source, filePath);
+  const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
+  const { top, flat } = parseHeadings(body);
+  const withGenerated = appendGenerated(flat, meta.sections, generated);
+
+  return { title: meta.title, top, headings: nest(withGenerated) };
+}
+
+function apiHeadings(parts: { name: string }[]): NavHeading[] {
+  return parts.map((part) => ({
+    id: part.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, ""),
+    title: part.name,
+    depth: 0,
+    children: [],
+  }));
+}
+
+async function scan(dir: string, base: string, api: Record<string, { parts: { name: string }[] }>): Promise<NavItem[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const items: NavItem[] = [];
 
   for (const entry of entries) {
     const source = join(dir, entry.name);
     if (entry.isDirectory()) {
-      const children = await scan(source, `${base}/${entry.name}`);
-      if (children.length > 0) {
-        items.push({ title: titleFromSlug(entry.name), path: `${base}/${entry.name}`, headings: [], children });
+      const dirPath = `${base}/${entry.name}`;
+      const children = await scan(source, dirPath, api);
+      const pageIndex = children.findIndex((child) => child.path === dirPath);
+      if (children.length === 0) continue;
+      if (pageIndex === -1) {
+        items.push({ title: titleFromSlug(entry.name), path: dirPath, headings: [], children });
+        continue;
       }
+      const [page] = children.splice(pageIndex, 1);
+      if (children.length > 0) page.children = children;
+      items.push(page);
       continue;
     }
     if (extname(entry.name) !== ".mdx") continue;
     const slug = entry.name.slice(0, -".mdx".length);
-    const { title, headings } = parse(await readFile(source, "utf8"));
+    const componentSlug = slug === "index" ? (base.split("/").pop() ?? slug) : slug;
+    const generated: Record<SectionId, NavHeading[]> = {
+      demo: [],
+      anatomy: [],
+      api: apiHeadings(api[componentSlug]?.parts ?? []),
+      types: [],
+    };
+    const { title, top, headings } = parse(await readFile(source, "utf8"), source, generated);
     items.push({
-      title: title ?? titleFromSlug(slug),
+      title: title || titleFromSlug(slug),
       path: slug === "index" ? base : `${base}/${slug}`,
+      top,
       headings,
     });
   }
@@ -94,7 +167,7 @@ async function scan(dir: string, base: string): Promise<NavItem[]> {
   return items.sort((a, b) => a.title.localeCompare(b.title));
 }
 
-export function componentsNav(options: { dir: string; base?: string } = { dir: "src/routes/(main)/components" }): Plugin {
+export function componentsNav(options: { dir: string; base?: string; api?: ApiReferenceOptions }): Plugin {
   const base = options.base ?? "/components";
   let root = process.cwd();
 
@@ -110,7 +183,8 @@ export function componentsNav(options: { dir: string; base?: string } = { dir: "
       if (id !== RESOLVED_ID) return;
       const dir = join(root, options.dir);
       this.addWatchFile(dir);
-      const tree = await scan(dir, base);
+      const api = options.api ? await collectApi(root, options.api) : {};
+      const tree = await scan(dir, base, api);
       return `export const nav = ${JSON.stringify(tree)};\nexport default nav;`;
     },
     handleHotUpdate({ file, server }) {
