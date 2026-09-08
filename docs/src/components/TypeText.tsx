@@ -1,6 +1,7 @@
-import { For, Show, createMemo, createSignal } from "solid-js";
-import { highlight } from "sugar-high";
-import { lang } from "sugar-high/lang";
+import { For, Show, createMemo } from "solid-js";
+
+import { highlightTs } from "./HighlightedCode";
+import { CodeTooltip } from "./Tooltip";
 
 const TOKEN = /[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*/g;
 
@@ -23,31 +24,22 @@ function segments(value: string, definitions: Record<string, string>): Segment[]
 }
 
 function Token(props: { text: string; definition: string }) {
-  const [open, setOpen] = createSignal(false);
-
   return (
-    <span class="relative inline-block">
-      <span
-        tabindex="0"
-        role="button"
-        class="decoration-fg/40 cursor-help underline decoration-dotted underline-offset-4"
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        innerHTML={highlight(props.text, { lang: lang("typescript") })}
-      />
-      <Show when={open()}>
+    <CodeTooltip source={props.definition} panelClass="bg-bg max-w-[min(34rem,70vw)]">
+      {(state) => (
         <span
-          role="tooltip"
-          class="squircle border-border bg-bg absolute bottom-full left-0 z-50 mb-1 block w-max max-w-[min(34rem,70vw)] overflow-x-auto rounded-lg border p-3 text-left shadow-lg"
-        >
-          <pre class="text-xs">
-            <code innerHTML={highlight(props.definition, { lang: lang("typescript") })} />
-          </pre>
-        </span>
-      </Show>
-    </span>
+          tabindex="0"
+          role="button"
+          aria-describedby={state.describedBy()}
+          class="decoration-fg/40 cursor-help underline decoration-dotted underline-offset-4"
+          onMouseEnter={state.show}
+          onMouseLeave={state.hide}
+          onFocus={state.show}
+          onBlur={state.hide}
+          innerHTML={highlightTs(props.text)}
+        />
+      )}
+    </CodeTooltip>
   );
 }
 
@@ -58,7 +50,7 @@ export function TypeText(props: { value: string; definitions?: Record<string, st
     <code class="text-xs whitespace-pre-wrap">
       <For each={parts()}>
         {(part) => (
-          <Show when={part.definition} fallback={<span innerHTML={highlight(part.text, { lang: lang("typescript") })} />}>
+          <Show when={part.definition} fallback={<span innerHTML={highlightTs(part.text)} />}>
             {(definition) => <Token text={part.text} definition={definition()} />}
           </Show>
         )}

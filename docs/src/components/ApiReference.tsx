@@ -1,7 +1,8 @@
 import { For, Show, createMemo } from "solid-js";
 import { api } from "virtual:api-reference";
 
-import type { ApiPart, ApiProp } from "../../plugins";
+import type { ApiPart, ApiProp, ReferenceRow } from "../../plugins";
+import { Heading } from "./Heading";
 import { ReferenceTable } from "./ReferenceTable";
 
 function slugify(value: string): string {
@@ -11,23 +12,27 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function toRows(props: ApiProp[]) {
+function toHtml(description: string | undefined): string {
+  return (description ?? "").replace(/\r?\n/g, "<br />");
+}
+
+function propRows(props: ApiProp[]): ReferenceRow[] {
   return props.map((prop) => ({
     name: prop.required === true ? `${prop.name}*` : prop.name,
     type: prop.type,
     default: prop.default,
-    description: (prop.description ?? "").replace(/\r?\n/g, "<br />"),
+    description: toHtml(prop.description),
   }));
 }
 
 function Part(props: { part: ApiPart }) {
-  const heading = () => slugify(props.part.name);
+  const id = () => slugify(props.part.name);
 
   return (
     <>
-      <h3 id={heading()} class="mt-12 mb-3 block font-semibold" style="scroll-margin-top: 32px;">
-        <a href={`#${heading()}`} textContent={props.part.name} />
-      </h3>
+      <Heading level={3} id={id()}>
+        {props.part.name}
+      </Heading>
 
       <Show when={props.part.description}>
         {(description) => <p class="text-fg/70 mb-2 whitespace-pre-line" textContent={description()} />}
@@ -43,7 +48,7 @@ function Part(props: { part: ApiPart }) {
         </Show>
       </p>
 
-      <ReferenceTable name={props.part.name} rows={toRows(props.part.props)} definitions={props.part.definitions} />
+      <ReferenceTable name={props.part.name} rows={propRows(props.part.props)} definitions={props.part.definitions} />
 
       <Show when={props.part.attributes.length > 0}>
         <ReferenceTable
@@ -52,7 +57,7 @@ function Part(props: { part: ApiPart }) {
           rows={props.part.attributes.map((attribute) => ({
             name: attribute.name,
             type: attribute.type,
-            description: (attribute.description ?? "").replace(/\r?\n/g, "<br />"),
+            description: toHtml(attribute.description),
           }))}
         />
       </Show>
@@ -67,9 +72,9 @@ export function ApiReference(props: { slug: string }) {
     <Show when={component()}>
       {(found) => (
         <>
-          <h2 id="api-reference" class="mt-12 mb-4 block text-xl font-semibold" style="scroll-margin-top: 32px;">
-            <a href="#api-reference">API reference</a>
-          </h2>
+          <Heading level={2} id="api-reference">
+            API reference
+          </Heading>
           <For each={found().parts}>{(part) => <Part part={part} />}</For>
         </>
       )}
