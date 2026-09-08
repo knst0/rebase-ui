@@ -2,15 +2,9 @@ import { For, Show, createMemo } from "solid-js";
 import { api } from "virtual:api-reference";
 
 import type { ApiPart, ApiProp, ReferenceRow } from "../../plugins";
+import { API_SECTION_ID, slugifyWithin } from "../../plugins/shared/text";
 import { Heading } from "./Heading";
 import { ReferenceTable } from "./ReferenceTable";
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 function toHtml(description: string | undefined): string {
   return (description ?? "").replace(/\r?\n/g, "<br />");
@@ -26,7 +20,7 @@ function propRows(props: ApiProp[]): ReferenceRow[] {
 }
 
 function Part(props: { part: ApiPart }) {
-  const id = () => slugify(props.part.name);
+  const id = () => slugifyWithin(API_SECTION_ID, props.part.name);
 
   return (
     <>

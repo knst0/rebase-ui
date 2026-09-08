@@ -27,7 +27,7 @@ export function Demo(props: { name: string; variants: DemoVariant[]; components:
       </Show>
       <Show when={files().length > 0}>
         <Collapsible.Root
-          open={open()}
+          open={open}
           onOpenChange={setOpen}
           class="squircle border-border bg-bg-code mt-3 overflow-hidden rounded-lg border shadow"
         >

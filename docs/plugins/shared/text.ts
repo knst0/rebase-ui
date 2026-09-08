@@ -22,3 +22,9 @@ export function slugify(value: string): string {
 export function escapeMarkdownCell(value: string): string {
   return value.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br />");
 }
+
+export function slugifyWithin(parentId: string, value: string): string {
+  return `${parentId}-${slugify(value)}`;
+}
+
+export const API_SECTION_ID = "api-reference";

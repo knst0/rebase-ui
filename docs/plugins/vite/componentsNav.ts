@@ -14,7 +14,7 @@ import type { Plugin } from "vite";
 import { collectApi } from "../content/api/collect";
 import type { ApiReferenceOptions } from "../content/api/types";
 import { parseFrontmatter, stripFrontmatter, type SectionId } from "../content/frontmatter";
-import { slugify, titleFromSlug } from "../shared/text";
+import { API_SECTION_ID, slugifyWithin, titleFromSlug } from "../shared/text";
 
 const VIRTUAL_ID = "virtual:components-nav";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
@@ -70,8 +70,9 @@ function parseHeadings(body: string): { top: string | undefined; flat: { hash: s
   return { top, flat };
 }
 
+
 const SECTION_HEADINGS: Partial<Record<SectionId, { id: string; title: string }>> = {
-  api: { id: "api-reference", title: "API reference" },
+  api: { id: API_SECTION_ID, title: "API reference" },
 };
 
 function appendGenerated(
@@ -111,7 +112,7 @@ function parse(
 
 function apiHeadings(parts: { name: string }[]): NavHeading[] {
   return parts.map((part) => ({
-    id: slugify(part.name),
+    id: slugifyWithin(API_SECTION_ID, part.name),
     title: part.name,
     depth: 0,
     children: [],
