@@ -1,10 +1,9 @@
-import { type JSX } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createRenderEffect, createSignal, type Setter, untrack } from "solid-js";
 
 import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import type { TransitionStatus } from "../../internals/transition-status";
-import { CollapsibleRoot, type CollapsibleRootChangeEventDetails } from "../root/CollapsibleRoot";
+import { CollapsibleRoot } from "../root/CollapsibleRoot";
 import * as CollapsiblePanelCssVars from "./CollapsiblePanelCssVars";
 
 type AnimationType = "css-transition" | "css-animation" | "none";
@@ -26,7 +25,7 @@ export interface CreateCollapsiblePanelParameters {
    * Overrides the `keepMounted` prop and uses `hidden="until-found"`
    * to hide the element without removing it from the DOM.
    */
-  hiddenUntilFound: Accessor<boolean>;
+  hiddenUntilFound: boolean;
   /**
    * The `id` attribute of the panel.
    */
@@ -35,7 +34,7 @@ export interface CreateCollapsiblePanelParameters {
    * Whether to keep the element in the DOM while the panel is closed.
    * This prop is ignored when `hiddenUntilFound` is used.
    */
-  keepMounted: Accessor<boolean>;
+  keepMounted: boolean;
   /**
    * Whether the collapsible panel is currently open.
    */
@@ -376,7 +375,7 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
     },
   );
 
-  const shouldRender = () => keepMounted() || hiddenUntilFound() || mounted() || open();
+  const shouldRender = () => keepMounted || hiddenUntilFound || mounted() || open();
 
   return {
     height: () => renderedDimensions().height,
@@ -384,7 +383,7 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
     props: {
       get hidden() {
         if (!open() && !mounted()) {
-          return hiddenUntilFound() ? ("until-found" as const) : true;
+          return hiddenUntilFound ? ("until-found" as const) : true;
         }
         return undefined;
       },

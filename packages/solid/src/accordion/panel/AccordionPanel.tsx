@@ -39,11 +39,11 @@ export function AccordionPanel<T extends ValidComponent = "div">(props: Accordio
 
   const { state: itemState, triggerId } = useAccordionItemContext();
 
-  const hiddenUntilFound = () => local.hiddenUntilFound ?? rootContext.hiddenUntilFound();
-  const keepMounted = () => local.keepMounted ?? rootContext.keepMounted();
+  const hiddenUntilFound = untrack(() => local.hiddenUntilFound ?? rootContext.hiddenUntilFound);
+  const keepMounted = untrack(() => local.keepMounted ?? rootContext.keepMounted);
 
   if (process.env.NODE_ENV !== "production") {
-    if (untrack(() => local.keepMounted) === false && untrack(hiddenUntilFound)) {
+    if (untrack(() => local.keepMounted) === false && hiddenUntilFound) {
       console.error(
         "Rebase UI: The `keepMounted={false}` prop on an `Accordion.Panel` is ignored when `hiddenUntilFound` is enabled on the panel or root, since the panel must remain mounted while closed.",
       );

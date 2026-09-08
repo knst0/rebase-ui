@@ -10,8 +10,8 @@ export interface AccordionRootContext<Value = any> {
     nextOpen: boolean,
     eventDetails: AccordionRoot.ChangeEventDetails,
   ) => void;
-  hiddenUntilFound: Accessor<boolean>;
-  keepMounted: Accessor<boolean>;
+  hiddenUntilFound: boolean;
+  keepMounted: boolean;
   state: AccordionRoot.State<Value>;
   value: Accessor<AccordionRoot.Value<Value>>;
 }

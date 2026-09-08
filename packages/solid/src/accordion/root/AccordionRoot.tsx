@@ -29,9 +29,11 @@ export function AccordionRoot<Value = any, T extends ValidComponent = "div">(pro
   ]);
 
   const as = untrack(() => local.as);
+  const hiddenUntilFound = untrack(() => local.hiddenUntilFound);
+  const keepMounted = untrack(() => local.keepMounted);
 
   if (process.env.NODE_ENV !== "production") {
-    if (untrack(() => local.hiddenUntilFound) && untrack(() => local.keepMounted) === false) {
+    if (hiddenUntilFound && !keepMounted) {
       console.error(
         "Rebase UI: The `keepMounted={false}` prop on `Accordion.Root` is ignored when `hiddenUntilFound` is enabled, since panels must remain mounted while closed.",
       );
@@ -74,8 +76,8 @@ export function AccordionRoot<Value = any, T extends ValidComponent = "div">(pro
   const contextValue: AccordionRootContext<Value> = {
     disabled,
     handleValueChange,
-    hiddenUntilFound: () => local.hiddenUntilFound ?? false,
-    keepMounted: () => local.keepMounted ?? false,
+    hiddenUntilFound,
+    keepMounted,
     state,
     value,
   };
@@ -104,6 +106,8 @@ const defaultProps = Object.freeze({
   as: "div",
   disabled: false,
   multiple: false,
+  hiddenUntilFound: false,
+  keepMounted: false,
 } satisfies Partial<AccordionRoot.Props>);
 
 export type AccordionValue<Value = any> = Value[];

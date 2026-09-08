@@ -50,9 +50,9 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
   );
 
   const panel = createCollapsiblePanel({
-    hiddenUntilFound: () => hiddenUntilFound,
+    hiddenUntilFound,
     id: () => id,
-    keepMounted: () => keepMounted,
+    keepMounted,
     mounted: rootContext.mounted,
     onOpenChange: rootContext.onOpenChange,
     open: rootContext.open,

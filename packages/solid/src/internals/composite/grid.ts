@@ -41,7 +41,7 @@ export function createGridCellMap(sizes: GridItemSize[], cols: number, dense: bo
   let startIndex = 0;
 
   sizes.forEach(({ width, height }, index) => {
-    if (width > cols && process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== "production" && width > cols) {
       throw new Error(`Rebase UI: Invalid grid - item width at index ${index} is greater than grid columns`);
     }
 

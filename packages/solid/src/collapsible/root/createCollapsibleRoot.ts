@@ -37,21 +37,19 @@ export interface CreateCollapsibleRootReturnValue {
 }
 
 export function createCollapsibleRoot(parameters: CreateCollapsibleRootParameters): CreateCollapsibleRootReturnValue {
-  const { onOpenChange } = parameters;
   const disabled = () => accessBoolean(parameters.disabled);
-  const [open, setOpen] = createControllableSignal({ value: parameters.open, defaultValue: () => parameters.defaultOpen ?? false });
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
-  const [panelId, setPanelId] = createSignal(createUniqueId());
 
-  const handleOpenChange = (nextOpen: boolean, eventDetails: CollapsibleRoot.ChangeEventDetails) => {
-    onOpenChange?.(nextOpen, eventDetails);
-  };
+  const [open, setOpen] = createControllableSignal({ value: parameters.open, defaultValue: () => parameters.defaultOpen ?? false });
+
+  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
+
+  const [panelId, setPanelId] = createSignal(createUniqueId());
 
   const handleTrigger = (event: MouseEvent | KeyboardEvent) => {
     const nextOpen = !untrack(open);
     const eventDetails = createChangeEventDetails(REASONS.triggerPress, event);
 
-    handleOpenChange(nextOpen, eventDetails);
+    parameters.onOpenChange?.(nextOpen, eventDetails);
 
     if (!eventDetails.isCanceled) {
       setOpen(nextOpen);
