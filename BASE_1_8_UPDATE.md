@@ -44,10 +44,11 @@ Progress, Context Menu.
 
 ### Avatar
 
-- [ ] Новый проп **`keepMounted`** у `<Avatar.Image>`
+- [x] Новый проп **`keepMounted`** у `<Avatar.Image>`
       (`avatar/image/AvatarImage.tsx`). Сейчас рендер завязан на `mounted` из
       `createTransitionStatus`; нужно добавить `keepMounted`, который держит
       `<img>` в DOM независимо от статуса загрузки.
+  - Avatar.Image теперь всегда смонтирован.
 
 ### Checkbox / Checkbox Group
 

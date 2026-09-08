@@ -14,7 +14,7 @@ export default function ExampleAccordion() {
           </Accordion.Trigger>
         </Accordion.Header>
         <Accordion.Panel class="h-[var(--accordion-panel-height)] overflow-hidden text-sm transition-[height] duration-150 ease-[ease-out] data-ending-style:h-0 data-starting-style:h-0">
-          <div class="px-3 py-2">Rebase UI is a library of high-quality unstyled Solid components for design systems and web apps.</div>
+          <div class="px-3 py-2">Rebase UI is a library of high-quality unstyled Solid.js components for design systems and web apps.</div>
         </Accordion.Panel>
       </Accordion.Item>
 

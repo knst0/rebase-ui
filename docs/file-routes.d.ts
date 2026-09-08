@@ -63,18 +63,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/avatar/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/button/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
       path: "/(main)/components/collapsible/";
       page: true;
       $component: FileRouteLazyRef;
@@ -88,6 +76,36 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/(main)/components/tabs/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/checkbox/__demos/hero";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components/checkbox/__demos/hero")>;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/avatar/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/button/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/checkbox/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/checkbox-group/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -152,6 +170,14 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/checkbox/";
+              id: "/checkbox/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/accordion/";
               id: "/accordion/";
               page: true;
@@ -172,6 +198,22 @@ declare module "virtual:file-routes" {
               id: "/collapsible/";
               page: true;
               $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/checkbox-group/";
+              id: "/checkbox-group/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/checkbox/__demos/hero";
+              id: "/checkbox/__demos/hero";
+              page: true;
+              $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components/checkbox/__demos/hero")>;
               $$route?: undefined;
               children?: undefined;
             }

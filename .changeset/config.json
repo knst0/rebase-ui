@@ -7,8 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@rebase-ui/docs",
-    "@rebase-ui/monorepo-tests"
-  ]
+  "ignore": ["@rebase-ui/docs", "@rebase-ui/monorepo-tests"]
 }

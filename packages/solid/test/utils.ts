@@ -1,4 +1,6 @@
-import { fireEvent } from "@solidjs/testing-library";
+import { cleanup, fireEvent, render } from "@solidjs/testing-library";
+import type { JSX } from "@solidjs/web";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { flush } from "solid-js";
 
 /**
@@ -57,4 +59,35 @@ export function pressKey(key: string) {
 
   fireEvent.keyDown(element, { key });
   fireEvent.keyUp(element, { key });
+}
+
+export type RenderResult = ReturnType<typeof render> & {
+  user: UserEvent;
+  remount: (nextUi: () => JSX.Element) => Promise<RenderResult>;
+};
+
+export interface Renderer {
+  render: (ui: () => JSX.Element) => Promise<RenderResult>;
+}
+
+/**
+ * Creates a renderer that flushes pending reactive work after mounting and
+ * exposes a `userEvent` instance alongside a `remount` helper.
+ */
+export function createRenderer(): Renderer {
+  async function renderUI(ui: () => JSX.Element): Promise<RenderResult> {
+    const result = render(ui);
+    flush();
+
+    const user = userEvent.setup();
+
+    const remount = async (nextUi: () => JSX.Element) => {
+      cleanup();
+      return renderUI(nextUi);
+    };
+
+    return { ...result, user, remount };
+  }
+
+  return { render: renderUI };
 }

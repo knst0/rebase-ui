@@ -25,7 +25,7 @@ const component: ApiComponent = {
 const page: PageMeta = {
   title: "Avatar",
   subtitle: "An easily stylable avatar component.",
-  description: "A high-quality, unstyled Solid avatar component that is easy to customize.",
+  description: "A high-quality, unstyled Solid.js avatar component that is easy to customize.",
   sections: ["anatomy", "api"],
 };
 
