@@ -61,13 +61,13 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
     open: collapsible.open,
     disabled: collapsible.disabled,
     transitionStatus: collapsible.transitionStatus,
-  }
+  };
 
   const collapsibleContext = {
     ...collapsible,
     onOpenChange,
     state: collapsibleState,
-  }
+  };
 
   const state: AccordionItemState = {
     ...rootContext.state,

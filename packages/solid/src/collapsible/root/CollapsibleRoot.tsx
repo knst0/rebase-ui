@@ -5,11 +5,11 @@ import { REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-
 import { accessBoolean, type ReactiveBoolean } from "../../internals/maybeAccessor";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
+import { stableCallback } from "../../internals/stableCallback";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { CollapsibleRootContext } from "./CollapsibleRootContext";
 import { createCollapsibleRoot, type CreateCollapsibleRootReturnValue } from "./createCollapsibleRoot";
 import { collapsibleStateAttributesMapping } from "./stateAttributesMapping";
-import { stableCallback } from "../../internals/stableCallback";
 
 /**
  * Groups all parts of the collapsible.
@@ -31,7 +31,7 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
   const disabled = () => accessBoolean(local.disabled);
   const open = () => (local.open === undefined ? undefined : accessBoolean(local.open));
 
-  const onOpenChange = stableCallback(() => local.onOpenChange)
+  const onOpenChange = stableCallback(() => local.onOpenChange);
 
   const collapsible = createCollapsibleRoot({
     open,

@@ -70,7 +70,6 @@ function parseHeadings(body: string): { top: string | undefined; flat: { hash: s
   return { top, flat };
 }
 
-
 const SECTION_HEADINGS: Partial<Record<SectionId, { id: string; title: string }>> = {
   api: { id: API_SECTION_ID, title: "API reference" },
 };
