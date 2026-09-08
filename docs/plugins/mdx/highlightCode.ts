@@ -19,17 +19,32 @@ function parseDirective(line: string): Directive | undefined {
 type HighlightDirectives = {
   code: string;
   highlightedLines: Set<number>;
-  searchTerms: string[];
+  globalSearchTerms: string[];
+  scopedSearchTerms: Map<number, string[]>;
 };
 
 function parseHighlightDirectives(source: string): HighlightDirectives {
   const input = source.split("\n");
   const output: string[] = [];
   const highlightedLines = new Set<number>();
-  const searchTerms: string[] = [];
+  const globalSearchTerms: string[] = [];
+  const scopedSearchTerms = new Map<number, string[]>();
 
   let range = false;
   let markNext = false;
+  let rangeStart = 0;
+  let rangeTerms: string[] = [];
+
+  const flushRange = (end: number) => {
+    if (rangeTerms.length > 0) {
+      for (let index = rangeStart; index < end; index += 1) {
+        const existing = scopedSearchTerms.get(index) ?? [];
+        existing.push(...rangeTerms);
+        scopedSearchTerms.set(index, existing);
+      }
+    }
+    rangeTerms = [];
+  };
 
   for (const raw of input) {
     const directive = parseDirective(raw);
@@ -43,9 +58,12 @@ function parseHighlightDirectives(source: string): HighlightDirectives {
     }
 
     switch (directive.kind) {
-      case "text":
-        searchTerms.push(...directive.searchTerms.filter((term) => term !== ""));
+      case "text": {
+        const terms = directive.searchTerms.filter((term) => term !== "");
+        if (range) rangeTerms.push(...terms);
+        else globalSearchTerms.push(...terms);
         break;
+      }
       case "line":
         if (output.length > 0) highlightedLines.add(output.length - 1);
         break;
@@ -54,8 +72,11 @@ function parseHighlightDirectives(source: string): HighlightDirectives {
         break;
       case "start":
         range = true;
+        rangeStart = output.length;
+        rangeTerms = [];
         break;
       case "end":
+        flushRange(output.length);
         range = false;
         break;
       default:
@@ -63,7 +84,9 @@ function parseHighlightDirectives(source: string): HighlightDirectives {
     }
   }
 
-  return { code: output.join("\n"), highlightedLines, searchTerms };
+  if (range) flushRange(output.length);
+
+  return { code: output.join("\n"), highlightedLines, globalSearchTerms, scopedSearchTerms };
 }
 
 const HTML_ESCAPES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -159,7 +182,7 @@ export type HighlightCodeOptions = {
 };
 
 export function highlightCode(source: string, options: HighlightCodeOptions = {}): string {
-  const { code, highlightedLines, searchTerms } = parseHighlightDirectives(source);
+  const { code, highlightedLines, globalSearchTerms, scopedSearchTerms } = parseHighlightDirectives(source);
   const resolved = lang(options.language ?? "") ?? "typescript";
 
   const html = highlight(code, {
@@ -169,10 +192,13 @@ export function highlightCode(source: string, options: HighlightCodeOptions = {}
     },
   });
 
-  if (searchTerms.length === 0) return html;
+  if (globalSearchTerms.length === 0 && scopedSearchTerms.size === 0) return html;
 
   return html
     .split("\n")
-    .map((lineHtml) => applyTextMarks(lineHtml, searchTerms))
+    .map((lineHtml, index) => {
+      const terms = scopedSearchTerms.has(index) ? [...globalSearchTerms, ...scopedSearchTerms.get(index)!] : globalSearchTerms;
+      return terms.length === 0 ? lineHtml : applyTextMarks(lineHtml, terms);
+    })
     .join("\n");
 }
