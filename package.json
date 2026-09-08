@@ -2,16 +2,22 @@
   "name": "@rebase-ui/monorepo",
   "private": true,
   "scripts": {
+    "build": "pnpm --filter @rebase-ui/solid build",
+    "changeset": "changeset",
     "fmt": "oxfmt",
     "lint": "oxlint --type-aware --type-check",
     "test": "pnpm test:chromium",
     "test:browsers": "cross-env VITEST_ENV=all-browsers pnpm test:unit",
     "test:chromium": "cross-env VITEST_ENV=chromium pnpm test:unit",
+    "test:ci": "cross-env VITEST_ENV=chromium vitest run --project @rebase-ui/solid",
     "test:firefox": "cross-env VITEST_ENV=firefox pnpm test:unit",
     "test:unit": "vitest --project @rebase-ui/solid",
-    "test:webkit": "cross-env VITEST_ENV=webkit pnpm test:unit"
+    "test:webkit": "cross-env VITEST_ENV=webkit pnpm test:unit",
+    "typecheck": "tsc --noEmit",
+    "version": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.2",
     "@rebase-ui/monorepo-tests": "workspace:*",
     "@types/node": "^26.4.1",
     "@vitest/browser-playwright": "^5.0.0",
