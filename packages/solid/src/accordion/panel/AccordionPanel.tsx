@@ -89,7 +89,7 @@ export function AccordionPanel<T extends ValidComponent = "div">(props: Accordio
   });
 
   const refProps = (externalProps: Record<string, any>) => ({
-    ref: mergeRefs<HTMLElement>(externalProps.ref, panel.ref),
+    ref: mergeRefs<HTMLElement>(externalProps.ref, panel.setPanelElement),
   });
 
   return (

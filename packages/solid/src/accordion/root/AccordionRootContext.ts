@@ -1,15 +1,19 @@
 import type { Accessor } from "solid-js";
 
 import { createContext, useContext } from "../../internals/context";
-import type { AccordionRootChangeEventDetails, AccordionRootState, AccordionValue } from "./AccordionRoot";
+import type { AccordionRoot } from "./AccordionRoot";
 
 export interface AccordionRootContext<Value = any> {
   disabled: Accessor<boolean>;
-  handleValueChange: (newValue: AccordionValue<Value>[number], nextOpen: boolean, eventDetails: AccordionRootChangeEventDetails) => void;
+  handleValueChange: (
+    newValue: AccordionRoot.Value<Value>[number],
+    nextOpen: boolean,
+    eventDetails: AccordionRoot.ChangeEventDetails,
+  ) => void;
   hiddenUntilFound: Accessor<boolean>;
   keepMounted: Accessor<boolean>;
-  state: AccordionRootState<Value>;
-  value: Accessor<AccordionValue<Value>>;
+  state: AccordionRoot.State<Value>;
+  value: Accessor<AccordionRoot.Value<Value>>;
 }
 
 export const AccordionRootContext = createContext<AccordionRootContext>();

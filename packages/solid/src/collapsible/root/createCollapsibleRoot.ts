@@ -2,37 +2,48 @@ import { type Accessor, createSignal, createUniqueId, type Setter, untrack } fro
 
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { accessBoolean, type ReactiveBoolean } from "../../internals/maybeAccessor";
 import { createTransitionStatus, type TransitionStatus } from "../../internals/transition-status";
-import type { CollapsibleRootChangeEventDetails, CollapsibleRootState } from "./CollapsibleRoot";
+import type { CollapsibleRoot } from "./CollapsibleRoot";
 
 export interface CreateCollapsibleRootParameters {
-  disabled: Accessor<boolean>;
-  defaultOpen: Accessor<boolean | undefined>;
+  disabled?: ReactiveBoolean | undefined;
+  defaultOpen?: boolean | undefined;
   open: Accessor<boolean | undefined>;
-  onOpenChange?: (open: boolean, eventDetails: CollapsibleRootChangeEventDetails) => void;
+  onOpenChange?: (open: boolean, eventDetails: CollapsibleRoot.ChangeEventDetails) => void;
 }
 
 export interface CreateCollapsibleRootReturnValue {
+  /**
+   * Whether the component should ignore user interaction.
+   */
   disabled: Accessor<boolean>;
   handleTrigger: (event: MouseEvent | KeyboardEvent) => void;
+  /**
+   * Whether the collapsible panel is mounted for transition and hidden-state
+   * purposes. This can be `false` while the element remains in the DOM when
+   * `keepMounted` or `hiddenUntilFound` is enabled.
+   */
   mounted: Accessor<boolean>;
-  onOpenChange: (open: boolean, eventDetails: CollapsibleRootChangeEventDetails) => void;
-  open: Accessor<boolean>;
-  panelId: Accessor<string>;
   setMounted: Setter<boolean>;
+  /**
+   * Whether the collapsible panel is currently open.
+   */
+  open: Accessor<boolean>;
   setOpen: (open: boolean) => void;
+  panelId: Accessor<string>;
   setPanelId: Setter<string>;
-  state: CollapsibleRootState;
   transitionStatus: Accessor<TransitionStatus>;
 }
 
 export function createCollapsibleRoot(parameters: CreateCollapsibleRootParameters): CreateCollapsibleRootReturnValue {
-  const { disabled, onOpenChange } = parameters;
-  const [open, setOpen] = createControllableSignal({ value: parameters.open, defaultValue: () => parameters.defaultOpen() ?? false });
+  const { onOpenChange } = parameters;
+  const disabled = () => accessBoolean(parameters.disabled);
+  const [open, setOpen] = createControllableSignal({ value: parameters.open, defaultValue: () => parameters.defaultOpen ?? false });
   const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, { enableIdleState: true, deferEndingState: true });
   const [panelId, setPanelId] = createSignal(createUniqueId());
 
-  const handleOpenChange = (nextOpen: boolean, eventDetails: CollapsibleRootChangeEventDetails) => {
+  const handleOpenChange = (nextOpen: boolean, eventDetails: CollapsibleRoot.ChangeEventDetails) => {
     onOpenChange?.(nextOpen, eventDetails);
   };
 
@@ -47,19 +58,15 @@ export function createCollapsibleRoot(parameters: CreateCollapsibleRootParameter
     }
   };
 
-  const state: CollapsibleRootState = { open, disabled, transitionStatus };
-
   return {
     disabled,
     handleTrigger,
     mounted,
-    onOpenChange: handleOpenChange,
     open,
     panelId,
     setMounted,
     setOpen,
     setPanelId,
-    state,
     transitionStatus,
   };
 }

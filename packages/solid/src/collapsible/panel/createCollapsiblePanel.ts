@@ -1,9 +1,10 @@
+import { type JSX } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createRenderEffect, createSignal, type Setter, untrack } from "solid-js";
 
 import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import type { TransitionStatus } from "../../internals/transition-status";
-import type { CollapsibleRootChangeEventDetails } from "../root/CollapsibleRoot";
+import { CollapsibleRoot, type CollapsibleRootChangeEventDetails } from "../root/CollapsibleRoot";
 import * as CollapsiblePanelCssVars from "./CollapsiblePanelCssVars";
 
 type AnimationType = "css-transition" | "css-animation" | "none";
@@ -19,14 +20,35 @@ const EMPTY_DIMENSIONS: Dimensions = {
 };
 
 export interface CreateCollapsiblePanelParameters {
+  /**
+   * Allows the browser's built-in page search to find and expand the panel contents.
+   *
+   * Overrides the `keepMounted` prop and uses `hidden="until-found"`
+   * to hide the element without removing it from the DOM.
+   */
   hiddenUntilFound: Accessor<boolean>;
+  /**
+   * The `id` attribute of the panel.
+   */
   id: Accessor<string | undefined>;
+  /**
+   * Whether to keep the element in the DOM while the panel is closed.
+   * This prop is ignored when `hiddenUntilFound` is used.
+   */
   keepMounted: Accessor<boolean>;
-  mounted: Accessor<boolean>;
-  onOpenChange: (open: boolean, eventDetails: CollapsibleRootChangeEventDetails) => void;
+  /**
+   * Whether the collapsible panel is currently open.
+   */
   open: Accessor<boolean>;
-  setMounted: Setter<boolean>;
   setOpen: (open: boolean) => void;
+  onOpenChange: (open: boolean, eventDetails: CollapsibleRoot.ChangeEventDetails) => void;
+  /**
+   * Whether the collapsible panel is mounted for transition and hidden-state
+   * purposes. This can be `false` while the element remains in the DOM when
+   * `keepMounted` or `hiddenUntilFound` is enabled.
+   */
+  mounted: Accessor<boolean>;
+  setMounted: Setter<boolean>;
   transitionStatus: Accessor<TransitionStatus>;
 }
 
@@ -35,7 +57,7 @@ export interface CreateCollapsiblePanelReturnValue {
   width: Accessor<number | undefined>;
   panelElement: Accessor<HTMLElement | null>;
   props: Record<string, any>;
-  ref: (element: HTMLElement | null) => void;
+  setPanelElement: (element: HTMLElement | null) => void;
   shouldRender: () => boolean;
   transitionStatus: Accessor<TransitionStatus>;
 }
@@ -370,7 +392,7 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
         return parameters.id();
       },
     },
-    ref: setPanelElement,
+    setPanelElement,
     panelElement,
     shouldRender,
     transitionStatus: panelTransitionStatus,

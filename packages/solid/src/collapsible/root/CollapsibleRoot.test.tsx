@@ -117,8 +117,6 @@ describe("<Collapsible.Root />", () => {
     const user = userEvent.setup();
     const { trigger, panel } = renderCollapsible({ disabled: true, onOpenChange }, { keepMounted: true });
 
-    expect(trigger).toHaveAttribute(CollapsibleRootDataAttributes.disabled, "");
-
     await clickTrigger(user, trigger);
 
     expect(onOpenChange).not.toHaveBeenCalled();

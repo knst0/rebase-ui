@@ -1,13 +1,13 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, untrack } from "solid-js";
+import { untrack } from "solid-js";
 
 import { REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
+import { accessBoolean, type ReactiveBoolean } from "../../internals/maybeAccessor";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
-import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { CollapsibleRootContext } from "./CollapsibleRootContext";
-import { createCollapsibleRoot } from "./createCollapsibleRoot";
+import { createCollapsibleRoot, type CreateCollapsibleRootReturnValue } from "./createCollapsibleRoot";
 import { collapsibleStateAttributesMapping } from "./stateAttributesMapping";
 
 /**
@@ -27,16 +27,28 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
 
   const as = untrack(() => local.as);
 
-  const disabled = () => local.disabled;
-
-  const contextValue = createCollapsibleRoot({
-    defaultOpen: () => local.defaultOpen,
-    disabled,
+  const disabled = () => accessBoolean(local.disabled);
+  const open = () => (local.open === undefined ? undefined : accessBoolean(local.open));
+  const collapsible = createCollapsibleRoot({
+    open,
+    get defaultOpen() {
+      return local.defaultOpen;
+    },
     onOpenChange: local.onOpenChange,
-    open: () => local.open,
+    disabled,
   });
 
-  const state = contextValue.state;
+  const state = {
+    open: collapsible.open,
+    disabled: collapsible.disabled,
+    transitionStatus: collapsible.transitionStatus,
+  };
+
+  const contextValue = {
+    ...collapsible,
+    onOpenChange: local.onOpenChange,
+    state,
+  };
 
   return (
     <CollapsibleRootContext value={contextValue}>
@@ -48,23 +60,10 @@ export function CollapsibleRoot<T extends ValidComponent = "div">(props: Collaps
 const defaultProps = Object.freeze({
   as: "div",
   defaultOpen: false,
-  disabled: false,
+  disabled: () => false,
 } satisfies Partial<CollapsibleRoot.Props>);
 
-export interface CollapsibleRootState {
-  /**
-   * Whether the collapsible panel is currently open.
-   */
-  open: Accessor<boolean>;
-  /**
-   * Whether the component should ignore user interaction.
-   */
-  disabled: Accessor<boolean>;
-  /**
-   * The transition status of the component.
-   */
-  transitionStatus: Accessor<TransitionStatus>;
-}
+export interface CollapsibleRootState extends Pick<CreateCollapsibleRootReturnValue, "open" | "disabled" | "transitionStatus"> {}
 
 export interface CollapsibleRootOwnProps {
   /**
@@ -72,7 +71,7 @@ export interface CollapsibleRootOwnProps {
    *
    * To render an uncontrolled collapsible, use the `defaultOpen` prop instead.
    */
-  open?: boolean | undefined;
+  open?: ReactiveBoolean | undefined;
   /**
    * Whether the collapsible panel is initially open.
    *
@@ -88,7 +87,7 @@ export interface CollapsibleRootOwnProps {
    * Whether the component should ignore user interaction.
    * @default false
    */
-  disabled?: boolean | undefined;
+  disabled?: ReactiveBoolean | undefined;
 }
 
 export type CollapsibleRootProps<T extends ValidComponent = "div"> = CollapsibleRootOwnProps &

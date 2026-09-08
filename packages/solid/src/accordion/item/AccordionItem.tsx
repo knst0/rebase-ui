@@ -3,13 +3,13 @@ import { type Accessor, createSignal, createUniqueId, untrack } from "solid-js";
 
 import type { CollapsibleRootChangeEventDetails } from "../../collapsible/root/CollapsibleRoot";
 import { CollapsibleRootContext } from "../../collapsible/root/CollapsibleRootContext";
-import { createCollapsibleRoot } from "../../collapsible/root/createCollapsibleRoot";
+import { createCollapsibleRoot, type CreateCollapsibleRootParameters } from "../../collapsible/root/createCollapsibleRoot";
 import { useCompositeListItem } from "../../internals/composite";
 import { REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
+import { accessBoolean } from "../../internals/maybeAccessor";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
-import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import type { AccordionRootState } from "../root/AccordionRoot";
 import { useAccordionRootContext } from "../root/AccordionRootContext";
@@ -35,7 +35,7 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
 
   const value = () => local.value ?? fallbackValue;
 
-  const disabled = () => local.disabled || rootContext.disabled();
+  const disabled = () => accessBoolean(local.disabled) || rootContext.disabled();
 
   const isOpen = () => rootContext.value().includes(value());
 
@@ -50,21 +50,31 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
   };
 
   const [triggerId, setTriggerId] = createSignal(createUniqueId());
-  const collapsibleContext: CollapsibleRootContext = createCollapsibleRoot({
-    defaultOpen: () => false,
+
+  const collapsible = createCollapsibleRoot({
     disabled,
     onOpenChange,
     open: isOpen,
   });
-  const mounted = collapsibleContext.mounted;
+
+  const collapsibleState = {
+    open: collapsible.open,
+    disabled: collapsible.disabled,
+    transitionStatus: collapsible.transitionStatus,
+  }
+
+  const collapsibleContext = {
+    ...collapsible,
+    onOpenChange,
+    state: collapsibleState,
+  }
 
   const state: AccordionItemState = {
     ...rootContext.state,
     disabled,
-    hidden: () => !isOpen() && !mounted(),
+    hidden: () => !isOpen() && !collapsible.mounted(),
     index,
     open: isOpen,
-    transitionStatus: collapsibleContext.transitionStatus,
   };
 
   const accordionItemContext: AccordionItemContext = {
@@ -89,7 +99,6 @@ export function AccordionItem<T extends ValidComponent = "div">(props: Accordion
 
 const defaultProps = Object.freeze({
   as: "div",
-  disabled: false,
 } satisfies Partial<AccordionItem.Props>);
 
 export interface AccordionItemState extends AccordionRootState {
@@ -105,13 +114,9 @@ export interface AccordionItemState extends AccordionRootState {
    * Whether the component is open.
    */
   open: Accessor<boolean>;
-  /**
-   * The transition status of the component.
-   */
-  transitionStatus: Accessor<TransitionStatus>;
 }
 
-export interface AccordionItemOwnProps {
+export interface AccordionItemOwnProps extends Partial<Pick<CreateCollapsibleRootParameters, "disabled">> {
   /**
    * A unique value that identifies this accordion item.
    * If no value is provided, a unique ID will be generated automatically.
@@ -126,11 +131,6 @@ export interface AccordionItemOwnProps {
    * ```
    */
   value?: any;
-  /**
-   * Whether the component should ignore user interaction.
-   * If `undefined`, defaults to the `disabled` prop of the root.
-   */
-  disabled?: boolean | undefined;
   /**
    * Event handler called when the panel is opened or closed.
    */

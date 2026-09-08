@@ -47,14 +47,6 @@ describe("<Accordion.Trigger />", () => {
     expect(panel).toHaveAttribute("aria-labelledby", trigger.id);
   });
 
-  it("does not leak item state attributes onto the trigger", () => {
-    const { trigger } = renderTrigger();
-    flush();
-
-    expect(trigger).not.toHaveAttribute("data-index");
-    expect(trigger).not.toHaveAttribute("data-hidden");
-  });
-
   it("stays focusable when disabled", () => {
     const { trigger } = renderTrigger({ disabled: true });
 

@@ -79,17 +79,7 @@ const defaultProps = Object.freeze({
 
 export interface AccordionTriggerState extends AccordionItemState {}
 
-export interface AccordionTriggerOwnProps extends NativeButtonProps {
-  /**
-   * Whether the component should ignore user interaction.
-   * If `undefined`, defaults to the `disabled` prop of the item or root.
-   */
-  disabled?: boolean | undefined;
-  /**
-   * The `id` attribute of the trigger.
-   */
-  id?: string | undefined;
-}
+export interface AccordionTriggerOwnProps extends NativeButtonProps {}
 
 export type AccordionTriggerProps<T extends ValidComponent = "button"> = AccordionTriggerOwnProps &
   RebaseUIComponentProps<T, AccordionTriggerState>;

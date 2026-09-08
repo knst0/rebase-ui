@@ -37,25 +37,18 @@ export function getStateAttributes<State extends Record<string, Accessor<unknown
   customMapping?: StateAttributesMapping<State>,
 ): Record<string, string> {
   const attributes: Record<string, string> = {};
+  const mappings = customMapping as AnyMapping | undefined;
 
-  if (customMapping !== undefined) {
-    const mappings = customMapping as AnyMapping;
+  for (const key in state) {
+    const mapping = mappings?.[key];
 
-    for (const key in mappings) {
-      const mapping = mappings[key];
-      if (mapping === undefined || !(key in state)) {
-        continue;
-      }
-
+    if (mapping !== undefined) {
       for (const name of mapping.keys) {
         define(attributes, name, () => mapping.map(unwrapStateValue(state[key]))?.[name]);
       }
+      continue;
     }
 
-    return attributes;
-  }
-
-  for (const key in state) {
     define(attributes, `data-${key.toLowerCase()}`, () => toStateAttributeValue(unwrapStateValue(state[key])));
   }
 

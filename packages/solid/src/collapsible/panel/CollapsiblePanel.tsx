@@ -28,11 +28,11 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
   const as = untrack(() => local.as);
   const rootContext = useCollapsibleRootContext();
 
-  const hiddenUntilFound = () => local.hiddenUntilFound;
-  const keepMounted = () => local.keepMounted;
+  const hiddenUntilFound = untrack(() => local.hiddenUntilFound);
+  const keepMounted = untrack(() => local.keepMounted);
 
   if (process.env.NODE_ENV !== "production") {
-    if (untrack(() => local.hiddenUntilFound) && !untrack(() => local.keepMounted)) {
+    if (hiddenUntilFound && !keepMounted) {
       console.error(
         "Rebase UI: The `keepMounted={false}` prop on `Collapsible.Panel` is ignored when `hiddenUntilFound` is enabled, since the panel must remain mounted while closed.",
       );
@@ -50,9 +50,9 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
   );
 
   const panel = createCollapsiblePanel({
-    hiddenUntilFound,
+    hiddenUntilFound: () => hiddenUntilFound,
     id: () => id,
-    keepMounted,
+    keepMounted: () => keepMounted,
     mounted: rootContext.mounted,
     onOpenChange: rootContext.onOpenChange,
     open: rootContext.open,
@@ -70,7 +70,7 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
   };
 
   const refProps = (externalProps: Record<string, any>) => ({
-    ref: mergeRefs<HTMLElement>(externalProps.ref, panel.ref),
+    ref: mergeRefs<HTMLElement>(externalProps.ref, panel.setPanelElement),
   });
 
   return (

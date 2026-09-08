@@ -19,8 +19,3 @@ export const startingStyle = TransitionStatusDataAttributes.startingStyle;
  * Present when the collapsible is animating out.
  */
 export const endingStyle = TransitionStatusDataAttributes.endingStyle;
-
-/**
- * Present when the collapsible is disabled.
- */
-export const disabled = "data-disabled";

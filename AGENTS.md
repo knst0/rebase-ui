@@ -1,8 +1,11 @@
 # Agent Instructions
 
+@PORT_FIDELITY.md
+
 ## Context
 
 Follow these core principles when contributing to the repository.
+Always read `PORT_FIDELITY.md` before porting or modifying a component.
 
 ## System Goals
 
