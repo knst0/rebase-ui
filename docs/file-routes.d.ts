@@ -63,30 +63,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/collapsible/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/separator/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/tabs/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/checkbox/__demos/hero";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components/checkbox/__demos/hero")>;
-      $$route?: undefined;
-    },
-    {
       path: "/(main)/components/avatar/";
       page: true;
       $component: FileRouteLazyRef;
@@ -108,6 +84,48 @@ declare module "virtual:file-routes" {
       path: "/(main)/components/checkbox-group/";
       page: true;
       $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/collapsible/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/field/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/fieldset/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/form/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/separator/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/tabs/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/checkbox/__demos/hero";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components/checkbox/__demos/hero")>;
       $$route?: undefined;
     }
   ];
@@ -146,8 +164,24 @@ declare module "virtual:file-routes" {
           $$route?: undefined;
           children: readonly [
             {
+              path: "/form/";
+              id: "/form/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/tabs/";
               id: "/tabs/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/field/";
+              id: "/field/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
@@ -172,6 +206,14 @@ declare module "virtual:file-routes" {
             {
               path: "/checkbox/";
               id: "/checkbox/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/fieldset/";
+              id: "/fieldset/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

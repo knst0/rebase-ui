@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, untrack } from "solid-js";
 
 import { EMPTY_OBJECT } from "#utils/empty";
 
@@ -6,7 +6,7 @@ import { createGenericEventDetails, REASONS, type RebaseUIGenericEventDetails } 
 import { type Errors, FormContext, type FormField } from "../internals/form-context";
 import { RenderElement } from "../internals/render-element";
 import { split } from "../internals/split";
-import type { RebaseUIComponentProps } from "../internals/types";
+import type { ActionsRef, RebaseUIComponentProps } from "../internals/types";
 
 /**
  * A native form element with consolidated error handling.
@@ -17,7 +17,7 @@ import type { RebaseUIComponentProps } from "../internals/types";
 export function Form<FormValues extends Record<string, any> = Record<string, any>>(props: Form.Props<FormValues>) {
   const [local, elementProps] = split(props as Form.Props<FormValues>, { default: defaultProps }, [
     "as",
-    "actions",
+    "actionsRef",
     "errors",
     "onFormSubmit",
     "onSubmit",
@@ -31,7 +31,14 @@ export function Form<FormValues extends Record<string, any> = Record<string, any
   let formElement: HTMLFormElement | null = null;
   let submitted = false;
 
-  const [submitCount, setSubmitCount] = createSignal(0);
+  // Backed by a plain counter so the submit handler's own synchronous validation pass already
+  // observes the increment: a signal read would still return the pre-write value at that point.
+  let submitCountValue = 0;
+  const [submitCountSignal, setSubmitCountSignal] = createSignal(0);
+  const submitCount = () => {
+    submitCountSignal();
+    return submitCountValue;
+  };
   const [errors, setErrors] = createSignal<Errors | undefined>(untrack(() => local.errors));
 
   createEffect(
@@ -93,11 +100,17 @@ export function Form<FormValues extends Record<string, any> = Record<string, any
   };
 
   createEffect(
-    () => local.actions,
-    (actions) => {
-      if (actions) {
-        actions = { validate };
+    () => local.actionsRef,
+    (actionsRef) => {
+      if (!actionsRef) {
+        return;
       }
+
+      actionsRef.current = { validate };
+
+      onCleanup(() => {
+        actionsRef.current = null;
+      });
     },
   );
 
@@ -117,7 +130,8 @@ export function Form<FormValues extends Record<string, any> = Record<string, any
   };
 
   const handleSubmit = (event: SubmitEvent) => {
-    setSubmitCount((prev) => prev + 1);
+    submitCountValue += 1;
+    setSubmitCountSignal(submitCountValue);
 
     fields.forEach((field) => {
       field.validate();
@@ -233,7 +247,7 @@ export interface FormOwnProps<FormValues extends Record<string, any> = Record<st
    * A ref to imperative actions.
    * - `validate`: Validates all fields when called. Optionally pass a field name to validate a single field.
    */
-  actions?: Form.Actions | undefined;
+  actionsRef?: ActionsRef<Form.Actions> | undefined;
 }
 
 export type FormProps<FormValues extends Record<string, any> = Record<string, any>> = FormOwnProps<FormValues> &

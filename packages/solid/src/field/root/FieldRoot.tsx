@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createEffect, createMemo, createSignal, untrack } from "solid-js";
+import { type Accessor, createEffect, createMemo, createSignal, createStore, onCleanup, untrack } from "solid-js";
 
 import { useFieldsetRootContext } from "../../fieldset/root/FieldsetRootContext";
 import type { Form } from "../../form/Form";
@@ -12,7 +12,7 @@ import { accessBoolean, type ReactiveBoolean } from "../../internals/maybeAccess
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import { stableCallback } from "../../internals/stableCallback";
-import type { RebaseUIComponentProps } from "../../internals/types";
+import type { ActionsRef, RebaseUIComponentProps } from "../../internals/types";
 import { createFieldValidation } from "./createFieldValidation";
 
 /**
@@ -24,32 +24,28 @@ import { createFieldValidation } from "./createFieldValidation";
 export function FieldRoot<T extends ValidComponent = "div">(props: FieldRoot.Props<T>) {
   return (
     <LabelableProvider>
-      <FieldRootInner {...(props as FieldRoot.Props)} />
+      <FieldRootInner props={props as FieldRoot.Props} />
     </LabelableProvider>
   );
 }
 
-function FieldRootInner(props: FieldRoot.Props) {
-  const [local, elementProps] = split(props, { default: defaultProps }, [
-    "as",
-    "actions",
-    "dirty",
-    "disabled",
-    "invalid",
-    "name",
-    "touched",
-    "validate",
-    "validationDebounceTime",
-    "validationMode",
-  ]);
+function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
+  const [local, elementProps] = split(
+    untrack(() => ownerProps.props),
+    { default: defaultProps },
+    ["as", "actionsRef", "dirty", "disabled", "invalid", "name", "touched", "validate", "validationDebounceTime", "validationMode"],
+  );
+
+  const rootFormContext = useFormContext();
 
   const as = untrack(() => local.as);
   const validationDebounceTime = untrack(() => local.validationDebounceTime);
+  const validationMode = untrack(() => local.validationMode) ?? rootFormContext.validationMode;
 
   const disabledFieldset = useFieldsetRootContext(true)?.disabled;
   const disabled = () => accessBoolean(local.disabled) || (disabledFieldset ? disabledFieldset() : false);
 
-  const validate = stableCallback(() => local.validate);
+  const validate = stableCallback(() => local.validate ?? (() => null));
 
   // const disabled = createMemo(() => fieldsetContext?.disabled() === true || local.disabled === true);
 
@@ -58,13 +54,8 @@ function FieldRootInner(props: FieldRoot.Props) {
   const [filled, setFilled] = createSignal(false);
   const [focused, setFocused] = createSignal(false);
 
-  // const dirty = createControllableSignal<boolean>({
-  //   value: () => accessBoolean(local.dirty),
-  //   // defaultValue: accessBoolean(local.dirty),
-  // });
-
-  const dirty = createMemo(() => accessBoolean(local.dirty) ?? dirtyState());
-  const touched = createMemo(() => accessBoolean(local.touched) ?? touchedState());
+  const dirty = createMemo(() => (local.dirty === undefined ? dirtyState() : accessBoolean(local.dirty)));
+  const touched = createMemo(() => (local.touched === undefined ? touchedState() : accessBoolean(local.touched)));
 
   let markedDirty = false;
   const [registeredFieldName, setRegisteredFieldName] = createSignal<string>();
@@ -81,10 +72,7 @@ function FieldRootInner(props: FieldRoot.Props) {
     },
   );
 
-  const rootFormContext = useFormContext();
   const formErrors = createMemo(() => rootFormContext.errors());
-
-  const validationMode = () => local.validationMode ?? rootFormContext.validationMode;
 
   const setDirty = (value: boolean) => {
     if (local.dirty !== undefined) {
@@ -105,12 +93,11 @@ function FieldRootInner(props: FieldRoot.Props) {
   };
 
   const shouldValidateOnChange = () => {
-    const mode = validationMode();
-    return mode === "onChange" || (mode === "onSubmit" && rootFormContext.submitCount > 0);
+    return validationMode === "onChange" || (validationMode === "onSubmit" && rootFormContext.submitCount() > 0);
   };
 
   const invalid = createMemo(() => {
-    if (local.invalid === true) {
+    if (accessBoolean(local.invalid)) {
       return true;
     }
 
@@ -128,7 +115,7 @@ function FieldRootInner(props: FieldRoot.Props) {
     return !!(Array.isArray(formError) ? formError.length : formError);
   });
 
-  const [validityData, setValidityData] = createSignal<FieldValidityData>({
+  const [validityData, setValidityData] = createStore<FieldValidityData>({
     state: { ...DEFAULT_VALIDITY_STATE },
     error: "",
     errors: [],
@@ -143,7 +130,7 @@ function FieldRootInner(props: FieldRoot.Props) {
     if (disabled()) {
       return null;
     }
-    return validityData().state.valid;
+    return validityData.state.valid;
   });
 
   const state: FieldRootState = {
@@ -168,6 +155,7 @@ function FieldRootInner(props: FieldRoot.Props) {
   });
 
   const [validateFieldControl, registerFieldControl] = createFieldControlRegistration({
+    change: validation.change,
     commit: validation.commit,
     invalid,
     setMarkedDirty: (value) => {
@@ -181,11 +169,17 @@ function FieldRootInner(props: FieldRoot.Props) {
   });
 
   createEffect(
-    () => local.actions,
-    (actions) => {
-      if (actions) {
-        actions = { validate: validateFieldControl };
+    () => local.actionsRef,
+    (actionsRef) => {
+      if (!actionsRef) {
+        return;
       }
+
+      actionsRef.current = { validate: validateFieldControl };
+
+      onCleanup(() => {
+        actionsRef.current = null;
+      });
     },
   );
 
@@ -217,9 +211,6 @@ const defaultProps = Object.freeze({
   as: "div",
   disabled: () => false,
   validationDebounceTime: 0,
-  invalid: () => false,
-  dirty: () => false,
-  touched: () => false,
 } satisfies Partial<FieldRoot.Props>);
 
 export interface FieldValidityData {
@@ -330,7 +321,7 @@ export interface FieldRootOwnProps {
    * A ref to imperative actions.
    * - `validate`: Validates the field when called.
    */
-  actions?: FieldRoot.Actions | undefined;
+  actionsRef?: ActionsRef<FieldRoot.Actions> | undefined;
 }
 
 export type FieldRootProps<T extends ValidComponent = "div"> = FieldRootOwnProps & RebaseUIComponentProps<T, FieldRootState>;

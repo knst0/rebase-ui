@@ -64,3 +64,18 @@ export interface NativeButtonProps {
 }
 
 export type Orientation = "horizontal" | "vertical";
+
+/**
+ * A mutable holder for a component's imperative actions.
+ * The component assigns `current` on mount and clears it on cleanup.
+ */
+export interface ActionsRef<Actions> {
+  current: Actions | null;
+}
+
+/**
+ * Identity of a component registering itself with a parent registry.
+ * The registering scope's owner is used, so a registration is tied to the
+ * lifetime of the component that made it.
+ */
+export type RegistrationSource = object;

@@ -34,7 +34,7 @@ export const DEFAULT_FIELD_ROOT_STATE: FieldRootState = {
 export const fieldValidityMapping: StateAttributesMapping<{ valid: Accessor<boolean | null> }> = {
   valid: {
     keys: [FieldControlDataAttributes.valid, FieldControlDataAttributes.invalid],
-    map: (value) => {
+    map: (value): Record<string, string> | null => {
       if (value === null) {
         return null;
       }

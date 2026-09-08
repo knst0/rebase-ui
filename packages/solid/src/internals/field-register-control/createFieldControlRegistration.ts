@@ -1,8 +1,9 @@
-import { type Accessor, createRenderEffect, onCleanup, type Setter, untrack } from "solid-js";
+import { type Accessor, createRenderEffect, deep, onCleanup, type Store, type StoreSetter, untrack } from "solid-js";
 
 import type { FieldValidityData } from "../../field/root/FieldRoot";
 import { getCombinedFieldValidityData } from "../../field/utils/getCombinedFieldValidityData";
 import { useFormContext } from "../form-context";
+import type { RegistrationSource } from "../types";
 
 export interface FieldControlRegistration {
   readonly controlElement: HTMLElement | null;
@@ -13,29 +14,31 @@ export interface FieldControlRegistration {
 }
 
 export interface CreateFieldControlRegistrationParameters {
+  change: (value: unknown, cancelPending?: boolean) => void;
   commit: (value: unknown) => void;
   invalid: Accessor<boolean>;
   setMarkedDirty: (value: boolean) => void;
   name: Accessor<string | undefined>;
   setRegisteredFieldName: (name: string | undefined) => void;
   setRegisteredFieldId: (id: string | undefined) => void;
-  setValidityData: Setter<FieldValidityData>;
-  validityData: Accessor<FieldValidityData>;
+  setValidityData: StoreSetter<FieldValidityData>;
+  validityData: Store<FieldValidityData>;
 }
 
 export type CreateFieldControlRegistrationReturnValue = readonly [
   validate: () => void,
-  register: (source: symbol, registration: FieldControlRegistration | undefined) => void,
+  register: (source: RegistrationSource, registration: FieldControlRegistration | undefined) => void,
 ];
 
 export function createFieldControlRegistration(
   params: CreateFieldControlRegistrationParameters,
 ): CreateFieldControlRegistrationReturnValue {
-  const { commit, invalid, setMarkedDirty, name, setRegisteredFieldName, setRegisteredFieldId, setValidityData, validityData } = params;
+  const { change, commit, invalid, setMarkedDirty, name, setRegisteredFieldName, setRegisteredFieldId, setValidityData, validityData } =
+    params;
 
   const { fields } = useFormContext();
 
-  let activeFieldControlSource: symbol | null = null;
+  let activeFieldControlSource: RegistrationSource | null = null;
   let currentRegistration: FieldControlRegistration | null = null;
   let initialValueCaptured = false;
 
@@ -59,7 +62,7 @@ export function createFieldControlRegistration(
     setMarkedDirty(true);
 
     if (!currentRegistration) {
-      commit(validityData().value);
+      commit(validityData.value);
       return;
     }
 
@@ -74,7 +77,7 @@ export function createFieldControlRegistration(
         get controlElement() {
           return registration.controlElement;
         },
-        validityData: getCombinedFieldValidityData(validityData(), invalid()),
+        validityData: getCombinedFieldValidityData(validityData, invalid()),
         validate,
       });
     });
@@ -102,11 +105,13 @@ export function createFieldControlRegistration(
     initialValueCaptured = true;
     const initialValue = getRegistrationValue(registration);
 
-    setValidityData((prev) => (prev.initialValue === initialValue ? prev : { ...prev, initialValue }));
+    setValidityData((draft) => {
+      draft.initialValue = initialValue;
+    });
   }
 
   createRenderEffect(
-    () => ({ fieldName: name(), isInvalid: invalid(), data: validityData() }),
+    () => ({ fieldName: name(), isInvalid: invalid(), data: deep(validityData) }),
     ({ fieldName }) => {
       if (!currentRegistration || !currentRegistration.id) {
         return;
@@ -121,10 +126,11 @@ export function createFieldControlRegistration(
     deleteRegistration();
   });
 
-  function register(source: symbol, registration: FieldControlRegistration | undefined) {
+  function register(source: RegistrationSource, registration: FieldControlRegistration | undefined) {
     if (!registration) {
       if (activeFieldControlSource === source) {
         activeFieldControlSource = null;
+        change(undefined, true);
         deleteRegistration();
         currentRegistration = null;
         setRegisteredFieldName(undefined);
@@ -134,6 +140,11 @@ export function createFieldControlRegistration(
     }
 
     const previousId = currentRegistration?.id;
+    const previousSource = activeFieldControlSource;
+
+    if (previousSource && previousSource !== source) {
+      change(undefined, true);
+    }
 
     activeFieldControlSource = source;
     currentRegistration = registration;

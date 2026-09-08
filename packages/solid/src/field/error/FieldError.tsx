@@ -67,9 +67,9 @@ export function FieldError<T extends ValidComponent = "div">(props: FieldError.P
       return false;
     }
     if (hasSpecificMatch()) {
-      return Boolean(validityData().state[local.match as keyof ValidityState]);
+      return Boolean(validityData.state[local.match as keyof ValidityState]);
     }
-    return hasFormError() || validityData().state.valid === false;
+    return hasFormError() || validityData.state.valid === false;
   });
 
   const { mounted, transitionStatus, setMounted } = createTransitionStatus(rendered);
@@ -98,10 +98,10 @@ export function FieldError<T extends ValidComponent = "div">(props: FieldError.P
     if (!hasSpecificMatch() && hasFormError()) {
       return formError();
     }
-    if (validityData().errors.length > 1) {
-      return validityData().errors;
+    if (validityData.errors.length > 1) {
+      return validityData.errors;
     }
-    return validityData().error;
+    return validityData.error;
   });
 
   const errorMessage = createMemo<JSX.Element>(() => {

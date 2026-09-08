@@ -3,7 +3,7 @@ import type { Element as HastElement, Root as HastRoot } from "hast";
 import { hastText } from "../shared/hast";
 
 function hastLanguage(node: HastElement): string | undefined {
-  const className: unknown = node.properties?.className;
+  const className: unknown = node.properties?.class;
   const names = Array.isArray(className) ? className : typeof className === "string" ? className.split(" ") : [];
   for (const name of names) {
     if (typeof name === "string" && name.startsWith("language-")) return name.slice("language-".length);

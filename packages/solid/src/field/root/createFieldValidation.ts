@@ -1,4 +1,4 @@
-import type { Accessor, Setter } from "solid-js";
+import { type Accessor, createEffect, createSignal, type Store, type StoreSetter } from "solid-js";
 
 import type { Form } from "../../form/Form";
 import { DEFAULT_VALIDITY_STATE } from "../../internals/field-constants";
@@ -15,6 +15,12 @@ export interface RegisteredInput {
 }
 
 export type RegisteredInputs = Map<HTMLInputElement, RegisteredInput>;
+
+interface PendingCommit {
+  value: unknown;
+  revalidate: boolean;
+  debounce: number;
+}
 
 export function isEligibleInput(input: HTMLInputElement, formElement: HTMLFormElement | null) {
   if (input.matches(":disabled")) {
@@ -66,18 +72,33 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
 
   const { controlId, getDescriptionProps } = useLabelableContext();
 
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  function cancelCommitTimeout() {
-    if (timeoutId !== undefined) {
-      globalThis.clearTimeout(timeoutId);
-      timeoutId = undefined;
-    }
-  }
-
   const registeredInputs: RegisteredInputs = new Map();
   let inputElement: HTMLInputElement | null = null;
-  let validationCommitId = 0;
+  let latestRun: object | null = null;
+
+  // Debounced requests go through this signal so the effect below owns the timer: a superseded
+  // request cancels the previous one through the effect's cleanup rather than through a
+  // manually tracked timeout id and generation counter.
+  const [pendingCommit, setPendingCommit] = createSignal<PendingCommit | undefined>(undefined);
+
+  createEffect(
+    () => pendingCommit(),
+    (request) => {
+      if (request === undefined) {
+        return;
+      }
+
+      const timeoutId = globalThis.setTimeout(() => {
+        void runCommit(request.value, request.revalidate);
+      }, request.debounce);
+
+      return () => globalThis.clearTimeout(timeoutId);
+    },
+  );
+
+  function cancelPendingCommit() {
+    setPendingCommit(undefined);
+  }
 
   const registerInput = (element: HTMLInputElement, registration: RegisteredInput): void | (() => void) => {
     registeredInputs.set(element, registration);
@@ -91,9 +112,9 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
     return (element && registeredInputs.get(element)?.controlElement) || null;
   };
 
-  async function commit(value: unknown, revalidate = false) {
-    validationCommitId += 1;
-    const currentCommitId = validationCommitId;
+  async function runCommit(value: unknown, revalidate = false) {
+    const run = {};
+    latestRun = run;
 
     function updateRegisteredFieldValidity(nextValidityData: FieldValidityData, externalInvalid = invalid()) {
       const fieldId = registeredFieldId() ?? controlId();
@@ -118,11 +139,11 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
         state: { ...DEFAULT_VALIDITY_STATE, valid: true },
         error: "",
         errors: [],
-        initialValue: validityData().initialValue,
+        initialValue: validityData.initialValue,
       };
       clearCustomValidity(input, registeredInputs);
       updateRegisteredFieldValidity(nextValidityData, externalInvalid);
-      setValidityData(nextValidityData);
+      setValidityData(() => nextValidityData);
     }
 
     const element = registeredInputs.size > 0 ? findRepresentativeInput(registeredInputs, formElement) : inputElement;
@@ -175,8 +196,6 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       return computedState;
     }
 
-    cancelCommitTimeout();
-
     let result: null | string | string[] = null;
     let validationErrors: string[] = [];
 
@@ -199,7 +218,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       const resultOrPromise = validate(value, formValues);
       if (typeof resultOrPromise === "object" && resultOrPromise !== null && "then" in resultOrPromise) {
         result = await resultOrPromise;
-        if (currentCommitId !== validationCommitId) {
+        if (latestRun !== run) {
           return;
         }
       } else {
@@ -235,28 +254,33 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       state: nextState,
       error: defaultValidationMessage ?? (Array.isArray(result) ? result[0] : (result ?? "")),
       errors: validationErrors,
-      initialValue: validityData().initialValue,
+      initialValue: validityData.initialValue,
     };
 
     updateRegisteredFieldValidity(nextValidityData);
 
-    setValidityData(nextValidityData);
+    setValidityData(() => nextValidityData);
   }
 
+  const commit = async (value: unknown, revalidate = false) => {
+    cancelPendingCommit();
+    await runCommit(value, revalidate);
+  };
+
   const change = (value: unknown, cancelPending = false) => {
-    cancelCommitTimeout();
     const validateOnChange = shouldValidateOnChange();
+
     if (cancelPending) {
+      cancelPendingCommit();
       return;
     }
 
     if (validateOnChange && value !== "" && validationDebounceTime) {
-      validationCommitId += 1;
-      timeoutId = setTimeout(() => {
-        void commit(value);
-      }, validationDebounceTime);
+      // Replacing the request supersedes any in-flight timer via the effect's cleanup.
+      setPendingCommit({ value, revalidate: false, debounce: validationDebounceTime });
     } else {
-      void commit(value, !validateOnChange);
+      cancelPendingCommit();
+      void runCommit(value, !validateOnChange);
     }
   };
 
@@ -295,9 +319,9 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
 }
 
 export interface CreateFieldValidationParameters {
-  setValidityData: Setter<FieldValidityData>;
+  setValidityData: StoreSetter<FieldValidityData>;
   validate: (value: unknown, formValues: Form.Values) => string | string[] | null | Promise<string | string[] | null>;
-  validityData: Accessor<FieldValidityData>;
+  validityData: Store<FieldValidityData>;
   validationDebounceTime: number;
   invalid: Accessor<boolean>;
   markedDirty: () => boolean; // fixme: реактивное?

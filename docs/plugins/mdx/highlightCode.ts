@@ -188,7 +188,7 @@ export function highlightCode(source: string, options: HighlightCodeOptions = {}
   const html = highlight(code, {
     lang: resolved,
     markLine(line) {
-      if (highlightedLines.has(line.index)) line.className += " sh__line--highlighted";
+      if (highlightedLines.has(line.index)) line.class += " sh__line--highlighted";
     },
   });
 

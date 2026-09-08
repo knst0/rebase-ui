@@ -15,7 +15,7 @@ import { getCombinedFieldValidityData } from "../utils/getCombinedFieldValidityD
 export function FieldValidity(props: FieldValidity.Props) {
   const { validityData, invalid } = useFieldRootContext(false);
 
-  const combinedFieldValidityData = createMemo(() => getCombinedFieldValidityData(validityData(), invalid()));
+  const combinedFieldValidityData = createMemo(() => getCombinedFieldValidityData(validityData, invalid()));
   const isInvalid = createMemo(() => combinedFieldValidityData().state.valid === false);
   const { transitionStatus } = createTransitionStatus(isInvalid);
 

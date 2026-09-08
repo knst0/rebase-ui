@@ -1,7 +1,8 @@
-import { type Accessor, createEffect, createUniqueId, onCleanup } from "solid-js";
+import { type Accessor, createEffect, createUniqueId, getOwner, onCleanup } from "solid-js";
 
 import { NOOP } from "#utils/empty";
 
+import type { RegistrationSource } from "../types";
 import { useLabelableContext } from "./LabelableContext";
 
 export interface CreateLabelableIdParameters {
@@ -11,16 +12,18 @@ export interface CreateLabelableIdParameters {
 }
 
 export function createLabelableId(params: CreateLabelableIdParameters = {}): Accessor<string> {
-  const { controlId, registerControlId } = useLabelableContext();
+  const { controlId, registerControlId, resetControlId } = useLabelableContext();
 
   const generatedId = createUniqueId();
   const id = () => params.id?.();
   const implicit = () => params.implicit?.() ?? false;
   const defaultId = () => id() ?? generatedId;
 
-  const controlSource = Symbol();
+  const controlSource: RegistrationSource = getOwner() ?? {};
   let hasRegistered = false;
-  let hadExplicitId = id() != null;
+  // Deliberately not seeded from `id`: the seed would stick around after the `id` prop is
+  // removed, leaving the control on a stale id forever.
+  let hadExplicitId = false;
 
   function unregisterControlId() {
     if (!hasRegistered || registerControlId === NOOP) {
@@ -58,7 +61,10 @@ export function createLabelableId(params: CreateLabelableIdParameters = {}): Acc
       } else if (hadExplicitId) {
         nextId = fallbackId;
       } else {
+        // An id-less replacement must claim the provider's fallback so a previously registered
+        // explicit id is not retained after its control unmounts.
         unregisterControlId();
+        resetControlId();
         return;
       }
 

@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import { createSignal, createUniqueId, untrack } from "solid-js";
 
+import type { RegistrationSource } from "../types";
 import { LabelableContext, useLabelableContext } from "./LabelableContext";
 
 export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
@@ -11,19 +12,23 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
   const [labelId, setLabelId] = createSignal<string | undefined>(untrack(() => props.labelId));
   const [messageIds, setMessageIds] = createSignal<string[]>([]);
 
-  const registrations = new Map<symbol, string | null>();
+  const registrations = new Map<RegistrationSource, string | null>();
 
   const parentContext = useLabelableContext();
 
   const resolveControlId = (prev: string | null | undefined) => {
+    // A subtree that keeps its DOM while its scopes are disposed leaves no registrations behind,
+    // so preserve the control it had selected instead of dropping the association.
     if (registrations.size === 0) {
-      return undefined;
+      return prev;
     }
 
     let nextControlId: string | null | undefined;
 
     for (const id of registrations.values()) {
-      if (prev !== undefined && id === prev) {
+      // Keep the current selection while it is still registered, so rapid unmount/remount
+      // cycles don't churn it.
+      if (id === prev) {
         return prev;
       }
 
@@ -35,7 +40,7 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
     return nextControlId;
   };
 
-  const registerControlId = (source: symbol, nextId: string | null | undefined) => {
+  const registerControlId = (source: RegistrationSource, nextId: string | null | undefined) => {
     if (nextId === undefined) {
       if (registrations.delete(source)) {
         setControlId(resolveControlId);
@@ -48,9 +53,12 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
     setControlId(resolveControlId);
   };
 
+  // Returns the scope to its generated fallback id so an id-less control that replaces a
+  // previously registered one is still associated with the label.
   const resetControlId = () => {
-    registrations.clear();
-    setControlId(undefined);
+    if (registrations.size === 0) {
+      setControlId(defaultId);
+    }
   };
 
   const getDescriptionProps = (externalProps: Record<string, any>): Record<string, any> => {

@@ -1,6 +1,7 @@
-import { type Accessor, createEffect, onCleanup } from "solid-js";
+import { type Accessor, createEffect, getOwner, onCleanup } from "solid-js";
 
 import { useFieldRootContext } from "../field-root-context";
+import type { RegistrationSource } from "../types";
 import type { FieldControlRegistration } from "./createFieldControlRegistration";
 
 export interface CreateRegisterFieldControlParameters {
@@ -14,7 +15,7 @@ export interface CreateRegisterFieldControlParameters {
 
 export function createRegisterFieldControl(params: CreateRegisterFieldControlParameters): void {
   const { registerFieldControl } = useFieldRootContext();
-  const source = Symbol();
+  const source: RegistrationSource = getOwner() ?? {};
 
   createEffect(
     () => ({ id: params.id(), value: params.value(), enabled: params.enabled?.() ?? true, name: params.name?.() }),

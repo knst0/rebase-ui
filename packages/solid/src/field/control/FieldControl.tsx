@@ -129,7 +129,7 @@ export function FieldControl<T extends ValidComponent = "input">(props: FieldCon
       const inputValue = (event.currentTarget as HTMLInputElement).value;
       local.onValueChange?.(inputValue, createChangeEventDetails(REASONS.none, event));
 
-      setDirty(inputValue !== (validityData().initialValue ?? ""));
+      setDirty(inputValue !== (validityData.initialValue ?? ""));
       setFilled(inputValue !== "");
 
       if (!event.defaultPrevented) {
@@ -146,7 +146,7 @@ export function FieldControl<T extends ValidComponent = "input">(props: FieldCon
       setTouched(true);
       setFocused(false);
 
-      if (validationMode() === "onBlur") {
+      if (validationMode === "onBlur") {
         void validation.commit(event.currentTarget.value);
       }
     });
