@@ -1,8 +1,51 @@
 ---
-title: Button
+title: Checkbox
 description: A high-quality, unstyled Solid.js checkbox component that is easy to customize.
 ---
 
 # Checkbox
 
 An easily stylable checkbox component.
+
+<Demo hero />
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Checkbox } from "@rebase-ui/solid/checkbox";
+
+<Checkbox.Root>
+  <Checkbox.Indicator />
+</Checkbox.Root>;
+```
+
+## Examples
+
+### Indeterminate state
+
+The `indeterminate` prop puts the checkbox in a mixed state: neither ticked, nor unticked. It is most often used with a [parent checkbox](/components/checkbox-group#parent-checkbox) that controls a group.
+
+```tsx title="An indeterminate checkbox"
+<Checkbox.Root indeterminate>
+  <Checkbox.Indicator />
+</Checkbox.Root>
+```
+
+### Grouping checkboxes
+
+Use [Checkbox Group](/components/checkbox-group) to give a series of checkboxes a shared state:
+
+```tsx title="Checkboxes sharing a group state"
+<CheckboxGroup defaultValue={["fuji-apple"]}>
+  <label>
+    <Checkbox.Root value="fuji-apple" />
+    Fuji
+  </label>
+  <label>
+    <Checkbox.Root value="gala-apple" />
+    Gala
+  </label>
+</CheckboxGroup>
+```

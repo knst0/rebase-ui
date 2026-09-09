@@ -11,7 +11,9 @@ export interface CreateAriaLabelledByParameters {
 }
 
 export function createAriaLabelledBy(params: CreateAriaLabelledByParameters): Accessor<string | undefined> {
-  const [fallbackAriaLabelledBy, setFallbackAriaLabelledBy] = createSignal<string | undefined>();
+  // The fallback is derived from the DOM once the label source mounts, so the write necessarily
+  // happens inside the consuming component's scope.
+  const [fallbackAriaLabelledBy, setFallbackAriaLabelledBy] = createSignal<string | undefined>(undefined, { ownedWrite: true });
 
   const generatedId = createUniqueId();
   const generatedLabelId = () => {

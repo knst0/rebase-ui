@@ -121,12 +121,6 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/checkbox/__demos/hero";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components/checkbox/__demos/hero")>;
-      $$route?: undefined;
     }
   ];
   export default routes;
@@ -248,14 +242,6 @@ declare module "virtual:file-routes" {
               id: "/checkbox-group/";
               page: true;
               $component: FileRouteLazyRef;
-              $$route?: undefined;
-              children?: undefined;
-            },
-            {
-              path: "/checkbox/__demos/hero";
-              id: "/checkbox/__demos/hero";
-              page: true;
-              $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components/checkbox/__demos/hero")>;
               $$route?: undefined;
               children?: undefined;
             }

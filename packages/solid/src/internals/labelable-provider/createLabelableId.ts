@@ -6,9 +6,19 @@ import type { RegistrationSource } from "../types";
 import { useLabelableContext } from "./LabelableContext";
 
 export interface CreateLabelableIdParameters {
-  id?: Accessor<string | undefined> | undefined;
+  /**
+   * The control's own `id`. `null` claims the scope while telling the label to omit `htmlFor`,
+   * for a control that takes its name from `aria-labelledby` instead.
+   */
+  id?: Accessor<string | null | undefined> | undefined;
   implicit?: Accessor<boolean | undefined> | undefined;
   controlElement?: Accessor<HTMLElement | null> | undefined;
+  /**
+   * Whether the control owns the scope's control id. When `false` it still resolves an `id` to
+   * render but never registers it, leaving the association to whoever does own the scope.
+   * @default true
+   */
+  enabled?: Accessor<boolean | undefined> | undefined;
 }
 
 export function createLabelableId(params: CreateLabelableIdParameters = {}): Accessor<string> {
@@ -17,7 +27,9 @@ export function createLabelableId(params: CreateLabelableIdParameters = {}): Acc
   const generatedId = createUniqueId();
   const id = () => params.id?.();
   const implicit = () => params.implicit?.() ?? false;
+  const enabled = () => params.enabled?.() ?? true;
   const defaultId = () => id() ?? generatedId;
+  const resolvedId = () => defaultId() ?? generatedId;
 
   const controlSource: RegistrationSource = getOwner() ?? {};
   let hasRegistered = false;
@@ -38,18 +50,28 @@ export function createLabelableId(params: CreateLabelableIdParameters = {}): Acc
     () => ({
       currentId: id(),
       isImplicit: implicit(),
+      isEnabled: enabled(),
       element: params.controlElement?.() ?? null,
       contextControlId: implicit() ? controlId() : undefined,
-      fallbackId: defaultId(),
+      fallbackId: resolvedId(),
     }),
-    ({ currentId, isImplicit, element, contextControlId, fallbackId }) => {
+    ({ currentId, isImplicit, isEnabled, element, contextControlId, fallbackId }) => {
       if (registerControlId === NOOP) {
+        return;
+      }
+
+      if (!isEnabled) {
+        unregisterControlId();
         return;
       }
 
       let nextId: string | null | undefined;
 
-      if (isImplicit) {
+      if (currentId === null) {
+        // The control takes its name from `aria-labelledby`; claim the scope so no sibling
+        // control is picked as the label's target, but leave `htmlFor` unset.
+        nextId = null;
+      } else if (isImplicit) {
         if (element != null && element.closest("label") != null) {
           nextId = currentId ?? null;
         } else {
@@ -80,5 +102,5 @@ export function createLabelableId(params: CreateLabelableIdParameters = {}): Acc
 
   onCleanup(unregisterControlId);
 
-  return () => controlId() ?? defaultId();
+  return () => (enabled() ? (controlId() ?? resolvedId()) : resolvedId());
 }

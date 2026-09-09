@@ -1,5 +1,6 @@
 import { createEffect, createSignal, onSettled, untrack } from "solid-js";
 
+import { dispatchClickWithModifiers } from "#utils/dispatchClickWithModifiers";
 import { error } from "#utils/error";
 
 import type { RebaseUIEvent } from "../../types";
@@ -285,26 +286,4 @@ function isButtonElement(element: Element | null): element is HTMLButtonElement 
 
 function isValidLinkElement(element: Element | null): element is HTMLAnchorElement {
   return isHTMLElement(element) && element.tagName === "A" && Boolean((element as HTMLAnchorElement).href);
-}
-
-function dispatchClickWithModifiers(
-  target: Element,
-  sourceEvent: { shiftKey: boolean; ctrlKey: boolean; altKey: boolean; metaKey: boolean },
-  { detail = 0 }: { detail?: number | undefined } = {},
-) {
-  const view = target.ownerDocument?.defaultView;
-  const EventConstructor = (view?.PointerEvent ?? view?.MouseEvent) as typeof MouseEvent;
-
-  target.dispatchEvent(
-    new EventConstructor("click", {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      detail,
-      shiftKey: sourceEvent.shiftKey,
-      ctrlKey: sourceEvent.ctrlKey,
-      altKey: sourceEvent.altKey,
-      metaKey: sourceEvent.metaKey,
-    }),
-  );
 }
