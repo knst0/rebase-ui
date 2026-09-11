@@ -48,7 +48,9 @@
     "./form": "./src/form/index.ts",
     "./separator": "./src/separator/index.ts",
     "./switch": "./src/switch/index.ts",
-    "./tabs": "./src/tabs/index.ts"
+    "./tabs": "./src/tabs/index.ts",
+    "./toggle": "./src/toggle/index.ts",
+    "./toggle-group": "./src/toggle-group/index.ts"
   },
   "publishConfig": {
     "imports": {
@@ -73,7 +75,9 @@
       "./form": "./dist/form/index.js",
       "./separator": "./dist/separator/index.js",
       "./switch": "./dist/switch/index.js",
-      "./tabs": "./dist/tabs/index.js"
+      "./tabs": "./dist/tabs/index.js",
+      "./toggle": "./dist/toggle/index.js",
+      "./toggle-group": "./dist/toggle-group/index.js"
     },
     "access": "public"
   },

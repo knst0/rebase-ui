@@ -127,6 +127,18 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/toggle-group/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/toggle/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
     }
   ];
   export default routes;
@@ -212,6 +224,14 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/toggle/";
+              id: "/toggle/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/checkbox/";
               id: "/checkbox/";
               page: true;
@@ -246,6 +266,14 @@ declare module "virtual:file-routes" {
             {
               path: "/collapsible/";
               id: "/collapsible/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/toggle-group/";
+              id: "/toggle-group/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
