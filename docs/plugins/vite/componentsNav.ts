@@ -110,6 +110,7 @@ function parse(
 }
 
 function apiHeadings(parts: { name: string }[]): NavHeading[] {
+  if (parts.length <= 1) return [];
   return parts.map((part) => ({
     id: slugifyWithin(API_SECTION_ID, part.name),
     title: part.name,

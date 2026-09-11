@@ -31,11 +31,14 @@ function attributesTable(part: ApiPart): string {
   return ["| Attribute | Type | Description |", "| --- | --- | --- |", ...rows].join("\n");
 }
 
-function partSection(part: ApiPart): string {
-  const lines = [`### ${part.name}`];
+function partSection(part: ApiPart, single: boolean): string {
+  const lines: string[] = [];
 
-  if (part.description) lines.push(part.description);
-  if (part.element) lines.push(`Renders a \`${part.element}\` element.`);
+  if (!single) {
+    lines.push(`### ${part.name}`);
+    if (part.description) lines.push(part.description);
+    if (part.element) lines.push(`Renders a \`${part.element}\` element.`);
+  }
 
   const props = propsTable(part.props);
   if (props) lines.push(props);
@@ -47,7 +50,8 @@ function partSection(part: ApiPart): string {
 }
 
 function apiSection(component: ApiComponent): string {
-  return ["## API reference", ...component.parts.map(partSection)].join("\n\n");
+  const single = component.parts.length === 1;
+  return ["## API reference", ...component.parts.map((part) => partSection(part, single))].join("\n\n");
 }
 
 function additionalTypesSection(component: ApiComponent): string {
