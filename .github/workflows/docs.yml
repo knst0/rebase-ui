@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Branch, tag, or SHA to build the docs from"
+        description: "Branch, tag, or SHA to build the docs from (empty = the branch selected when running the workflow)"
         required: false
         type: string
-        default: "main"
+        default: ""
       base:
         description: "Vite base path ('/' for a custom domain, '/rebase-ui/' for the project page)"
         required: false
