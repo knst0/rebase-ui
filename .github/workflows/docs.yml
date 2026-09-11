@@ -8,6 +8,16 @@ on:
         required: false
         type: string
         default: "main"
+      base:
+        description: "Vite base path ('/' for a custom domain, '/rebase-ui/' for the project page)"
+        required: false
+        type: string
+        default: "/"
+      cname:
+        description: "Custom domain written to the CNAME file (empty for the default github.io URL)"
+        required: false
+        type: string
+        default: "rebase.ui.knst.dev"
 
 permissions: {}
 
@@ -24,13 +34,24 @@ jobs:
 
       - uses: ./.github/actions/setup-node
 
+      - name: Resolve the docs base path
+        run: |
+          base="${{ inputs.base }}"
+          [ -n "$base" ] || base="/"
+          case "$base" in /*) ;; *) base="/$base" ;; esac
+          case "$base" in */) ;; *) base="$base/" ;; esac
+          echo "DOCS_BASE=$base" >> "$GITHUB_ENV"
+
       - name: Build the docs
-        env:
-          DOCS_BASE: /rebase-ui/
         run: pnpm --filter @rebase-ui/docs exec vite build
 
-      - name: SPA fallback
-        run: cp docs/dist/client/index.html docs/dist/client/404.html && touch docs/dist/client/.nojekyll
+      - name: Prepare the Pages artifact
+        run: |
+          cp docs/dist/client/index.html docs/dist/client/404.html
+          touch docs/dist/client/.nojekyll
+          if [ -n "${{ inputs.cname }}" ]; then
+            printf '%s\n' "${{ inputs.cname }}" > docs/dist/client/CNAME
+          fi
 
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
