@@ -1,0 +1,51 @@
+name: Docs
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to build the docs from"
+        required: false
+        type: string
+        default: "main"
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Build the docs
+        env:
+          DOCS_BASE: /rebase-ui/
+        run: pnpm --filter @rebase-ui/docs exec vite build
+
+      - name: SPA fallback
+        run: cp docs/dist/client/index.html docs/dist/client/404.html && touch docs/dist/client/.nojekyll
+
+      - uses: actions/upload-pages-artifact@7b1a1af58d305a35d1c06735b470fa774c15add # v4
+        with:
+          path: docs/dist/client
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6c2080bf584ef8ab2e57659903250a947790c1 # v4

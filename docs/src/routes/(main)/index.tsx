@@ -22,6 +22,8 @@ function titleFromSlug(slug: string): string {
     .join(" ");
 }
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 const components: ComponentItem[] = Object.entries(demoModules)
   .flatMap(([path, loader]) => {
     const slug = getSlug(path);
@@ -30,7 +32,7 @@ const components: ComponentItem[] = Object.entries(demoModules)
 
     return {
       name: titleFromSlug(slug),
-      url: `/components/${slug}`,
+      url: `${base}/components/${slug}`,
       component: lazy(loader),
     };
   })
