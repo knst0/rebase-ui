@@ -14,6 +14,7 @@ import {
   componentsNav,
   DEMOS_DIR,
   llms,
+  rehypeBaseLinks,
   rehypeCodeValue,
   rehypeDemo,
   rehypeReference,
@@ -25,7 +26,20 @@ const API_REFERENCE = {
   shared: ["../packages/solid/src/internals/types.ts", "../packages/solid/src/types/index.ts"],
 };
 
+function resolveBase(): string {
+  const raw = (process.env.DOCS_BASE ?? "/").replace(/\\/g, "/");
+  const segments = raw.split("/").filter(Boolean);
+  const last = segments[segments.length - 1] ?? "";
+  if (last === "") return "/";
+  if (/^[A-Za-z]:$/.test(last)) return "/";
+  return `/${last}/`;
+}
+
+const base = resolveBase();
+const basePath = base === "/" ? "" : base.replace(/\/$/, "");
+
 export default defineConfig({
+  base,
   plugins: [
     {
       ...mdx({
@@ -37,6 +51,7 @@ export default defineConfig({
           rehypeSlug,
           rehypeDemo({ cwd: import.meta.dirname }) as never,
           rehypeReference,
+          rehypeBaseLinks({ basePath }) as never,
           rehypeSections({ siteName: "Rebase UI" }) as never,
           rehypeCodeValue,
         ],
@@ -54,7 +69,7 @@ export default defineConfig({
     }),
     componentsNav({
       dir: "src/routes/(main)/components",
-      base: "/components",
+      base: `${basePath}/components`,
       api: API_REFERENCE,
     }),
     apiReference(API_REFERENCE),

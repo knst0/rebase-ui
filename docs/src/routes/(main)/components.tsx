@@ -166,8 +166,9 @@ function ComponentsNav(props: { page: () => NavItem | undefined; headings: () =>
 
 export default function ComponentsLayout(props: ParentProps) {
   const location = useLocation();
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const page = createMemo(() => {
-    const path = location.pathname.replace(/\/$/, "");
+    const path = location.pathname.replace(/\/$/, "").slice(base.length) || "/";
     return FLAT_NAV.find((item) => item.path === path);
   });
   const headings = createMemo(() => page()?.headings ?? []);

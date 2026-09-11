@@ -2,6 +2,7 @@ export { apiReference } from "./vite/apiReference";
 export { componentsNav, type NavHeading, type NavItem } from "./vite/componentsNav";
 export { llms, type LlmsOptions } from "./vite/llms";
 
+export { rehypeBaseLinks, type RehypeBaseLinksOptions } from "./mdx/rehypeBaseLinks";
 export { rehypeCodeValue, type RehypeCodeValuePreProps } from "./mdx/rehypeCodeValue";
 export { rehypeDemo, type RehypeDemoOptions, type DemoVFile } from "./mdx/rehypeDemo";
 export { rehypeReference, type ReferenceKind, type ReferenceRow } from "./mdx/rehypeReference";
