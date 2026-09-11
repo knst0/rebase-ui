@@ -83,4 +83,28 @@ describe("<Switch.Root />", () => {
     ));
     expect(screen.getByTestId("thumb")).toBeInTheDocument();
   });
+
+  it("forwards value and form to the hidden input instead of leaking them onto the root", () => {
+    render(() => <SwitchRoot data-testid="value-switch" name="notifications" value="yes" form="settings-form" />);
+    const root = screen.getByTestId("value-switch");
+    expect(root).not.toHaveAttribute("value");
+    expect(root).not.toHaveAttribute("form");
+
+    const input = root.parentElement?.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+    expect(input).not.toBe(null);
+    expect(input?.value).toBe("yes");
+    expect(input?.getAttribute("form")).toBe("settings-form");
+    expect(input?.getAttribute("name")).toBe("notifications");
+  });
+
+  it("forwards form to the hidden uncheckedValue input", () => {
+    render(() => <SwitchRoot data-testid="form-switch" name="alerts" uncheckedValue="off" form="settings-form" />);
+    const hidden = screen
+      .getByTestId("form-switch")
+      .parentElement?.querySelector('input[type="hidden"]') as HTMLInputElement | null;
+    expect(hidden).not.toBe(null);
+    expect(hidden?.value).toBe("off");
+    expect(hidden?.getAttribute("form")).toBe("settings-form");
+    expect(hidden?.getAttribute("name")).toBe("alerts");
+  });
 });

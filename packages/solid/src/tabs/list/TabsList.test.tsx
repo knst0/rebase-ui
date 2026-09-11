@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { describeConformance, pressKey } from "#test-utils";
@@ -144,6 +144,52 @@ describe("<Tabs.List />", () => {
     }
 
     expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it("advances focus on consecutive arrow presses", () => {
+    render(() => renderTabs());
+
+    const tabs = screen.getAllByRole("tab");
+
+    tabs[0].focus();
+    flush();
+
+    pressKey("ArrowRight");
+    flush();
+    expect(document.activeElement).toBe(tabs[1]);
+
+    pressKey("ArrowRight");
+    flush();
+    expect(document.activeElement).toBe(tabs[2]);
+  });
+
+  it("follows orientation changes after mount", () => {
+    const [orientation, setOrientation] = createSignal<"horizontal" | "vertical">("horizontal");
+
+    render(() => (
+      <Tabs.Root defaultValue="one" orientation={orientation()}>
+        <Tabs.List>
+          <Tabs.Tab value="one">One</Tabs.Tab>
+          <Tabs.Tab value="two">Two</Tabs.Tab>
+        </Tabs.List>
+      </Tabs.Root>
+    ));
+
+    const tabs = screen.getAllByRole("tab");
+
+    tabs[0].focus();
+    flush();
+
+    pressKey("ArrowDown");
+    flush();
+    expect(document.activeElement).toBe(tabs[0]);
+
+    setOrientation("vertical");
+    flush();
+
+    pressKey("ArrowDown");
+    flush();
+    expect(document.activeElement).toBe(tabs[1]);
   });
 
   it("supports Home and End", () => {

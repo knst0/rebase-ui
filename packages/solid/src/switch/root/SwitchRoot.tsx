@@ -30,6 +30,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
     "checked",
     "defaultChecked",
     "disabled",
+    "form",
     "id",
     "inputRef",
     "name",
@@ -38,6 +39,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
     "readOnly",
     "required",
     "uncheckedValue",
+    "value",
   ]);
 
   const as = untrack(() => local.as);
@@ -181,7 +183,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
     });
 
     chainHandler("onBlur", () => {
-      if (!inputElement) {
+      if (!inputElement || disabled()) {
         return;
       }
 
@@ -263,7 +265,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
         props={[rootProps, elementProps, rootHandlers, getButtonProps, getDescriptionProps, { ref }]}
       />
       {!computedChecked() && name() && local.uncheckedValue !== undefined && (
-        <input type="hidden" name={name()} value={local.uncheckedValue} disabled={disabled()} />
+        <input type="hidden" form={local.form} name={name()} value={local.uncheckedValue} disabled={disabled()} />
       )}
       <RenderElement
         as="input"
@@ -279,6 +281,9 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
             get disabled() {
               return disabled();
             },
+            get form() {
+              return local.form;
+            },
             get name() {
               return name();
             },
@@ -287,6 +292,9 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
             },
             get required() {
               return local.required;
+            },
+            get value() {
+              return local.value;
             },
             get style() {
               return name() ? visuallyHiddenInput : visuallyHidden;
