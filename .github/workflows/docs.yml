@@ -32,7 +32,7 @@ jobs:
       - name: SPA fallback
         run: cp docs/dist/client/index.html docs/dist/client/404.html && touch docs/dist/client/.nojekyll
 
-      - uses: actions/upload-pages-artifact@7b1a1af58d305a35d1c06735b470fa774c15add # v4
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: docs/dist/client
 
@@ -48,4 +48,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@d6c2080bf584ef8ab2e57659903250a947790c1 # v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
