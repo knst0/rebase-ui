@@ -63,6 +63,16 @@ export interface NativeButtonProps {
   nativeButton?: boolean | undefined;
 }
 
+export interface NonNativeButtonProps {
+  /**
+   * Whether the component renders a native `<button>` element when replacing it
+   * via the `render` prop.
+   * Set to `true` if the rendered element is a native button.
+   * @default false
+   */
+  nativeButton?: boolean | undefined;
+}
+
 export type Orientation = "horizontal" | "vertical";
 
 /**
