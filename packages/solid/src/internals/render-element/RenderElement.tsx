@@ -186,14 +186,14 @@ function createSourceResolver<State>(stateValue: State) {
       return source;
     }
 
-    const resolvedChildren = "children" in source ? createMemo(() => source.children) : undefined;
+    const resolvedClass = "class" in source ? createMemo(() => resolveClass(source.class, stateValue)) : undefined;
+    const resolvedStyle = "style" in source ? createMemo(() => resolveStyle(source.style, stateValue)) : undefined;
+    const resolvedChildren = "children" in source ? createMemo(() => resolveChildren(source.children, stateValue)) : undefined;
 
     const read = (key: string) => {
-      if (key === "class") return resolveClass(source.class, stateValue);
-      if (key === "style") return resolveStyle(source.style, stateValue);
-
-      const value = resolvedChildren?.();
-      return typeof value === "function" ? (value as (state: State) => JSX.Element)(stateValue) : value;
+      if (key === "class") return resolvedClass?.();
+      if (key === "style") return resolvedStyle?.();
+      return resolvedChildren?.();
     };
 
     const target: Record<string, any> = {};
@@ -242,6 +242,13 @@ function hasDynamicKeys(source: Record<string, any>) {
 function resolveStyle<State>(value: unknown, state: State): unknown {
   if (typeof value === "function") {
     return (value as (state: State) => unknown)(state);
+  }
+  return value;
+}
+
+function resolveChildren<State>(value: unknown, state: State): unknown {
+  if (typeof value === "function") {
+    return (value as (state: State) => JSX.Element)(state);
   }
   return value;
 }

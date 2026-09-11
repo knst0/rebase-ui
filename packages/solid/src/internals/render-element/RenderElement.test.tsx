@@ -54,6 +54,31 @@ describe("<RenderElement />", () => {
     expect(element.classList.contains("static-class")).toBe(true);
   });
 
+  it("resolves class callbacks once per state change instead of once per read", () => {
+    const entry = vi.fn((state: any) => (state.active() ? "on" : "off"));
+    let captured: Record<string, any> | undefined;
+
+    function Capture(props: Record<string, any>) {
+      captured = props;
+      return <div />;
+    }
+
+    const [active, setActive] = createSignal(false);
+    render(() => <RenderElement as={Capture} state={{ active }} props={{ class: [entry, "static"] }} />);
+
+    expect(captured?.class).toContain("static");
+    const callsAfterFirstRead = entry.mock.calls.length;
+
+    void captured?.class;
+    void captured?.class;
+    expect(entry.mock.calls.length).toBe(callsAfterFirstRead);
+
+    setActive(true);
+    flush();
+    expect(captured?.class).toContain("on");
+    expect(entry.mock.calls.length).toBeGreaterThan(callsAfterFirstRead);
+  });
+
   it("renders state as data attributes", () => {
     const { root: element } = renderRoot(
       <RenderElement
