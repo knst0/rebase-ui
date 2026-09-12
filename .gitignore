@@ -52,3 +52,4 @@ test/profile/output/
 
 .vercel
 .env*
+.tooling

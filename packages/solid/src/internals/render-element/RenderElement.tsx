@@ -148,12 +148,13 @@ function combineLayers(layers: Record<string, any>[]): Record<string, any> {
   if (layers.length === 0) {
     return {};
   }
-  if (layers.length === 1) {
-    return layers[0];
-  }
   if (layers.some(hasDynamicKeys)) {
-    return merge(...layers);
+    return layers.length === 1 ? layers[0] : merge(...layers);
   }
+
+  // Object styles merge per-property (later layers win) instead of replacing
+  // each other wholesale, so internal positioning styles survive user styles.
+  const mergeStyles = shouldMergeLayerStyles(layers);
 
   const target: Record<string, any> = {};
 
@@ -162,11 +163,73 @@ function combineLayers(layers: Record<string, any>[]): Record<string, any> {
       if (key === "__proto__" || key === "constructor") {
         continue;
       }
+      if (key === "style" && mergeStyles) {
+        continue;
+      }
       Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(layer, key)!);
     }
   }
 
+  if (mergeStyles) {
+    defineMergedStyle(target, layers);
+  }
+
   return target;
+}
+
+function shouldMergeLayerStyles(layers: Record<string, any>[]): boolean {
+  let foundObjectStyle = false;
+
+  for (const layer of layers) {
+    // Read without subscribing; the merged getter below subscribes on use.
+    const style = untrack(() => layer.style);
+
+    if (style == null) {
+      continue;
+    }
+
+    if (typeof style !== "object") {
+      // A string style cannot merge per-property; keep last-wins behavior.
+      return false;
+    }
+
+    foundObjectStyle = true;
+  }
+
+  return foundObjectStyle;
+}
+
+function defineMergedStyle(target: Record<string, any>, layers: Record<string, any>[]): void {
+  Object.defineProperty(target, "style", {
+    enumerable: true,
+    configurable: true,
+    get: () => {
+      // Re-read every layer on each access so signal reads inside style
+      // getters are tracked by the consumer (e.g. `spread`'s compute), and
+      // the fresh object identity notifies it when they change. Without this,
+      // the memoized layer style keeps a stable reference and updates made
+      // after mount never reach the DOM.
+      const merged: Record<string, unknown> = {};
+
+      for (const layer of layers) {
+        const style: unknown = layer.style;
+
+        if (typeof style !== "object" || style === null) {
+          continue;
+        }
+
+        const source = style as Record<string, unknown>;
+        for (const key of Object.keys(source)) {
+          if (key === "__proto__") {
+            continue;
+          }
+          merged[key] = source[key];
+        }
+      }
+
+      return merged;
+    },
+  });
 }
 
 function reactiveLayer(resolved: () => Record<string, any>) {

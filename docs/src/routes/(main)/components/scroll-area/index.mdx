@@ -1,0 +1,88 @@
+---
+title: Scroll Area
+description: A high-quality, unstyled Solid scroll area that provides a native scroll container with custom scrollbars.
+---
+
+# Scroll Area
+
+A native scroll container with custom scrollbars.
+
+<Demo hero />
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { ScrollArea } from "@rebase-ui/solid/scroll-area";
+
+<ScrollArea.Root>
+  <ScrollArea.Viewport>
+    <ScrollArea.Content />
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar>
+    <ScrollArea.Thumb />
+  </ScrollArea.Scrollbar>
+  <ScrollArea.Corner />
+</ScrollArea.Root>;
+```
+
+## Examples
+
+### Both scrollbars
+
+Use `<ScrollArea.Corner>` to prevent the scrollbars from intersecting.
+
+<Demo both-scrollbars />
+
+### Gradient scroll fade
+
+<Demo gradient-scroll-fade />
+
+Use the viewport overflow CSS variables to drive a CSS mask, which gradually increases the fade as the user scrolls away from the edges.
+
+```css title="scroll-area.module.css"
+.Viewport {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black min(40px, var(--scroll-area-overflow-y-start)),
+    black calc(100% - min(40px, var(--scroll-area-overflow-y-end, 40px))),
+    transparent 100%
+  );
+  mask-repeat: no-repeat;
+}
+```
+
+For SSR, a fallback can be used as part of the end-side `var()` call so the mask is visible before the overflow CSS variables hydrate.
+
+```css title="SSR fallback"
+/* @highlight-text ", 40px" */
+var(--scroll-area-overflow-y-end, 40px);
+```
+
+When the fade is applied to `<ScrollArea.Viewport>` itself, the variables can be used directly. However, inheritance to children is disabled, so they must explicitly opt-in using the `inherit` keyword.
+
+```css title="Child element opt-in"
+.Child {
+  --scroll-area-overflow-y-start: inherit;
+  --scroll-area-overflow-y-end: inherit;
+}
+```
+
+### Combining with Tabs
+
+Use `<Tabs.List>`'s `as` prop to render `<ScrollArea.Viewport>` directly when the tab list itself needs the viewport overflow values for a mask fade. This keeps the mask logic on the same element that receives the scroll state.
+
+```jsx title="Tabs with ScrollArea"
+<Tabs.Root defaultValue="overview">
+  <ScrollArea.Root>
+    {/* @highlight */}
+    <Tabs.List as={ScrollArea.Viewport}>
+      <Tabs.Tab value="overview">Overview</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </ScrollArea.Root>
+  <Tabs.Panel value="overview">...</Tabs.Panel>
+</Tabs.Root>
+```
