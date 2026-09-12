@@ -93,6 +93,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/dialog/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/field/";
       page: true;
       $component: FileRouteLazyRef;
@@ -148,6 +154,12 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/(main)/components/toggle-group/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/alert-dialog/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -228,6 +240,14 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/dialog/";
+              id: "/dialog/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/slider/";
               id: "/slider/";
               page: true;
@@ -302,6 +322,14 @@ declare module "virtual:file-routes" {
             {
               path: "/toggle-group/";
               id: "/toggle-group/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/alert-dialog/";
+              id: "/alert-dialog/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

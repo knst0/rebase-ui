@@ -25,6 +25,31 @@ export function splitTags(body: string): Doc {
   return { text: lines.join("\n").trim(), tags };
 }
 
+/**
+ * Splits on top-level commas, ignoring commas nested inside `<>()[]{}` pairs
+ * (e.g. the argument list of `Omit<A, "b">` stays intact).
+ */
+export function splitTopLevel(text: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+
+  for (const char of text) {
+    if ("<([{".includes(char)) depth += 1;
+    else if (">)]}".includes(char)) depth -= 1;
+
+    if (char === "," && depth === 0) {
+      parts.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  parts.push(current);
+  return parts.map((part) => part.trim()).filter((part) => part !== "");
+}
+
 export function matchBrace(text: string, from: number): number {
   let depth = 0;
   for (let index = from; index < text.length; index += 1) {
@@ -65,10 +90,7 @@ export function interfaces(text: string): Map<string, Block> {
     found.set(match[1], {
       name: match[1],
       body: text.slice(open + 1, close),
-      extends: (match[2] ?? "")
-        .split(",")
-        .map((part) => part.trim().replace(/<.*$/, ""))
-        .filter(Boolean),
+      extends: splitTopLevel(match[2] ?? ""),
       doc: docBefore(text, match.index),
       start: match.index,
     });

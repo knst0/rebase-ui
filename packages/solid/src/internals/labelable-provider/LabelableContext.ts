@@ -2,7 +2,6 @@ import { type Accessor, createContext, type Setter, useContext } from "solid-js"
 
 import { EMPTY_ARRAY, NOOP, NOOP_SETTER } from "#utils/empty";
 
-import type { RegistrationSource } from "../types";
 
 export interface LabelableContext {
   /**
@@ -11,7 +10,7 @@ export interface LabelableContext {
    * because the control takes its name from `aria-labelledby`.
    */
   controlId: Accessor<string | null | undefined>;
-  registerControlId: (source: RegistrationSource, id: string | null | undefined) => void;
+  registerControlId: (source: object, id: string | null | undefined) => void;
   resetControlId: () => void;
   /**
    * The `id` of the label.

@@ -168,10 +168,10 @@ describe("<Form />", () => {
   describe("prop: actionsRef", () => {
     it("validates the form when the `validate` method is called", async () => {
       const validate = vi.fn(() => null);
-      const actions: { current: Form.Actions | null } = { current: null };
+      const [actions, setActions] = createSignal<Form.Actions | null>(null);
 
       await render(() => (
-        <Form actionsRef={actions}>
+        <Form actionsRef={setActions}>
           <Field.Root name="test" validate={validate} validationMode="onChange">
             <Field.Control data-testid="control" />
           </Field.Root>
@@ -180,7 +180,7 @@ describe("<Form />", () => {
 
       expect(validate).not.toHaveBeenCalled();
 
-      actions.current!.validate();
+      actions()!.validate();
       await flushMicrotasks();
 
       expect(validate).toHaveBeenCalledTimes(1);
@@ -189,10 +189,10 @@ describe("<Form />", () => {
     it("validates a single field by name", async () => {
       const validateFirst = vi.fn(() => null);
       const validateSecond = vi.fn(() => null);
-      const actions: { current: Form.Actions | null } = { current: null };
+      const [actions, setActions] = createSignal<Form.Actions | null>(null);
 
       await render(() => (
-        <Form actionsRef={actions}>
+        <Form actionsRef={setActions}>
           <Field.Root name="first" validate={validateFirst} validationMode="onChange">
             <Field.Control data-testid="first" />
           </Field.Root>
@@ -202,7 +202,7 @@ describe("<Form />", () => {
         </Form>
       ));
 
-      actions.current!.validate("second");
+      actions()!.validate("second");
       await flushMicrotasks();
 
       expect(validateFirst).not.toHaveBeenCalled();

@@ -7,7 +7,6 @@ import type { FieldRootState, FieldValidityData } from "../../field/root/FieldRo
 import type { Form } from "../../form/Form";
 import { DEFAULT_FIELD_ROOT_STATE, DEFAULT_VALIDITY_STATE } from "../field-constants";
 import type { FieldControlRegistration } from "../field-register-control/createFieldControlRegistration";
-import type { RegistrationSource } from "../types";
 
 export interface FieldRootContext {
   invalid: Accessor<boolean | undefined>;
@@ -22,7 +21,7 @@ export interface FieldRootContext {
   validationMode: Form.ValidationMode;
   shouldValidateOnChange: () => boolean;
   state: FieldRootState;
-  registerFieldControl: (source: RegistrationSource, registration: FieldControlRegistration | undefined) => void;
+  registerFieldControl: (source: object, registration: FieldControlRegistration | undefined) => void;
   validation: CreateFieldValidationReturnValue;
 }
 

@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, screen, waitFor } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { createRenderer, describeConformance } from "#test-utils";
@@ -325,15 +325,15 @@ describe("<Field.Root />", () => {
   describe("prop: actionsRef", () => {
     it("validates the field when the `validate` method is called", async () => {
       const validate = vi.fn(() => "error");
-      const actions: { current: Field.Root.Actions | null } = { current: null };
+      const [actions, setActions] = createSignal<Field.Root.Actions | null>(null);
 
       await render(() => (
-        <Field.Root validate={validate} actionsRef={actions}>
+        <Field.Root validate={validate} actionsRef={setActions}>
           <Field.Control />
         </Field.Root>
       ));
 
-      actions.current!.validate();
+      actions()!.validate();
       await flushMicrotasks();
 
       expect(validate).toHaveBeenCalledTimes(1);

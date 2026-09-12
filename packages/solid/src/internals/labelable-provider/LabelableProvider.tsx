@@ -1,7 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { createSignal, createUniqueId, untrack } from "solid-js";
 
-import type { RegistrationSource } from "../types";
 import { LabelableContext, useLabelableContext } from "./LabelableContext";
 
 export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
@@ -12,7 +11,7 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
   const [labelId, setLabelId] = createSignal<string | undefined>(untrack(() => props.labelId));
   const [messageIds, setMessageIds] = createSignal<string[]>([]);
 
-  const registrations = new Map<RegistrationSource, string | null>();
+  const registrations = new Map<object, string | null>();
 
   const parentContext = useLabelableContext();
 
@@ -40,7 +39,7 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
     return nextControlId;
   };
 
-  const registerControlId = (source: RegistrationSource, nextId: string | null | undefined) => {
+  const registerControlId = (source: object, nextId: string | null | undefined) => {
     if (nextId === undefined) {
       if (registrations.delete(source)) {
         setControlId(resolveControlId);

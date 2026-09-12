@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createEffect, createMemo, createSignal, createStore, onCleanup, untrack } from "solid-js";
+import { type Accessor, createEffect, createMemo, createSignal, createStore, onCleanup, type Setter, untrack } from "solid-js";
 
 import { useFieldsetRootContext } from "../../fieldset/root/FieldsetRootContext";
 import type { Form } from "../../form/Form";
@@ -12,7 +12,7 @@ import { accessBoolean, type ReactiveBoolean } from "../../internals/maybeAccess
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import { stableCallback } from "../../internals/stableCallback";
-import type { ActionsRef, RebaseUIComponentProps } from "../../internals/types";
+import type { RebaseUIComponentProps } from "../../internals/types";
 import { createFieldValidation } from "./createFieldValidation";
 
 /**
@@ -175,10 +175,10 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
         return;
       }
 
-      actionsRef.current = { validate: validateFieldControl };
+      actionsRef({ validate: validateFieldControl });
 
       onCleanup(() => {
-        actionsRef.current = null;
+        actionsRef(null);
       });
     },
   );
@@ -318,10 +318,10 @@ export interface FieldRootOwnProps {
    */
   touched?: ReactiveBoolean | undefined;
   /**
-   * A ref to imperative actions.
+   * A signal setter that receives the imperative actions.
    * - `validate`: Validates the field when called.
    */
-  actionsRef?: ActionsRef<FieldRoot.Actions> | undefined;
+  actionsRef?: Setter<FieldRoot.Actions | null> | undefined;
 }
 
 export type FieldRootProps<T extends ValidComponent = "div"> = FieldRootOwnProps & RebaseUIComponentProps<T, FieldRootState>;

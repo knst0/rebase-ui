@@ -48,6 +48,12 @@ function getBrowserConfig(): BrowserModeConfig {
 
 const config: UserWorkspaceConfig = {
   ...viteConfig,
+  resolve: {
+    // Solid ships separate client and server builds behind export conditions, with the
+    // server build as the default. Pin the development client builds so client-only APIs
+    // such as `Portal` resolve deterministically under vitest instead of racing conditions.
+    conditions: ["development", "browser"],
+  },
   test: {
     exclude: ["node_modules", "**/*.spec.*"],
     globals: true,

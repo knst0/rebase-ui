@@ -1,5 +1,5 @@
 import { readdir, readFile } from "node:fs/promises";
-import { basename, extname, join } from "node:path";
+import { basename, dirname, extname, join, relative, sep } from "node:path";
 
 import { pascalFromSlug } from "../../shared/text";
 import {
@@ -12,12 +12,14 @@ import {
   matchBrace,
   parseMembers,
   referencedTypes,
+  splitTopLevel,
 } from "./tsSource";
 import type { ApiAttribute, ApiComponent, ApiExportGroup, ApiPart, ApiPartDraft, ApiProp, ApiReferenceOptions, ApiType } from "./types";
 
 const RENDERS = /Renders (?:an?|the) `([^`]+)` element\./;
 const DOCUMENTATION = /Documentation:\s*\[[^\]]*\]\(([^)]+)\)/;
 const COMPONENT_FUNCTION = /export\s+function\s+([A-Za-z0-9_]+)\s*</g;
+const COMPONENT_CONST = /export\s+const\s+([A-Z][A-Za-z0-9_]*)\s*=/g;
 const NAMESPACE_BARREL = /export\s+\*\s+as\s+([A-Za-z0-9_]+)\s+from\s+"\.\/index\.parts"/;
 const PARTS_EXPORT = /export\s*\{\s*([A-Za-z0-9_]+)\s+as\s+([A-Za-z0-9_]+)\s*\}\s*from\s+"([^"]+)"/g;
 
@@ -136,6 +138,71 @@ function defaultTag(text: string, base: string): string | undefined {
   return /\bas:\s*"([^"]+)"/.exec(defaults[1])?.[1];
 }
 
+/**
+ * Resolves an interface block by name, falling back to any file in the
+ * codebase when it is not declared locally or in the shared files.
+ * Dotted names (`DialogRoot.Props`) resolve through their concatenated form
+ * (`DialogRootProps`), which is how namespaced prop aliases are declared.
+ */
+function blockOf(name: string, lookup: Map<string, Block>, sources: Map<string, string>): Block | undefined {
+  const direct = lookup.get(name);
+  if (direct !== undefined) return direct;
+
+  const key = name.includes(".") ? name.split(".").join("") : name;
+  if (key !== name) {
+    const compact = lookup.get(key);
+    if (compact !== undefined) return compact;
+  }
+
+  const source = sources.get(key);
+  if (source === undefined) return undefined;
+
+  for (const block of interfaces(source).values()) {
+    if (block.name === key) return block;
+  }
+
+  return undefined;
+}
+
+/**
+ * Collects props inherited through `extends`, resolving cross-file parents
+ * and `Omit<Base, "excluded">` wrappers. `seen` guards against cycles.
+ */
+function inheritedProps(
+  entries: string[],
+  lookup: Map<string, Block>,
+  sources: Map<string, string>,
+  seen: Set<string>,
+): ApiProp[] {
+  const props: ApiProp[] = [];
+
+  for (const entry of entries) {
+    let base = entry.trim();
+    let omitted = new Set<string>();
+
+    const omit = /^Omit<([\s\S]*)>$/.exec(base);
+    if (omit) {
+      const args = splitTopLevel(omit[1]);
+      if (args.length < 2) continue;
+      base = args[0].replace(/<.*$/, "").trim();
+      omitted = new Set([...args.slice(1).join(",").matchAll(/"([^"]+)"/g)].map((match) => match[1]));
+    } else {
+      base = base.replace(/<.*$/, "").trim();
+    }
+
+    if (base === "" || seen.has(base)) continue;
+    seen.add(base);
+
+    const block = blockOf(base, lookup, sources);
+    if (block === undefined) continue;
+
+    props.push(...inheritedProps(block.extends, lookup, sources, seen));
+    props.push(...parseMembers(block.body).filter((prop) => !omitted.has(prop.name)));
+  }
+
+  return props;
+}
+
 function partsOf(
   text: string,
   componentName: string,
@@ -148,21 +215,33 @@ function partsOf(
   const parts: ApiPartDraft[] = [];
   const bases = new Set([...text.matchAll(COMPONENT_FUNCTION)].map((match) => match[1]));
 
-  for (const base of bases) {
-    const ownProps = local.get(base + "OwnProps");
+  // Components aliased to another implementation (`export const Trigger = ...`)
+  // carry no function declaration; detect them through their docs or props.
+  for (const match of text.matchAll(COMPONENT_CONST)) {
+    const base = match[1];
+    if (bases.has(base)) continue;
+    if (local.has(base + "OwnProps") || local.has(base + "Props") || RENDERS.test(docBefore(text, match.index).text)) {
+      bases.add(base);
+    }
+  }
 
-    const signature = new RegExp("export\\s+function\\s+" + base + "\\b");
+  for (const base of bases) {
+    const ownProps = local.get(base + "OwnProps") ?? local.get(base + "Props");
+
+    const signature = new RegExp("export\\s+(?:function|const)\\s+" + base + "\\b");
     const at = signature.exec(text);
     const doc = at ? docBefore(text, at.index) : (ownProps?.doc ?? EMPTY_DOC);
     const element = RENDERS.exec(doc.text)?.[1] ?? defaultTag(text, base);
     const state = stateOf(text, base);
 
     const props: ApiProp[] = [];
-    for (const parent of ownProps?.extends ?? []) {
-      const inherited = lookup.get(parent);
-      if (inherited) props.push(...parseMembers(inherited.body));
+    const own = ownProps ? parseMembers(ownProps.body) : [];
+    const ownNames = new Set(own.map((prop) => prop.name));
+    // Redeclared members override inherited ones instead of duplicating them.
+    for (const prop of inheritedProps(ownProps?.extends ?? [], lookup, sources, new Set([ownProps?.name ?? ""]))) {
+      if (!ownNames.has(prop.name)) props.push(prop);
     }
-    if (ownProps) props.push(...parseMembers(ownProps.body));
+    props.push(...own);
     props.push(...sharedProps(sharedText, base + "State", element));
 
     parts.push({
@@ -228,6 +307,28 @@ function order(base: string, componentName: string): number {
   return index === -1 ? PART_ORDER.length : index;
 }
 
+async function resolvePartTarget(fromDir: string, from: string): Promise<string | undefined> {
+  for (const candidate of [from, `${from}.tsx`, `${from}.ts`]) {
+    const file = join(fromDir, candidate);
+    try {
+      await readFile(file, "utf8");
+      return file;
+    } catch {
+      // Try the next candidate extension.
+    }
+  }
+
+  return undefined;
+}
+
+async function readSiblingAttributes(targetFile: string, base: string): Promise<string | undefined> {
+  try {
+    return await readFile(join(dirname(targetFile), `${base}DataAttributes.ts`), "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
 async function collectInternalSources(dir: string, sources: Map<string, string>): Promise<void> {
   for (const file of await listFilesRecursive(dir)) {
     if (extname(file) !== ".ts" && extname(file) !== ".tsx") continue;
@@ -285,14 +386,50 @@ export async function collectApi(root: string, options: ApiReferenceOptions): Pr
       parts.push(...partsOf(text, componentName, shared, sharedText, sources));
     }
 
-    if (parts.length === 0) continue;
-
     for (const part of parts) {
       const text = attributeFiles.get(part.base);
       if (text !== undefined) part.attributes = parseAttributes(text, attributeConstants);
     }
 
-    parts.sort((a, b) => order(a.base, componentName) - order(b.base, componentName));
+    // Follow `export { Base as Alias } from "<relative>"` re-exports so the
+    // reference covers every part the entrypoint exposes, not just the files
+    // living in its own directory (e.g. AlertDialog reuses Dialog parts).
+    const owners = new Map<string, string>();
+    for (const part of parts) owners.set(part.base, componentName);
+
+    try {
+      const partsText = await readFile(join(dir, slug, "index.parts.ts"), "utf8");
+      for (const match of partsText.matchAll(PARTS_EXPORT)) {
+        const [, base, alias, from] = match;
+        if (!from.startsWith(".") || owners.has(base)) continue;
+
+        const target = await resolvePartTarget(join(dir, slug), from);
+        if (target === undefined) continue;
+
+        const targetSlug = relative(dir, target).split(sep)[0];
+        if (targetSlug === slug) continue;
+
+        const text = await readFile(target, "utf8");
+        collectSources(text, sources);
+
+        const owner = pascalFromSlug(targetSlug);
+        for (const draft of partsOf(text, owner, shared, sharedText, sources)) {
+          if (draft.base !== base || owners.has(draft.base)) continue;
+          draft.name = alias;
+          owners.set(draft.base, owner);
+          parts.push(draft);
+
+          const attributesText = await readSiblingAttributes(target, draft.base);
+          if (attributesText !== undefined) draft.attributes = parseAttributes(attributesText, attributeConstants);
+        }
+      }
+    } catch {
+      // No readable parts barrel; local parts are the whole reference.
+    }
+
+    if (parts.length === 0) continue;
+
+    parts.sort((a, b) => order(a.base, owners.get(a.base) ?? componentName) - order(b.base, owners.get(b.base) ?? componentName));
 
     const { namespace } = await barrelInfo(dir, slug);
     const exportGroups = await exportGroupsFor(dir, slug, namespace);

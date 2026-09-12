@@ -3,7 +3,6 @@ import { type Accessor, createRenderEffect, deep, onCleanup, type Store, type St
 import type { FieldValidityData } from "../../field/root/FieldRoot";
 import { getCombinedFieldValidityData } from "../../field/utils/getCombinedFieldValidityData";
 import { useFormContext } from "../form-context";
-import type { RegistrationSource } from "../types";
 
 export interface FieldControlRegistration {
   readonly controlElement: HTMLElement | null;
@@ -27,7 +26,7 @@ export interface CreateFieldControlRegistrationParameters {
 
 export type CreateFieldControlRegistrationReturnValue = readonly [
   validate: () => void,
-  register: (source: RegistrationSource, registration: FieldControlRegistration | undefined) => void,
+  register: (source: object, registration: FieldControlRegistration | undefined) => void,
 ];
 
 export function createFieldControlRegistration(
@@ -38,7 +37,7 @@ export function createFieldControlRegistration(
 
   const { fields } = useFormContext();
 
-  let activeFieldControlSource: RegistrationSource | null = null;
+  let activeFieldControlSource: object | null = null;
   let currentRegistration: FieldControlRegistration | null = null;
   let initialValueCaptured = false;
 
@@ -126,7 +125,7 @@ export function createFieldControlRegistration(
     deleteRegistration();
   });
 
-  function register(source: RegistrationSource, registration: FieldControlRegistration | undefined) {
+  function register(source: object, registration: FieldControlRegistration | undefined) {
     if (!registration) {
       if (activeFieldControlSource === source) {
         activeFieldControlSource = null;

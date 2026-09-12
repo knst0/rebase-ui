@@ -2,7 +2,6 @@ import { type Accessor, createEffect, createUniqueId, getOwner, onCleanup } from
 
 import { NOOP } from "#utils/empty";
 
-import type { RegistrationSource } from "../types";
 import { useLabelableContext } from "./LabelableContext";
 
 export interface CreateLabelableIdParameters {
@@ -31,7 +30,7 @@ export function createLabelableId(params: CreateLabelableIdParameters = {}): Acc
   const defaultId = () => id() ?? generatedId;
   const resolvedId = () => defaultId() ?? generatedId;
 
-  const controlSource: RegistrationSource = getOwner() ?? {};
+  const controlSource: object = getOwner() ?? {};
   let hasRegistered = false;
   // Deliberately not seeded from `id`: the seed would stick around after the `id` prop is
   // removed, leaving the control on a stale id forever.

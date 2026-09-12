@@ -38,9 +38,11 @@
   },
   "exports": {
     "./accordion": "./src/accordion/index.ts",
+    "./alert-dialog": "./src/alert-dialog/index.ts",
     "./avatar": "./src/avatar/index.ts",
     "./button": "./src/button/index.ts",
     "./collapsible": "./src/collapsible/index.ts",
+    "./dialog": "./src/dialog/index.ts",
     "./checkbox": "./src/checkbox/index.ts",
     "./checkbox-group": "./src/checkbox-group/index.ts",
     "./field": "./src/field/index.ts",
@@ -66,9 +68,11 @@
     },
     "exports": {
       "./accordion": "./dist/accordion/index.js",
+      "./alert-dialog": "./dist/alert-dialog/index.js",
       "./avatar": "./dist/avatar/index.js",
       "./button": "./dist/button/index.js",
       "./collapsible": "./dist/collapsible/index.js",
+      "./dialog": "./dist/dialog/index.js",
       "./checkbox": "./dist/checkbox/index.js",
       "./checkbox-group": "./dist/checkbox-group/index.js",
       "./field": "./dist/field/index.js",

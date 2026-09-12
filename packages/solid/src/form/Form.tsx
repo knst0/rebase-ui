@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, onCleanup, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, onCleanup, type Setter, untrack } from "solid-js";
 
 import { EMPTY_OBJECT } from "#utils/empty";
 
@@ -6,7 +6,7 @@ import { createGenericEventDetails, REASONS, type RebaseUIGenericEventDetails } 
 import { type Errors, FormContext, type FormField } from "../internals/form-context";
 import { RenderElement } from "../internals/render-element";
 import { split } from "../internals/split";
-import type { ActionsRef, RebaseUIComponentProps } from "../internals/types";
+import type { RebaseUIComponentProps } from "../internals/types";
 
 /**
  * A native form element with consolidated error handling.
@@ -106,10 +106,10 @@ export function Form<FormValues extends Record<string, any> = Record<string, any
         return;
       }
 
-      actionsRef.current = { validate };
+      actionsRef({ validate });
 
       onCleanup(() => {
-        actionsRef.current = null;
+        actionsRef(null);
       });
     },
   );
@@ -244,10 +244,10 @@ export interface FormOwnProps<FormValues extends Record<string, any> = Record<st
    */
   onFormSubmit?: ((formValues: FormValues, eventDetails: Form.SubmitEventDetails) => void) | undefined;
   /**
-   * A ref to imperative actions.
+   * A signal setter that receives the imperative actions.
    * - `validate`: Validates all fields when called. Optionally pass a field name to validate a single field.
    */
-  actionsRef?: ActionsRef<Form.Actions> | undefined;
+  actionsRef?: Setter<Form.Actions | null> | undefined;
 }
 
 export type FormProps<FormValues extends Record<string, any> = Record<string, any>> = FormOwnProps<FormValues> &
