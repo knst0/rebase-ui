@@ -1,6 +1,7 @@
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
 
+import type { FieldRootState } from "../../field/root/FieldRoot";
 import { CompositeListContext, createCompositeList } from "../../internals/composite";
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import {
@@ -19,15 +20,14 @@ import { split } from "../../internals/split";
 import { stableCallback } from "../../internals/stableCallback";
 import type { Orientation, RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
-import type { FieldRootState } from "../../field/root/FieldRoot";
 import type { ThumbMetadata } from "../thumb/SliderThumb";
 import { areArraysEqual } from "../utils/areArraysEqual";
 import { asc } from "../utils/asc";
 import { clamp } from "../utils/clamp";
 import { getSliderValue } from "../utils/getSliderValue";
 import { validateMinimumDistance } from "../utils/validateMinimumDistance";
-import { sliderStateAttributesMapping } from "./stateAttributesMapping";
 import { SliderRootContext } from "./SliderRootContext";
+import { sliderStateAttributesMapping } from "./stateAttributesMapping";
 
 function areValuesEqual(newValue: number | readonly number[], oldValue: number | readonly number[]) {
   return newValue === oldValue || (Array.isArray(newValue) && Array.isArray(oldValue) && areArraysEqual(newValue, oldValue));
@@ -47,9 +47,7 @@ function resolveAriaLabelledBy(fieldLabelId: string | undefined, localLabelId: s
  *
  * Documentation: [Rebase UI Slider](https://rebase-ui.knst.dev/components/slider)
  */
-export function SliderRoot<Value extends number | readonly number[], T extends ValidComponent = "div">(
-  props: SliderRoot.Props<Value, T>,
-) {
+export function SliderRoot<Value extends number | readonly number[], T extends ValidComponent = "div">(props: SliderRoot.Props<Value, T>) {
   const [local, elementProps] = split(props as SliderRoot.Props, { default: defaultProps }, [
     "as",
     "aria-labelledby",
@@ -84,10 +82,7 @@ export function SliderRoot<Value extends number | readonly number[], T extends V
     () => local.onValueChange as ((value: number | number[], eventDetails: SliderRoot.ChangeEventDetails) => void) | undefined,
   );
   const onValueCommitted = stableCallback(
-    () =>
-      local.onValueCommitted as
-        | ((value: number | readonly number[], eventDetails: SliderRoot.CommitEventDetails) => void)
-        | undefined,
+    () => local.onValueCommitted as ((value: number | readonly number[], eventDetails: SliderRoot.CommitEventDetails) => void) | undefined,
   );
 
   const { clearErrors } = useFormContext();
@@ -577,8 +572,10 @@ export type SliderRootProps<
 export namespace SliderRoot {
   export type ThumbCollisionBehavior = SliderThumbCollisionBehavior;
   export type State = SliderRootState;
-  export type Props<Value extends number | readonly number[] = number | readonly number[], T extends ValidComponent = "div"> =
-    SliderRootProps<Value, T>;
+  export type Props<
+    Value extends number | readonly number[] = number | readonly number[],
+    T extends ValidComponent = "div",
+  > = SliderRootProps<Value, T>;
   export type OwnProps<Value extends number | readonly number[] = number | readonly number[]> = SliderRootOwnProps<Value>;
   export type ChangeEventReason = SliderRootChangeEventReason;
   export type ChangeEventDetails = SliderRootChangeEventDetails;

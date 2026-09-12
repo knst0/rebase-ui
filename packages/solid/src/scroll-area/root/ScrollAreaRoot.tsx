@@ -5,9 +5,9 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { DISABLE_SCROLLBAR_CSS } from "../utils/disableScrollbar";
+import { createScrollAreaRoot } from "./createScrollAreaRoot";
 import { ScrollAreaRootContext } from "./ScrollAreaRootContext";
 import { scrollAreaCornerHeight, scrollAreaCornerWidth } from "./ScrollAreaRootCssVars";
-import { createScrollAreaRoot } from "./createScrollAreaRoot";
 import { scrollAreaStateAttributesMapping } from "./stateAttributesMapping";
 
 export type Size = {

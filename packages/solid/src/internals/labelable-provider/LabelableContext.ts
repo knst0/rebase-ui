@@ -2,7 +2,6 @@ import { type Accessor, createContext, type Setter, useContext } from "solid-js"
 
 import { EMPTY_ARRAY, NOOP, NOOP_SETTER } from "#utils/empty";
 
-
 export interface LabelableContext {
   /**
    * The `id` of the labelable element.

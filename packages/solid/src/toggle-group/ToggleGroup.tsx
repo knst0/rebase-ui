@@ -15,9 +15,7 @@ import { ToggleGroupContext } from "./ToggleGroupContext";
  *
  * Documentation: [Rebase UI Toggle Group](https://rebase-ui.knst.dev/components/toggle-group)
  */
-export function ToggleGroup<Value extends string = string, T extends ValidComponent = "div">(
-  props: ToggleGroup.Props<Value, T>,
-) {
+export function ToggleGroup<Value extends string = string, T extends ValidComponent = "div">(props: ToggleGroup.Props<Value, T>) {
   const [local, elementProps] = split(props as ToggleGroup.Props<Value>, { default: defaultProps }, [
     "as",
     "defaultValue",

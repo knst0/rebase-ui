@@ -17,7 +17,7 @@ export interface AlertDialogTrigger {
   <Payload = unknown, T extends ValidComponent = "button">(props: AlertDialogTriggerProps<Payload, T>): JSX.Element;
 }
 
-export interface AlertDialogTriggerOwnProps<Payload = unknown> extends Omit<DialogTriggerOwnProps<Payload>, 'handle'> {
+export interface AlertDialogTriggerOwnProps<Payload = unknown> extends Omit<DialogTriggerOwnProps<Payload>, "handle"> {
   /**
    * A handle to associate the trigger with an alert dialog.
    * Can be created with the AlertDialog.createHandle() method.

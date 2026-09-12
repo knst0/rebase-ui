@@ -53,7 +53,7 @@ createEffect(
   () => name(),
   (value) => {
     el().title = value;
-  }
+  },
 );
 
 createEffect(
@@ -61,7 +61,7 @@ createEffect(
   (value) => {
     const id = setInterval(() => console.log(value), 1000);
     return () => clearInterval(id);
-  }
+  },
 );
 ```
 
@@ -106,8 +106,12 @@ Use `isPending(() => expr)` for in-flight indicators and `refresh(target)` plus 
 
 ```jsx
 <Reveal>
-  <Loading fallback={<Skeleton />}><Header /></Loading>
-  <Loading fallback={<Skeleton />}><Posts /></Loading>
+  <Loading fallback={<Skeleton />}>
+    <Header />
+  </Loading>
+  <Loading fallback={<Skeleton />}>
+    <Posts />
+  </Loading>
 </Reveal>
 ```
 
@@ -140,7 +144,7 @@ Context is its own provider:
 
 ```jsx
 const Theme = createContext("light");
-<Theme value="dark">{props.children}</Theme>
+<Theme value="dark">{props.children}</Theme>;
 ```
 
 A default-less `createContext<T>()` throws `ContextNotFoundError` when missing; do not add undefined-check wrapper hooks.

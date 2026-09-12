@@ -4,9 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { SliderControl } from "../control/SliderControl";
+import { SliderRoot } from "../root/SliderRoot";
 import { SliderThumb } from "../thumb/SliderThumb";
 import { SliderTrack } from "../track/SliderTrack";
-import { SliderRoot } from "../root/SliderRoot";
 import { SliderIndicator } from "./SliderIndicator";
 
 function renderSlider(props: Partial<SliderRoot.Props<number[]>> = {}) {

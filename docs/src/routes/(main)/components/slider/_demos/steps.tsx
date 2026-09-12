@@ -8,7 +8,7 @@ export default function StepsSlider() {
       <Slider.Control class="col-span-2 flex touch-none items-center py-3 select-none">
         <Slider.Track class="h-1 w-full bg-neutral-200 select-none dark:bg-neutral-800">
           <Slider.Indicator class="bg-neutral-950 select-none dark:bg-white" />
-          <Slider.Thumb class="size-4 border border-neutral-950 bg-white select-none has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-neutral-950 dark:has-[:focus-visible]:outline-white dark:border-white dark:bg-neutral-950" />
+          <Slider.Thumb class="size-4 border border-neutral-950 bg-white select-none has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:has-[:focus-visible]:outline-white" />
         </Slider.Track>
       </Slider.Control>
     </Slider.Root>

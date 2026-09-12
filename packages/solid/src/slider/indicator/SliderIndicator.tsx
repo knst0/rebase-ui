@@ -1,12 +1,12 @@
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createMemo, untrack } from "solid-js";
 
-import { valueToPercent } from "../../internals/utils/valueToPercent";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { useSliderRootContext } from "../root/SliderRootContext";
+import { valueToPercent } from "../../internals/utils/valueToPercent";
 import type { SliderRootState } from "../root/SliderRoot";
+import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
 import { createIsHydrating } from "../utils/createIsHydrating";
 import { mergeStyles } from "../utils/mergeStyles";

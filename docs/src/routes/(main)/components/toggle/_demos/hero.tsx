@@ -5,7 +5,7 @@ export default function ExampleToggle() {
   return (
     <Toggle
       aria-label="Favorite"
-      class="flex size-8 items-center justify-center border-none rounded-none bg-transparent text-neutral-950 dark:text-white select-none hover:not-data-disabled:bg-neutral-100 dark:hover:not-data-disabled:bg-neutral-800 active:not-data-disabled:bg-neutral-200 dark:active:not-data-disabled:bg-neutral-700 data-pressed:text-neutral-950 dark:data-pressed:text-white focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 dark:focus-visible:outline-white"
+      class="flex size-8 items-center justify-center rounded-none border-none bg-transparent text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:bg-neutral-200 data-pressed:text-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:bg-neutral-700 dark:data-pressed:text-white"
     >
       {(state) => (
         <Show when={state.pressed()} fallback={<HeartOutlineIcon />}>

@@ -34,8 +34,8 @@ import { createIsHydrating } from "../utils/createIsHydrating";
 import { formatNumber } from "../utils/formatNumber";
 import { getMidpoint } from "../utils/getMidpoint";
 import { getSliderValue } from "../utils/getSliderValue";
-import { getDecimalPrecision, roundValueToStep } from "../utils/roundValueToStep";
 import { mergeStyles } from "../utils/mergeStyles";
+import { getDecimalPrecision, roundValueToStep } from "../utils/roundValueToStep";
 
 const ALL_KEYS = new Set([...COMPOSITE_KEYS, PAGE_UP, PAGE_DOWN]);
 
@@ -419,10 +419,12 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
         directionValue = -1;
         break;
       case END:
-        newValue = range() && Number.isFinite(currentValues[index() + 1]) ? currentValues[index() + 1] - step() * minStepsBetweenValues() : max();
+        newValue =
+          range() && Number.isFinite(currentValues[index() + 1]) ? currentValues[index() + 1] - step() * minStepsBetweenValues() : max();
         break;
       case HOME:
-        newValue = range() && Number.isFinite(currentValues[index() - 1]) ? currentValues[index() - 1] + step() * minStepsBetweenValues() : min();
+        newValue =
+          range() && Number.isFinite(currentValues[index() - 1]) ? currentValues[index() - 1] + step() * minStepsBetweenValues() : min();
         break;
       default:
         break;
@@ -485,19 +487,16 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
     return target;
   };
 
-  const mergedInputRef = mergeRefs(
-    (element: HTMLInputElement | null) => {
-      if (element) {
-        validation.registerInput(element, {
-          get controlElement() {
-            return controlElement();
-          },
-          value: undefined,
-        });
-      }
-    },
-    local.inputRef,
-  );
+  const mergedInputRef = mergeRefs((element: HTMLInputElement | null) => {
+    if (element) {
+      validation.registerInput(element, {
+        get controlElement() {
+          return controlElement();
+        },
+        value: undefined,
+      });
+    }
+  }, local.inputRef);
 
   const inputAriaValueText = () =>
     typeof local.getAriaValueText === "function"

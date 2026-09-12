@@ -1,5 +1,5 @@
-import { type Accessor, untrack } from "solid-js";
 import type { ValidComponent } from "@solidjs/web";
+import { type Accessor, untrack } from "solid-js";
 
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
@@ -18,8 +18,16 @@ export function ScrollAreaThumb<T extends ValidComponent = "div">(props: ScrollA
 
   const as = untrack(() => local.as);
 
-  const { setThumbYElement, setThumbXElement, handlePointerDown, handlePointerMove, handlePointerUp, scrollingX, scrollingY, hasMeasuredScrollbar } =
-    useScrollAreaRootContext();
+  const {
+    setThumbYElement,
+    setThumbXElement,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    scrollingX,
+    scrollingY,
+    hasMeasuredScrollbar,
+  } = useScrollAreaRootContext();
 
   const orientation = useScrollAreaScrollbarContext();
   const vertical = orientation === "vertical";

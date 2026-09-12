@@ -10,8 +10,8 @@ import { scrollAreaCornerHeight, scrollAreaCornerWidth } from "../root/ScrollAre
 import { scrollAreaStateAttributesMapping } from "../root/stateAttributesMapping";
 import { addEventListener } from "../utils/addEventListener";
 import { getOffset } from "../utils/getOffset";
-import { scrollAreaThumbHeight, scrollAreaThumbWidth } from "./ScrollAreaScrollbarCssVars";
 import { ScrollAreaScrollbarContext } from "./ScrollAreaScrollbarContext";
+import { scrollAreaThumbHeight, scrollAreaThumbWidth } from "./ScrollAreaScrollbarCssVars";
 
 /**
  * A vertical or horizontal scrollbar for the scroll area.
@@ -289,7 +289,8 @@ export interface ScrollAreaScrollbarOwnProps {
   keepMounted?: boolean | undefined;
 }
 
-export type ScrollAreaScrollbarProps<T extends ValidComponent = "div"> = ScrollAreaScrollbarOwnProps & RebaseUIComponentProps<T, ScrollAreaScrollbarState>;
+export type ScrollAreaScrollbarProps<T extends ValidComponent = "div"> = ScrollAreaScrollbarOwnProps &
+  RebaseUIComponentProps<T, ScrollAreaScrollbarState>;
 
 export namespace ScrollAreaScrollbar {
   export type State = ScrollAreaScrollbarState;

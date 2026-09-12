@@ -1,14 +1,7 @@
-import { clamp } from "./clamp";
 import { asc } from "./asc";
+import { clamp } from "./clamp";
 
-export function getSliderValue(
-  valueInput: number,
-  index: number,
-  min: number,
-  max: number,
-  range: boolean,
-  values: readonly number[],
-) {
+export function getSliderValue(valueInput: number, index: number, min: number, max: number, range: boolean, values: readonly number[]) {
   const clamped = clamp(valueInput, min, max);
 
   if (!range) {

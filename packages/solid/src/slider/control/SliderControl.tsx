@@ -9,14 +9,14 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
+import type { SliderRootState } from "../root/SliderRoot";
+import { useSliderRootContext } from "../root/SliderRootContext";
+import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
 import { clamp } from "../utils/clamp";
 import { getMidpoint } from "../utils/getMidpoint";
 import { resolveThumbCollision } from "../utils/resolveThumbCollision";
 import { roundValueToStep } from "../utils/roundValueToStep";
 import { validateMinimumDistance } from "../utils/validateMinimumDistance";
-import { useSliderRootContext } from "../root/SliderRootContext";
-import type { SliderRootState } from "../root/SliderRoot";
-import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
 
 const INTENTIONAL_DRAG_COUNT_THRESHOLD = 2;
 
@@ -42,9 +42,11 @@ function getControlOffset(styles: CSSStyleDeclaration | null, vertical: boolean)
   const end = !vertical ? "InlineEnd" : "Bottom";
 
   return {
-    start: parseSize(styles[`border${start}Width` as keyof CSSStyleDeclaration] as unknown as string) +
+    start:
+      parseSize(styles[`border${start}Width` as keyof CSSStyleDeclaration] as unknown as string) +
       parseSize(styles[`padding${start}` as keyof CSSStyleDeclaration] as unknown as string),
-    end: parseSize(styles[`border${end}Width` as keyof CSSStyleDeclaration] as unknown as string) +
+    end:
+      parseSize(styles[`border${end}Width` as keyof CSSStyleDeclaration] as unknown as string) +
       parseSize(styles[`padding${end}` as keyof CSSStyleDeclaration] as unknown as string),
   };
 }
@@ -481,9 +483,7 @@ export function SliderControl<T extends ValidComponent = "div">(props: SliderCon
       return;
     }
 
-    const pressedOnFocusedThumb = thumbRefs()[finger.thumbIndex]?.contains(
-      ownerDocument(control).activeElement as Node | null,
-    );
+    const pressedOnFocusedThumb = thumbRefs()[finger.thumbIndex]?.contains(ownerDocument(control).activeElement as Node | null);
 
     if (pressedOnFocusedThumb) {
       event.preventDefault();

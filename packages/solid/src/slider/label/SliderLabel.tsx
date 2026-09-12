@@ -7,8 +7,8 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
-import { useSliderRootContext } from "../root/SliderRootContext";
 import type { SliderRoot } from "../root/SliderRoot";
+import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
 
 /**
@@ -50,14 +50,7 @@ export function SliderLabel<T extends ValidComponent = "div">(props: SliderLabel
     focusControl,
   });
 
-  return (
-    <RenderElement
-      as={as}
-      state={state}
-      props={[labelProps, elementProps]}
-      stateAttributesMapping={sliderStateAttributesMapping}
-    />
-  );
+  return <RenderElement as={as} state={state} props={[labelProps, elementProps]} stateAttributesMapping={sliderStateAttributesMapping} />;
 }
 
 const defaultProps = Object.freeze({

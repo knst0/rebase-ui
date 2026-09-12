@@ -9,11 +9,14 @@ import * as ScrollArea from "../index.parts";
 import * as ScrollAreaRootCssVars from "./ScrollAreaRootCssVars";
 
 describe("<ScrollArea.Root />", () => {
-  describeConformance((props) => <ScrollArea.Root {...props} />, () => ({
-    defaultElement: "div",
-    refInstanceof: window.HTMLDivElement,
-    stateAttributes: {},
-  }));
+  describeConformance(
+    (props) => <ScrollArea.Root {...props} />,
+    () => ({
+      defaultElement: "div",
+      refInstanceof: window.HTMLDivElement,
+      stateAttributes: {},
+    }),
+  );
 
   it("renders a presentation element", () => {
     render(() => <ScrollArea.Root data-testid="root" />);

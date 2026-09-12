@@ -3,13 +3,13 @@ import { fireEvent, render, screen, waitFor } from "@solidjs/testing-library";
 import { flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import * as Field from "../../field/index.parts";
+import { Form } from "../../form";
 import { SliderControl } from "../control/SliderControl";
 import { SliderIndicator } from "../indicator/SliderIndicator";
 import { SliderThumb } from "../thumb/SliderThumb";
 import { SliderTrack } from "../track/SliderTrack";
 import { SliderRoot } from "./SliderRoot";
-import { Form } from "../../form";
-import * as Field from "../../field/index.parts";
 
 async function flushEffects() {
   await Promise.resolve();
@@ -43,8 +43,7 @@ function mockRect(element: Element, rect: { left: number; right: number; top?: n
   const { left, right, top = 0, bottom = 20 } = rect;
   const width = right - left;
   const height = bottom - top;
-  element.getBoundingClientRect = () =>
-    ({ x: left, y: top, width, height, top, left, bottom, right, toJSON: () => ({}) }) as DOMRect;
+  element.getBoundingClientRect = () => ({ x: left, y: top, width, height, top, left, bottom, right, toJSON: () => ({}) }) as DOMRect;
 }
 
 function renderSingleSlider(props: Partial<SliderRoot.Props<number>> = {}, queryHidden = false) {

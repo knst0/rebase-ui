@@ -87,7 +87,9 @@ export function createScrollAreaRoot(parameters: CreateScrollAreaRootParameters)
   function resolveOrientation(event: PointerEvent): "vertical" | "horizontal" {
     const target = getEventTarget(event);
     const orientation =
-      target instanceof Element ? (target.closest(`[${orientationDataAttribute}]`)?.getAttribute(orientationDataAttribute) as "vertical" | "horizontal" | null) : null;
+      target instanceof Element
+        ? (target.closest(`[${orientationDataAttribute}]`)?.getAttribute(orientationDataAttribute) as "vertical" | "horizontal" | null)
+        : null;
     return orientation === "horizontal" ? "horizontal" : "vertical";
   }
 

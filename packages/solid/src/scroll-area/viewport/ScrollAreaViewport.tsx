@@ -15,7 +15,12 @@ import { getOffset } from "../utils/getOffset";
 import { normalizeScrollOffset } from "../utils/scrollEdges";
 import { createTimeout } from "../utils/timeout";
 import { ScrollAreaViewportContext } from "./ScrollAreaViewportContext";
-import { scrollAreaOverflowXEnd, scrollAreaOverflowXStart, scrollAreaOverflowYEnd, scrollAreaOverflowYStart } from "./ScrollAreaViewportCssVars";
+import {
+  scrollAreaOverflowXEnd,
+  scrollAreaOverflowXStart,
+  scrollAreaOverflowYEnd,
+  scrollAreaOverflowYStart,
+} from "./ScrollAreaViewportCssVars";
 
 const OVERFLOW_EDGE_VARS = [scrollAreaOverflowXStart, scrollAreaOverflowXEnd, scrollAreaOverflowYStart, scrollAreaOverflowYEnd];
 

@@ -7,4 +7,4 @@ export { AlertDialogRoot as Root } from "./root/AlertDialogRoot";
 export { DialogViewport as Viewport } from "../dialog/viewport/DialogViewport";
 export { DialogTitle as Title } from "../dialog/title/DialogTitle";
 export { AlertDialogTrigger as Trigger } from "./trigger/AlertDialogTrigger";
-export { AlertDialogHandle as Handle, createAlertDialogHandle as createHandle } from './handle';
+export { AlertDialogHandle as Handle, createAlertDialogHandle as createHandle } from "./handle";

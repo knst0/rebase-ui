@@ -99,9 +99,7 @@ describe("<Switch.Root />", () => {
 
   it("forwards form to the hidden uncheckedValue input", () => {
     render(() => <SwitchRoot data-testid="form-switch" name="alerts" uncheckedValue="off" form="settings-form" />);
-    const hidden = screen
-      .getByTestId("form-switch")
-      .parentElement?.querySelector('input[type="hidden"]') as HTMLInputElement | null;
+    const hidden = screen.getByTestId("form-switch").parentElement?.querySelector('input[type="hidden"]') as HTMLInputElement | null;
     expect(hidden).not.toBe(null);
     expect(hidden?.value).toBe("off");
     expect(hidden?.getAttribute("form")).toBe("settings-form");

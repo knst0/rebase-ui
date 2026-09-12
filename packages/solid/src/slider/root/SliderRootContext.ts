@@ -1,9 +1,8 @@
 import type { Accessor, Setter } from "solid-js";
 
-import { createContext, useContext } from "../../internals/context";
-
-import type { CompositeMetadata } from "../../internals/composite/list/CompositeListContext";
 import type { CreateFieldValidationReturnValue } from "../../field/root/createFieldValidation";
+import type { CompositeMetadata } from "../../internals/composite/list/CompositeListContext";
+import { createContext, useContext } from "../../internals/context";
 import type { Orientation } from "../../internals/types";
 import type { ThumbMetadata } from "../thumb/SliderThumb";
 import type { SliderRoot, SliderRootState, SliderThumbCollisionBehavior } from "./SliderRoot";

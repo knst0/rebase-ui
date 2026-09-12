@@ -5,11 +5,7 @@ import type { EventReasons, RebaseUIChangeEventDetails } from "../internals/even
 
 export interface ToggleGroupContext<Value> {
   value: Accessor<readonly Value[]>;
-  setGroupValue: (
-    newValue: Value,
-    nextPressed: boolean,
-    eventDetails: RebaseUIChangeEventDetails<EventReasons["none"]>,
-  ) => void;
+  setGroupValue: (newValue: Value, nextPressed: boolean, eventDetails: RebaseUIChangeEventDetails<EventReasons["none"]>) => void;
   disabled: Accessor<boolean>;
   /**
    * Indicates whether the value has been initialized via `value` or `defaultValue` props.
