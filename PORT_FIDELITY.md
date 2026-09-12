@@ -18,13 +18,13 @@
 Референс элемента может быть создан через:
 
 ```tsx
-let el: HTMLInputElement
+let el: HTMLInputElement;
 ```
 
 ```tsx
 import { createSignal } from "solid-js";
 
-const [el, setElement] = createSignal()
+const [el, setElement] = createSignal();
 ```
 
 ## Стор-состояние с синхронным чтением
