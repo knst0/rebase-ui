@@ -168,12 +168,7 @@ function blockOf(name: string, lookup: Map<string, Block>, sources: Map<string, 
  * Collects props inherited through `extends`, resolving cross-file parents
  * and `Omit<Base, "excluded">` wrappers. `seen` guards against cycles.
  */
-function inheritedProps(
-  entries: string[],
-  lookup: Map<string, Block>,
-  sources: Map<string, string>,
-  seen: Set<string>,
-): ApiProp[] {
+function inheritedProps(entries: string[], lookup: Map<string, Block>, sources: Map<string, string>, seen: Set<string>): ApiProp[] {
   const props: ApiProp[] = [];
 
   for (const entry of entries) {
@@ -185,7 +180,14 @@ function inheritedProps(
       const args = splitTopLevel(omit[1]);
       if (args.length < 2) continue;
       base = args[0].replace(/<.*$/, "").trim();
-      omitted = new Set([...args.slice(1).join(",").matchAll(/"([^"]+)"/g)].map((match) => match[1]));
+      omitted = new Set(
+        [
+          ...args
+            .slice(1)
+            .join(",")
+            .matchAll(/"([^"]+)"/g),
+        ].map((match) => match[1]),
+      );
     } else {
       base = base.replace(/<.*$/, "").trim();
     }
