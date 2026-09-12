@@ -21,7 +21,7 @@ export default function ExampleAlertDialog() {
             </div>
             <div class="flex justify-end gap-3">
               <AlertDialog.Close class={buttonClass}>Cancel</AlertDialog.Close>
-              <AlertDialog.Close class={dangerButtonClass}>Delete</AlertDialog.Close>
+              <AlertDialog.Close class={`${buttonClass} text-red-700 dark:text-red-400`}>Delete</AlertDialog.Close>
             </div>
           </AlertDialog.Popup>
         </AlertDialog.Portal>
@@ -32,9 +32,6 @@ export default function ExampleAlertDialog() {
 
 const buttonClass =
   "flex h-8 items-center justify-center gap-1.5 border border-neutral-950 bg-white px-3 text-sm leading-none whitespace-nowrap font-normal text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 active:not-data-disabled:bg-neutral-200 data-pressed:bg-neutral-100 dark:border-white dark:bg-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:active:not-data-disabled:bg-neutral-700 dark:data-pressed:bg-neutral-800 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 dark:focus-visible:outline-white";
-
-const dangerButtonClass =
-  "flex h-8 items-center justify-center gap-1.5 border border-red-700 dark:border-red-500 bg-red-700 dark:bg-red-600 px-3 text-sm leading-none whitespace-nowrap font-normal text-white select-none hover:not-data-disabled:bg-red-800 dark:hover:not-data-disabled:bg-red-500 active:not-data-disabled:bg-red-900 dark:active:not-data-disabled:bg-red-700 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-red-700 dark:focus-visible:outline-red-500";
 
 const itemClass =
   "flex cursor-default py-2 pr-8 pl-4 text-sm leading-4 outline-hidden select-none data-highlighted:relative data-highlighted:z-0 data-highlighted:text-white data-highlighted:before:absolute data-highlighted:before:inset-x-1 data-highlighted:before:inset-y-0 data-highlighted:before:z-[-1] data-highlighted:before:bg-neutral-950 data-highlighted:before:content-[''] dark:data-highlighted:text-neutral-950 dark:data-highlighted:before:bg-white";

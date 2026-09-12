@@ -8,8 +8,7 @@ const demoAlertDialog = AlertDialog.createHandle<AlertPayload>();
 const buttonClasses =
   "flex h-8 items-center justify-center gap-2 border border-neutral-950 dark:border-white bg-white dark:bg-neutral-950 px-3 text-sm leading-none whitespace-nowrap font-normal text-neutral-950 dark:text-white select-none hover:not-data-disabled:bg-neutral-100 dark:hover:not-data-disabled:bg-neutral-800 active:not-data-disabled:bg-neutral-200 dark:active:not-data-disabled:bg-neutral-700 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 dark:focus-visible:outline-white data-disabled:border-neutral-500 data-disabled:text-neutral-500 disabled:border-neutral-500 disabled:text-neutral-500 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400";
 
-const dangerButtonClasses =
-  "flex h-8 items-center justify-center gap-2 border border-red-700 dark:border-red-500 bg-red-700 dark:bg-red-600 px-3 text-sm leading-none whitespace-nowrap font-normal text-white select-none hover:not-data-disabled:bg-red-800 dark:hover:not-data-disabled:bg-red-500 active:not-data-disabled:bg-red-900 dark:active:not-data-disabled:bg-red-700 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-red-700 dark:focus-visible:outline-red-500 data-disabled:border-neutral-500 data-disabled:bg-transparent data-disabled:text-neutral-500 disabled:border-neutral-500 disabled:bg-transparent disabled:text-neutral-500 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400";
+const dangerButtonClasses = `${buttonClasses} text-red-700 dark:text-red-400`;
 
 export default function AlertDialogDetachedTriggersControlledDemo() {
   const [open, setOpen] = createSignal(false);

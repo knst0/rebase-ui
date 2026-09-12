@@ -1,9 +1,9 @@
 import { Dialog } from "@rebase-ui/solid/dialog";
 import { ScrollArea } from "@rebase-ui/solid/scroll-area";
-import { For } from "solid-js";
+import { createSignal, For } from "solid-js";
 
 export default function OutsideScrollDialog() {
-  const popupRef: { current: HTMLDivElement | null } = { current: null };
+  const [popupElement, setPopupElement] = createSignal<HTMLDivElement | null>(null);
   return (
     <Dialog.Root>
       <Dialog.Trigger class="flex h-8 items-center justify-center gap-2 border border-neutral-950 bg-white px-3 text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:bg-neutral-200 disabled:border-neutral-500 disabled:text-neutral-500 data-disabled:border-neutral-500 data-disabled:text-neutral-500 dark:border-white dark:bg-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:bg-neutral-700 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400">
@@ -20,9 +20,9 @@ export default function OutsideScrollDialog() {
               <ScrollArea.Content class="flex min-h-full items-center justify-center">
                 <Dialog.Popup
                   ref={(element: HTMLDivElement | null) => {
-                    popupRef.current = element;
+                    setPopupElement(element);
                   }}
-                  initialFocus={popupRef}
+                  initialFocus={popupElement}
                   class="relative mx-auto my-16 flex w-[min(40rem,calc(100vw-2rem))] flex-col gap-4 border border-neutral-950 bg-white p-4 text-neutral-950 shadow-[0.25rem_0.25rem_0] shadow-black/12 outline-0 transition-[translate] duration-[700ms] ease-[cubic-bezier(0.45,1.005,0,1.005)] data-ending-style:translate-y-[max(100dvh,100%)] data-ending-style:duration-[350ms] data-ending-style:ease-[cubic-bezier(0.375,0.015,0.545,0.455)] data-starting-style:translate-y-[100dvh] motion-reduce:transition-none dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none"
                 >
                   <div class="relative flex flex-col gap-1 pr-8">

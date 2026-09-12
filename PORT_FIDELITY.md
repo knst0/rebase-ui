@@ -26,3 +26,31 @@ import { createSignal } from "solid-js";
 
 const [el, setElement] = createSignal()
 ```
+
+## Стор-состояние с синхронным чтением
+
+В Solid 2.0 записи в сигналы батчатся (видны чтениям только после flush),
+а интерактивная логика floating-ui читает состояние синхронно сразу после
+записи (`updateState` → `select`/`syncOpenEvent` в том же тике).
+Поэтому сторы держат синхронный снапшот — plain-объект как единственный
+источник правды (как `this.state` в upstream), а реактивность даёт отдельный
+сигнал версии:
+
+```tsx
+private snapshot: State;
+private readonly trackVersion: Accessor<number>;
+private readonly bumpVersion: () => void;
+
+updateState = (next: Partial<State>) => {
+  this.snapshot = { ...this.snapshot, ...next };
+  this.bumpVersion();
+};
+
+select = (key) => {
+  this.trackVersion(); // подписка; вне вычислений — no-op
+  return this.snapshot[key];
+};
+```
+
+Чтения внутри `select`/`state`/аксессоров обязаны идти из `snapshot`,
+а не из сигнала. Референс: `FloatingRootStore`.

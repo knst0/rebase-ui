@@ -79,7 +79,7 @@ export default function ExampleDialog() {
               </AlertDialog.Close>
               <button
                 type="button"
-                class="flex h-8 items-center justify-center gap-2 border border-red-700 dark:border-red-500 bg-red-700 dark:bg-red-600 px-3 text-sm leading-none font-normal whitespace-nowrap text-white select-none hover:bg-red-800 dark:hover:bg-red-500 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-red-700 dark:focus-visible:outline-red-500 active:bg-red-900 dark:active:bg-red-700 disabled:border-neutral-500 disabled:bg-transparent disabled:text-neutral-500 dark:disabled:border-neutral-400 dark:disabled:text-neutral-400"
+                class="flex h-8 items-center justify-center gap-2 border border-neutral-950 bg-white px-3 text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 active:bg-neutral-200 disabled:border-neutral-500 disabled:text-neutral-500 dark:border-white dark:bg-neutral-950 dark:text-white dark:hover:bg-neutral-800 dark:focus-visible:outline-white dark:active:bg-neutral-700"
                 onClick={() => {
                   setConfirmationOpen(false);
                   setDialogOpen(false);
