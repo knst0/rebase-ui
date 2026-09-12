@@ -163,6 +163,12 @@ declare module "virtual:file-routes" {
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/tooltip/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
     }
   ];
   export default routes;
@@ -266,6 +272,14 @@ declare module "virtual:file-routes" {
             {
               path: "/toggle/";
               id: "/toggle/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/tooltip/";
+              id: "/tooltip/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

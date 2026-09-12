@@ -38,19 +38,40 @@ const [el, setElement] = createSignal();
 
 ```tsx
 private snapshot: State;
-private readonly trackVersion: Accessor<number>;
-private readonly bumpVersion: () => void;
+private readonly keyVersions = new Map<string, VersionSignal>();
+private readonly trackingSnapshot: State; // Proxy: чтение поля подписывает вычисление только на это поле
 
 updateState = (next: Partial<State>) => {
-  this.snapshot = { ...this.snapshot, ...next };
-  this.bumpVersion();
+  const prev = this.snapshot;
+  this.snapshot = { ...prev, ...next };
+  for (const key of Object.keys(next)) {
+    if (!Object.is(prev[key], this.snapshot[key])) {
+      this.bumpKey(key); // только реально изменившиеся ключи
+    }
+  }
 };
 
 select = (key) => {
-  this.trackVersion(); // подписка; вне вычислений — no-op
-  return this.snapshot[key];
+  return resolve(this.trackingSnapshot, key); // подписка только на прочитанные поля
+};
+
+peek = (key) => {
+  return resolve(this.snapshot, key); // разовое чтение без подписки
 };
 ```
 
 Чтения внутри `select`/`state`/аксессоров обязаны идти из `snapshot`,
 а не из сигнала. Референс: `FloatingRootStore`.
+
+Правила:
+
+- `select`/`useState` — только в отслеживаемом скоупе (compute эффекта, JSX, memo).
+  Чтение `select` в apply-колбэке эффекта или в обработчике, вызванном синхронно
+  из apply, даёт `STRICT_READ_UNTRACKED`: предупреждение, что чтение не подпишется.
+- Разовые чтения в обработчиках событий, слушателях эмиттера, таймаутах
+  и apply-колбэках — только через `peek`/`peekState` (сигнал вообще не читается).
+- Один общий сигнал версии запрещён: тысячи подписчиков на одном сигнале дают
+  `HUGE_FAN_OUT` — каждое изменение перезапускает все вычисления. Версия —
+  отдельный сигнал на каждое поле снапшота; селектор через прокси подписывается
+  только на поля, которые реально прочитал. Писатели (`set`/`update`/`updateState`)
+  дёргают версию только изменившихся ключей.
