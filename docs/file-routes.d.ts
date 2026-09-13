@@ -123,6 +123,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/meter/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/popover/";
       page: true;
       $component: FileRouteLazyRef;
@@ -242,6 +248,14 @@ declare module "virtual:file-routes" {
             {
               path: "/field/";
               id: "/field/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/meter/";
+              id: "/meter/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
