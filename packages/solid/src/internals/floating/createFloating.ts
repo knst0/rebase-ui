@@ -115,15 +115,20 @@ function createFloatingWithStore(options: UseFloatingOptions, store: FloatingRoo
     });
   }
 
-  // Keep the store in sync with locally set elements, mirroring upstream's `useSyncedValue` calls.
-  store.useSyncedValue("referenceElement", () => localDomReference() ?? null);
-  store.useSyncedValue("domReferenceElement", () => {
-    const local = localDomReference();
-    if (local === undefined) {
-      return domReferenceElement();
-    }
-    return isElement(local) ? (local as Element) : null;
-  });
+  // Takes over the synced reference once an element is set locally (e.g. cursor
+  // tracking). While unset, nothing is written, so a stale effect apply can never
+  // clobber the element synced from the popup store (e.g. the active trigger).
+  createEffect(
+    () => localDomReference(),
+    (local) => {
+      if (local === undefined) {
+        return undefined;
+      }
+      store.set("referenceElement", local);
+      store.set("domReferenceElement", isElement(local) ? (local as Element) : null);
+      return undefined;
+    },
+  );
   store.useSyncedValue("floatingElement", () => {
     const local = localFloatingElement();
     return local === undefined ? floatingElement() : local;

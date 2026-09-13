@@ -1,6 +1,6 @@
 {
   "name": "@rebase-ui/solid",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Headless, accessible UI primitives for Solid.js, ported from Base UI.",
   "keywords": [
     "accessible",
@@ -55,7 +55,8 @@
     "./tabs": "./src/tabs/index.ts",
     "./toggle": "./src/toggle/index.ts",
     "./toggle-group": "./src/toggle-group/index.ts",
-    "./tooltip": "./src/tooltip/index.ts"
+    "./tooltip": "./src/tooltip/index.ts",
+    "./popover": "./src/popover/index.ts"
   },
   "publishConfig": {
     "imports": {
@@ -87,7 +88,8 @@
       "./tabs": "./dist/tabs/index.js",
       "./toggle": "./dist/toggle/index.js",
       "./toggle-group": "./dist/toggle-group/index.js",
-      "./tooltip": "./dist/tooltip/index.js"
+      "./tooltip": "./dist/tooltip/index.js",
+      "./popover": "./dist/popover/index.js"
     },
     "access": "public"
   },

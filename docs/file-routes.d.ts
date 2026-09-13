@@ -123,6 +123,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/popover/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/scroll-area/";
       page: true;
       $component: FileRouteLazyRef;
@@ -272,6 +278,14 @@ declare module "virtual:file-routes" {
             {
               path: "/toggle/";
               id: "/toggle/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/popover/";
+              id: "/popover/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

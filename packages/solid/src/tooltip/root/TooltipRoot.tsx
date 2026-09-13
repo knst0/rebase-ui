@@ -1,5 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { onSettled, type Setter, untrack } from "solid-js";
+import { createMemo, onSettled, type Setter, untrack } from "solid-js";
 
 import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { stableCallback } from "../../internals/stableCallback";
@@ -83,7 +83,13 @@ function TooltipRootContent<Payload>(props: {
     const payloadChildren = children;
     const payload = props.payload;
 
-    return (() => payloadChildren({ payload: payload() })) as unknown as JSX.Element;
+    // Memoizes the rendered children so structural re-invocations of this
+    // function (e.g. when the runtime re-flattens children during sibling
+    // reconciliation) reuse the same nodes instead of recreating every part
+    // with fresh identities. Recomputes only when the payload (or any other
+    // signal the children function reads) actually changes.
+    const childrenMemo = createMemo(() => payloadChildren({ payload: payload() }));
+    return (() => childrenMemo()) as unknown as JSX.Element;
   }
 
   return children as JSX.Element;

@@ -15,8 +15,11 @@ export interface CreateClickProps {
   toggle?: boolean | undefined;
   /** Whether to ignore mouse input. Read once. @default false */
   ignoreMouse?: boolean | undefined;
-  /** Whether a first click keeps an already-open floating element open. Read once. @default true */
-  stickIfOpen?: boolean | undefined;
+  /**
+   * Whether a first click keeps an already-open floating element open.
+   * A function is resolved lazily on every press; a boolean is read once. @default true
+   */
+  stickIfOpen?: boolean | (() => boolean) | undefined;
   /** Touch-only delay (ms) before opening. Read once. @default 0 */
   touchOpenDelay?: number | undefined;
   /** Reason reported for the open change. Read once. @default REASONS.triggerPress */
@@ -50,7 +53,11 @@ export function createClick(context: FloatingContext, props: CreateClickProps = 
   const eventOption = untrack(() => props.event ?? "click");
   const toggle = untrack(() => props.toggle ?? true);
   const ignoreMouse = untrack(() => props.ignoreMouse ?? false);
-  const stickIfOpen = untrack(() => props.stickIfOpen ?? true);
+  const stickIfOpenOption = untrack(() => props.stickIfOpen ?? true);
+
+  function getStickIfOpen(): boolean {
+    return typeof stickIfOpenOption === "function" ? (stickIfOpenOption as () => boolean)() : stickIfOpenOption;
+  }
   const touchOpenDelay = untrack(() => props.touchOpenDelay ?? 0);
   const reason = untrack(() => props.reason ?? REASONS.triggerPress);
 
@@ -113,7 +120,7 @@ export function createClick(context: FloatingContext, props: CreateClickProps = 
       return true;
     }
 
-    if (openEvent && stickIfOpen) {
+    if (openEvent && getStickIfOpen()) {
       return !isClickLikeOpenEvent(openEvent.type);
     }
 

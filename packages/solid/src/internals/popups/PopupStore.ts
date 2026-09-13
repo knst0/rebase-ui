@@ -20,8 +20,9 @@ export type PopupStoreSelectorMap<State extends PopupStoreState<unknown>> = {
 export class PopupStore<
   State extends PopupStoreState<unknown> = PopupStoreState<unknown>,
   Selectors extends PopupStoreSelectorMap<State> = PopupStoreSelectorMap<State>,
+  Context extends PopupStoreContext<any> = PopupStoreContext<any>,
 > {
-  readonly context: PopupStoreContext<any>;
+  readonly context: Context;
 
   protected snapshot: State;
 
@@ -41,7 +42,7 @@ export class PopupStore<
    */
   private readonly trackingSnapshot: State;
 
-  constructor(initialState: State, context: PopupStoreContext<any>, selectors: Selectors) {
+  constructor(initialState: State, context: Context, selectors: Selectors) {
     this.snapshot = initialState;
     this.context = context;
     this.selectors = selectors;
