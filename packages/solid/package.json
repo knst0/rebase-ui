@@ -56,7 +56,8 @@
     "./toggle": "./src/toggle/index.ts",
     "./toggle-group": "./src/toggle-group/index.ts",
     "./tooltip": "./src/tooltip/index.ts",
-    "./popover": "./src/popover/index.ts"
+    "./popover": "./src/popover/index.ts",
+    "./preview-card": "./src/preview-card/index.ts"
   },
   "publishConfig": {
     "imports": {
@@ -89,7 +90,8 @@
       "./toggle": "./dist/toggle/index.js",
       "./toggle-group": "./dist/toggle-group/index.js",
       "./tooltip": "./dist/tooltip/index.js",
-      "./popover": "./dist/popover/index.js"
+      "./popover": "./dist/popover/index.js",
+      "./preview-card": "./dist/preview-card/index.js"
     },
     "access": "public"
   },
