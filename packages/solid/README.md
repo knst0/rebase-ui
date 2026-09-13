@@ -1,15 +1,15 @@
 # Rebase UI
 
-A port of [Base UI](https://base-ui.com/) to Solid.js. The file structure and component API follow the original closely. Will be published when most part of common components are done.
+A port of [Base UI](https://base-ui.com/) to Solid.js.
 
----
+The component API and file structure closely follow the original project. The library will be published once most of the common components are complete.
 
-Заметка на текущее состония:
+## About
 
-- Вдохновлен API компонентов, file-layout Base UI. Де-факто можно назвать этот проект форком, но внутренняя логика написана под стандарты Solid.JS.
-- Полиформизм вдохновлен Kobalte.
-- Я вношу свои доработки, оптимизирую производительность.
-- В отличие от других библиотек, которые реально ФОРКАЛИ проект и пытались накинуть на хуки base ui солид, тут все переписано с нуля.
+- Inspired by the component API and file layout of Base UI. It can be considered a fork in that sense, but the internal logic is written entirely to Solid.js standards.
+- Polymorphism is inspired by Kobalte.
+- Includes custom improvements and performance optimizations.
+- Unlike other libraries that forked Base UI and attempted to adapt its hooks to Solid, everything here is rewritten from scratch.
 
 ## License
 
