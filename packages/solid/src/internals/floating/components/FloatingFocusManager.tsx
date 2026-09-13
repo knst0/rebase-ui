@@ -406,9 +406,13 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
 
   const getFloatingFocusEl = () => getFloatingFocusElement(floating());
 
+  // Listeners and microtasks run outside any tracking scope: reading the accessor there would
+  // never subscribe (and warns under Solid's strict reads), so they resolve from the snapshot.
+  const peekFloatingFocusEl = () => getFloatingFocusElement(store.peek("floatingElement"));
+
   const isUntrappedTypeableCombobox = () => isTypeableCombobox(domReference()) && props.initialFocus === false;
 
-  const getTabbableContent = (container: Element | null = getFloatingFocusEl()) => {
+  const getTabbableContent = (container: Element | null = peekFloatingFocusEl()) => {
     return container ? tabbable(container) : [];
   };
 
@@ -600,7 +604,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         const relatedTarget = event.relatedTarget as HTMLElement | null;
         const currentTarget = event.currentTarget;
         const target = getTarget(event) as HTMLElement | null;
-        const focusEl = getFloatingFocusEl();
+        const focusEl = peekFloatingFocusEl();
 
         // When focus is lost to the body (e.g. on a backdrop press), record the element that
         // had focus so a confirmation dialog opened while the body is focused can return focus

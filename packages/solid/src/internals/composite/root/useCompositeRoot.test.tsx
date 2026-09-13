@@ -199,6 +199,49 @@ describe("useCompositeRoot scroll behavior", () => {
 
     expect(scrollBehavior.mock.calls.at(-1)?.[0].container).toBe(container.firstElementChild);
   });
+
+  it("scrolls only the composite container on mount, never the page", () => {
+    // The mount scroll runs during render, so the prototype is spied before it.
+    // jsdom elements have no `scrollTo`; the spy also satisfies the helper's guard.
+    const scrollTo = vi.fn();
+    const proto = Element.prototype as unknown as Record<string, unknown>;
+    const prev = proto.scrollTo;
+    proto.scrollTo = scrollTo;
+
+    let container: HTMLElement;
+    try {
+      ({ container } = render(() => (
+        <CompositeRoot orientation="vertical">
+          <For each={[0, 1, 2]}>
+            {(index) => (
+              <CompositeItem
+                as="button"
+                props={
+                  {
+                    children: `item ${index}`,
+                    [ACTIVE_COMPOSITE_ITEM]: index === 2 ? "" : undefined,
+                  } as Record<string, unknown>
+                }
+              />
+            )}
+          </For>
+        </CompositeRoot>
+      )) as unknown as { container: HTMLElement });
+      flush();
+    } finally {
+      if (prev === undefined) {
+        delete proto.scrollTo;
+      } else {
+        proto.scrollTo = prev;
+      }
+    }
+
+    // The default behavior scrolls the composite root itself. A native
+    // `scrollIntoView` default would never reach the container here (and would move
+    // page-level ancestors instead).
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(scrollTo.mock.instances[0]).toBe(container.firstElementChild);
+  });
 });
 
 describe("useCompositeRoot tab stop ownership (experiment 6)", () => {

@@ -10,8 +10,9 @@ export interface CompositeScrollOptions {
 export type CompositeScrollBehavior = (options: CompositeScrollOptions) => void;
 
 /**
- * Default scroll behavior. Delegates to the browser, which already honors
- * `scroll-margin` and `scroll-padding` and performs no layout reads from JS.
+ * Native `scrollIntoView({ block: 'nearest' })` behavior. Unlike the default
+ * `preciseScrollBehavior`, the browser also scrolls every scrollable ancestor —
+ * including the page — so only opt in when page-level scrolling is wanted.
  */
 export const nearestScrollBehavior: CompositeScrollBehavior = ({ element }) => {
   if (element === null || typeof element.scrollIntoView !== "function") {

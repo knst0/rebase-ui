@@ -17,7 +17,8 @@ import {
 } from "../composite";
 import { ACTIVE_COMPOSITE_ITEM } from "../constants";
 import { createElementRegistry } from "../registry/createElementRegistry";
-import { type CompositeScrollBehavior, nearestScrollBehavior } from "../scroll/scrollBehavior";
+import { type CompositeScrollBehavior } from "../scroll/scrollBehavior";
+import { preciseScrollBehavior } from "../scroll/preciseScrollBehavior";
 import type { CompositeItemMetadata, CompositeRootContext } from "./CompositeRootContext";
 import type { CompositeGridNavigator } from "./gridNavigation";
 import { getNavigationIntent, resolveNextIndex } from "./navigation";
@@ -86,9 +87,10 @@ export interface UseCompositeRootParameters {
    */
   rootRef?: ((element: HTMLElement | null) => void) | undefined;
   /**
-   * How the highlighted item is scrolled into view. Defaults to the browser's
-   * native `scrollIntoView({ block: 'nearest' })`. Pass `preciseScrollBehavior`
-   * to opt into manual `scroll-margin`/`scroll-padding` handling.
+   * How the highlighted item is scrolled into view. Defaults to the container-scoped
+   * `preciseScrollBehavior` (mirrors upstream `scrollIntoViewIfNeeded`, which only ever
+   * scrolls the composite root). Pass `nearestScrollBehavior` to opt into the browser's
+   * native `scrollIntoView({ block: 'nearest' })`, which also scrolls page-level ancestors.
    */
   scrollBehavior?: CompositeScrollBehavior | undefined;
 }
@@ -123,7 +125,7 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
   let rootElement: HTMLElement | null = null;
 
   const scrollHighlightedIntoView = (element: HTMLElement | null) => {
-    (parameters.scrollBehavior ?? nearestScrollBehavior)({
+    (parameters.scrollBehavior ?? preciseScrollBehavior)({
       container: rootElement,
       element,
       direction: untrack(direction),

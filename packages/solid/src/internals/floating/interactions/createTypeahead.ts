@@ -60,7 +60,8 @@ export function createTypeahead(context: FloatingContext, props: CreateTypeahead
   const disabledIndices = untrack(() => props.disabledIndices);
 
   let buffer = "";
-  let prevIndex: number | null = readIndex(untrack(() => props.selectedIndex)) ?? readIndex(untrack(() => props.activeIndex)) ?? -1;
+  // The index props may be accessors; `untrack` must wrap the call, not just the prop read.
+  let prevIndex: number | null = untrack(() => readIndex(props.selectedIndex) ?? readIndex(props.activeIndex) ?? -1);
   let matchIndex: number | null = null;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -131,14 +132,14 @@ export function createTypeahead(context: FloatingContext, props: CreateTypeahead
         return;
       }
 
-      if (store.select("open") && event.key !== " ") {
+      if (store.peek("open") && event.key !== " ") {
         stopEvent(event);
         props.onTyping?.(true);
       }
 
       const isNewSession = buffer === "";
       if (isNewSession) {
-        prevIndex = readIndex(props.selectedIndex) ?? readIndex(props.activeIndex) ?? -1;
+        prevIndex = untrack(() => readIndex(props.selectedIndex) ?? readIndex(props.activeIndex) ?? -1);
       }
 
       // Rapid succession through same-letter items (unless a label like
@@ -172,7 +173,7 @@ export function createTypeahead(context: FloatingContext, props: CreateTypeahead
     },
     onBlur(event) {
       const next = event.relatedTarget as Element | null;
-      const withinComposite = contains(store.select("domReferenceElement"), next) || contains(store.select("floatingElement"), next);
+      const withinComposite = contains(store.peek("domReferenceElement"), next) || contains(store.peek("floatingElement"), next);
       // Keep the session while focus moves within the composite.
       if (withinComposite) {
         return;

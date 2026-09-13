@@ -141,6 +141,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/select/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/separator/";
       page: true;
       $component: FileRouteLazyRef;
@@ -260,6 +266,14 @@ declare module "virtual:file-routes" {
             {
               path: "/dialog/";
               id: "/dialog/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/select/";
+              id: "/select/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

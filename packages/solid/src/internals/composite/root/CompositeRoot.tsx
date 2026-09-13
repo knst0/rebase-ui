@@ -99,7 +99,7 @@ export interface CompositeRootProps<T extends ValidComponent = "div", State exte
   onMapChange?: ((map: Map<HTMLElement, CompositeItemMetadata>) => void) | undefined;
   /**
    * How the highlighted item is scrolled into view.
-   * @default nearestScrollBehavior
+   * @default preciseScrollBehavior
    */
   scrollBehavior?: CompositeScrollBehavior | undefined;
 }

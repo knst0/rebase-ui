@@ -88,8 +88,8 @@ export interface CreateListNavigationProps {
   onNavigate?: ((activeIndex: number | null, event?: Event) => void) | undefined;
   /** Whether the interaction is enabled. Read once. @default true */
   enabled?: boolean | undefined;
-  /** Selected item index, synced on open. Read once. @default null */
-  selectedIndex?: number | null | undefined;
+  /** Selected item index, synced on open; accepts an accessor to stay reactive. @default null */
+  selectedIndex?: number | null | (() => number | null) | undefined;
   /** Focus the item on open; 'auto' infers from input modality. Read once. @default 'auto' */
   focusItemOnOpen?: boolean | "auto" | undefined;
   /** Whether hovering an item syncs focus. Read once. @default true */
@@ -171,7 +171,6 @@ export function createListNavigation(context: FloatingContext, props: CreateList
 
   const listRef = untrack(() => props.listRef);
   const enabled = untrack(() => props.enabled ?? true);
-  const selectedIndex = untrack(() => props.selectedIndex ?? null);
   const allowEscape = untrack(() => props.allowEscape ?? false);
   const loopFocus = untrack(() => props.loopFocus ?? false);
   const nested = untrack(() => props.nested ?? false);
@@ -191,21 +190,27 @@ export function createListNavigation(context: FloatingContext, props: CreateList
 
   function readActiveIndex(): number | null {
     const value = props.activeIndex;
-    if (typeof value === "function") {
-      return (value as () => number | null)();
-    }
-    return value ?? null;
+    return (typeof value === "function" ? (value as () => number | null)() : value) ?? null;
+  }
+
+  /**
+   * Reactive when the owner passes an accessor: the open-sync effect tracks it, while event
+   * handlers read the latest value untracked (upstream's `selectedIndexRef`).
+   */
+  function readSelectedIndex(): number | null {
+    const value = props.selectedIndex;
+    return (typeof value === "function" ? (value as () => number | null)() : value) ?? null;
   }
 
   const tree = useFloatingTree();
   const parentId = useFloatingParentNodeId();
 
-  let indexRef = selectedIndex ?? -1;
+  let indexRef = untrack(readSelectedIndex) ?? -1;
   let keyRef: string | null = null;
   let isPointerModality = true;
   let focusItemOnOpenRef: boolean | "auto" = focusItemOnOpen;
-  let previousMounted = store.select("floatingElement") != null;
-  let previousOpen = store.select("open");
+  let previousMounted = store.peek("floatingElement") != null;
+  let previousOpen = store.peek("open");
   let forceSyncFocus = false;
   let forceScrollIntoView = false;
   let frameId: number | undefined;
@@ -273,14 +278,14 @@ export function createListNavigation(context: FloatingContext, props: CreateList
 
   // Sync `selectedIndex` on open; reset the index on close/unmount.
   createEffect(
-    () => ({ open: store.select("open"), floating: store.select("floatingElement") }),
-    ({ open, floating }) => {
+    () => ({ open: store.select("open"), floating: store.select("floatingElement"), selected: readSelectedIndex() }),
+    ({ open, floating, selected }) => {
       if (!enabled) {
         return;
       }
       if (open && floating) {
-        indexRef = selectedIndex ?? -1;
-        if (focusItemOnOpenRef && selectedIndex != null) {
+        indexRef = selected ?? -1;
+        if (focusItemOnOpenRef && selected != null) {
           forceScrollIntoView = true;
           onNavigateLocal();
         }
@@ -313,7 +318,7 @@ export function createListNavigation(context: FloatingContext, props: CreateList
 
       if (active == null) {
         forceSyncFocus = false;
-        if (selectedIndex != null) {
+        if (untrack(readSelectedIndex) != null) {
           return;
         }
         if (previousMounted) {
@@ -323,19 +328,24 @@ export function createListNavigation(context: FloatingContext, props: CreateList
         if ((!previousOpen || !previousMounted) && focusItemOnOpenRef && (keyRef != null || focusItemOnOpenRef === true)) {
           let runs = 0;
           const waitForListPopulated = () => {
-            if (listRef.current[0] == null) {
+            // `disabledIndices` is deliberately omitted so attribute-disabled
+            // items are skipped on open even for an empty array.
+            const candidate =
+              listRef.current[0] == null
+                ? null
+                : keyRef == null || isMainOrientationToEndKey(keyRef, orientation, rtl) || nested
+                  ? getMinListIndex(listRef.current)
+                  : getMaxListIndex(listRef.current);
+            if (candidate == null || isIndexOutOfListBounds(listRef.current, candidate)) {
+              // Empty list — or everything currently skipped. Hidden-behind-mount items read
+              // as disabled, so retry instead of committing an out-of-bounds index.
               if (runs < 2) {
                 const scheduler = runs ? (callback: () => void) => waitForListPopulatedFrame(callback) : queueMicrotask;
                 scheduler(waitForListPopulated);
               }
               runs += 1;
             } else {
-              // `disabledIndices` is deliberately omitted so attribute-disabled
-              // items are skipped on open even for an empty array.
-              indexRef =
-                keyRef == null || isMainOrientationToEndKey(keyRef, orientation, rtl) || nested
-                  ? getMinListIndex(listRef.current)
-                  : getMaxListIndex(listRef.current);
+              indexRef = candidate;
               keyRef = null;
               onNavigateLocal();
             }
@@ -404,11 +414,11 @@ export function createListNavigation(context: FloatingContext, props: CreateList
   }
 
   function syncCurrentTarget(event: Event) {
-    if (!store.select("open")) {
+    if (!store.peek("open")) {
       return;
     }
     const index = listRef.current.indexOf(event.currentTarget as HTMLElement);
-    if (index !== -1 && (indexRef !== index || readActiveIndex() !== index)) {
+    if (index !== -1 && (indexRef !== index || untrack(readActiveIndex) !== index)) {
       indexRef = index;
       onNavigateLocal(event);
     }
@@ -424,12 +434,12 @@ export function createListNavigation(context: FloatingContext, props: CreateList
     }
 
     // Ignore navigation while the floating element is animating out.
-    const floatingFocusElement = getFloatingFocusElement(store.select("floatingElement"));
-    if (!store.select("open") && event.currentTarget === floatingFocusElement) {
+    const floatingFocusElement = getFloatingFocusElement(store.peek("floatingElement"));
+    if (!store.peek("open") && event.currentTarget === floatingFocusElement) {
       return;
     }
 
-    const domReferenceElement = store.select("domReferenceElement");
+    const domReferenceElement = store.peek("domReferenceElement");
 
     if (nested && isCrossOrientationCloseKey(event.key, orientation, rtl, isGrid)) {
       // Let the parent navigate when the close key is also its nav key.
@@ -482,7 +492,7 @@ export function createListNavigation(context: FloatingContext, props: CreateList
       stopEvent(event);
 
       // Reset the index if no item is focused.
-      if (store.select("open") && !virtual && activeElement((event.currentTarget as Element).ownerDocument) === event.currentTarget) {
+      if (store.peek("open") && !virtual && activeElement((event.currentTarget as Element).ownerDocument) === event.currentTarget) {
         indexRef = isMainOrientationToEndKey(event.key, orientation, rtl) ? minIndex : maxIndex;
         onNavigateLocal(event);
         return;
@@ -568,7 +578,7 @@ export function createListNavigation(context: FloatingContext, props: CreateList
       }
     },
     onPointerLeave(event) {
-      if (!store.select("open") || !isPointerModality || event.pointerType === "touch") {
+      if (!store.peek("open") || !isPointerModality || event.pointerType === "touch") {
         return;
       }
       forceSyncFocus = true;
@@ -583,7 +593,7 @@ export function createListNavigation(context: FloatingContext, props: CreateList
       indexRef = -1;
       onNavigateLocal(event);
       if (!virtual) {
-        const floatingFocusElement = getFloatingFocusElement(store.select("floatingElement"));
+        const floatingFocusElement = getFloatingFocusElement(store.peek("floatingElement"));
         const activeEl = floatingFocusElement ? activeElement(floatingFocusElement.ownerDocument) : null;
         if (floatingFocusElement && activeEl && contains(floatingFocusElement, activeEl as Element)) {
           floatingFocusElement.focus({ preventScroll: true });
@@ -602,14 +612,14 @@ export function createListNavigation(context: FloatingContext, props: CreateList
   const floatingHandlers = {
     onKeyDown(event: KeyboardEvent) {
       // Close submenus on Shift+Tab unless focus moved into nested content.
-      if (event.key === "Tab" && event.shiftKey && store.select("open") && !virtual) {
+      if (event.key === "Tab" && event.shiftKey && store.peek("open") && !virtual) {
         const target = getTarget(event) as Element | null;
-        if (target && !contains(getFloatingFocusElement(store.select("floatingElement")), target)) {
+        if (target && !contains(getFloatingFocusElement(store.peek("floatingElement")), target)) {
           return;
         }
         stopEvent(event);
         store.setOpen(false, createChangeEventDetails(REASONS.focusOut, event));
-        const domReferenceElement = store.select("domReferenceElement");
+        const domReferenceElement = store.peek("domReferenceElement");
         if (isHTMLElement(domReferenceElement)) {
           domReferenceElement.focus();
         }
@@ -627,7 +637,7 @@ export function createListNavigation(context: FloatingContext, props: CreateList
 
   const triggerHandlers = {
     onKeyDown(event: KeyboardEvent) {
-      const currentOpen = store.select("open");
+      const currentOpen = store.peek("open");
       isPointerModality = false;
 
       const isArrowKey = event.key.startsWith("Arrow");
@@ -664,8 +674,9 @@ export function createListNavigation(context: FloatingContext, props: CreateList
       }
 
       if (isMainKey) {
-        if (selectedIndex != null) {
-          indexRef = selectedIndex;
+        const selected = untrack(readSelectedIndex);
+        if (selected != null) {
+          indexRef = selected;
         }
         stopEvent(event);
         if (!currentOpen && openOnArrowKeyDown) {
@@ -679,7 +690,7 @@ export function createListNavigation(context: FloatingContext, props: CreateList
       }
     },
     onFocus(event: FocusEvent) {
-      if (store.select("open") && !virtual) {
+      if (store.peek("open") && !virtual) {
         indexRef = -1;
         onNavigateLocal(event);
       }

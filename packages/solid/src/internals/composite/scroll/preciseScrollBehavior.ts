@@ -2,9 +2,9 @@ import type { CompositeOrientation, TextDirection } from "../composite";
 import type { CompositeScrollBehavior } from "./scrollBehavior";
 
 /**
- * Opt-in scroll behavior that reproduces `scroll-margin`/`scroll-padding` handling
- * manually. Prefer `nearestScrollBehavior` unless a container needs the exact
- * alignment this computes; this module costs two `getComputedStyle` reads per axis.
+ * Default scroll behavior. Mirrors upstream `scrollIntoViewIfNeeded`: only the composite
+ * root scrolls, so highlighting an item never moves page-level ancestors. Handles
+ * `scroll-margin`/`scroll-padding` manually; this costs two `getComputedStyle` reads per axis.
  */
 export const preciseScrollBehavior: CompositeScrollBehavior = ({ container, element, direction, orientation }) => {
   scrollIntoViewIfNeeded(container, element, direction, orientation);
