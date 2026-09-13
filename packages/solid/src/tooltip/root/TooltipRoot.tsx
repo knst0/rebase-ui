@@ -70,8 +70,10 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRoot.Props<Payload>
 }
 
 /**
- * Renders the root children inside the tooltip context. Reads them once so parts keep
- * stable DOM nodes; only the payload of render-prop children stays reactive.
+ * Renders the root children inside the tooltip context. Render-prop children are invoked
+ * once and receive `payload` as a getter, so reading it inside JSX updates the content in
+ * place instead of recreating the popup subtree (which would restart the open, position
+ * and content transitions).
  */
 function TooltipRootContent<Payload>(props: {
   children: JSX.Element | ((args: { payload: Payload | undefined }) => JSX.Element) | undefined;
@@ -83,12 +85,17 @@ function TooltipRootContent<Payload>(props: {
     const payloadChildren = children;
     const payload = props.payload;
 
-    // Memoizes the rendered children so structural re-invocations of this
-    // function (e.g. when the runtime re-flattens children during sibling
-    // reconciliation) reuse the same nodes instead of recreating every part
-    // with fresh identities. Recomputes only when the payload (or any other
-    // signal the children function reads) actually changes.
-    const childrenMemo = createMemo(() => payloadChildren({ payload: payload() }));
+    // The children function runs once: `payload` is exposed as a getter, so only the JSX
+    // expressions that read it re-run. The memo is the lazy-creation wrapper the runtime
+    // expects and it recomputes only if the children function reads the payload
+    // synchronously (e.g. destructuring it), which restores the previous remount behaviour.
+    const childrenMemo = createMemo(() =>
+      payloadChildren({
+        get payload() {
+          return payload();
+        },
+      }),
+    );
     return (() => childrenMemo()) as unknown as JSX.Element;
   }
 

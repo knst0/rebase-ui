@@ -123,6 +123,18 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/popover/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/preview-card/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/scroll-area/";
       page: true;
       $component: FileRouteLazyRef;
@@ -166,18 +178,6 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/(main)/components/tooltip/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/preview-card/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/popover/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -290,16 +290,16 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
-              path: "/tooltip/";
-              id: "/tooltip/";
+              path: "/popover/";
+              id: "/popover/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
               children?: undefined;
             },
             {
-              path: "/popover/";
-              id: "/popover/";
+              path: "/tooltip/";
+              id: "/tooltip/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
@@ -362,16 +362,16 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
-              path: "/toggle-group/";
-              id: "/toggle-group/";
+              path: "/preview-card/";
+              id: "/preview-card/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
               children?: undefined;
             },
             {
-              path: "/preview-card/";
-              id: "/preview-card/";
+              path: "/toggle-group/";
+              id: "/toggle-group/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

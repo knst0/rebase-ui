@@ -1,4 +1,4 @@
-import type { ValidComponent } from "@solidjs/web";
+import type { JSX, ValidComponent } from "@solidjs/web";
 import { untrack } from "solid-js";
 
 import { createPopupViewport } from "../../internals/popups/popupViewport";
@@ -37,14 +37,14 @@ export function PreviewCardViewport<T extends ValidComponent = "div">(props: Pre
     },
   };
 
-  const rawChildren = untrack(() => elementProps.children) as
-    | import("@solidjs/web").JSX.Element
-    | ((state: PreviewCardViewportState) => import("@solidjs/web").JSX.Element);
-
   const viewport = createPopupViewport({
     store,
     side: positioner.side,
-    children: (typeof rawChildren === "function" ? rawChildren(state) : rawChildren) as import("@solidjs/web").JSX.Element,
+    // Read on every render pass so a payload change updates the content in place.
+    children: () => {
+      const value = elementProps.children as JSX.Element | ((state: PreviewCardViewportState) => JSX.Element);
+      return typeof value === "function" ? value(state) : value;
+    },
   });
 
   const childrenProps = {

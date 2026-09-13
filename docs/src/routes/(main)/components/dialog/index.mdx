@@ -196,6 +196,7 @@ const demoDialog = Dialog.createHandle();
 
 The dialog can render different content depending on which trigger opened it.
 This is achieved by passing a `payload` to the `<Dialog.Trigger>` and using the function-as-a-child pattern in `<Dialog.Root>`.
+The function is called once and its argument exposes `payload` as a reactive getter, so read it inside JSX (never destructure it) to keep the content updating in place.
 
 The payload can be strongly typed by providing a type argument to the `createHandle()` function:
 
@@ -216,13 +217,13 @@ const demoDialog = Dialog.createHandle<{ text: string }>();
 </Dialog.Trigger>
 
 <Dialog.Root handle={demoDialog}>
-  {({ payload }) => ( // @highlight-text "payload"
+  {(root) => ( // @highlight-text "payload"
     <Dialog.Portal>
       <Dialog.Popup>
         <Dialog.Title>Dialog</Dialog.Title>
-        {payload !== undefined && ( // @highlight-text "payload"
+        {root.payload !== undefined && ( // @highlight-text "payload"
           <Dialog.Description>
-            This has been opened by {payload.text} {/* @highlight-text "payload" */}
+            This has been opened by {root.payload.text} {/* @highlight-text "payload" */}
           </Dialog.Description>
         )}
       </Dialog.Popup>

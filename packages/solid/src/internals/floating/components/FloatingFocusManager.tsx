@@ -50,6 +50,14 @@ function resolveRef(target: FloatingFocusTargetRef | null | undefined): HTMLElem
   return current instanceof HTMLElement ? current : null;
 }
 
+function isPointerOpenInteraction(openType: FloatingFocusManagerInteractionType | null | undefined): boolean {
+  // Pointer-initiated opens (click/tap) originate from an element the user is
+  // already looking at: moving focus into the popup must not scroll the page
+  // (e.g. when the popup opens below the fold). Keyboard-initiated opens keep
+  // the default scroll-into-view so the focused element is revealed.
+  return openType === "mouse" || openType === "touch" || openType === "pen";
+}
+
 function getEventType(event: Event, lastInteractionType?: FloatingFocusManagerInteractionType): FloatingFocusManagerInteractionType {
   const win = ownerWindow(getTarget(event));
   if (event instanceof win.KeyboardEvent) {
@@ -847,14 +855,14 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
 
         // enqueueFocus returns a rAF-cancel function; we intentionally don't cancel this focus.
         void enqueueFocus(elToFocus, {
-          preventScroll: elToFocus === state.focusEl,
+          preventScroll: elToFocus === state.focusEl || isPointerOpenInteraction(props.openInteractionType),
           shouldFocus() {
             // This focus is queued on the next animation frame. If the floating element has closed
             // before it runs — e.g. tabbing out of a kept-mounted popup — don't pull focus back
             // onto the initial element after it has legitimately moved elsewhere.
-            // `select` reads the synchronous snapshot, which is current even
+            // `peek` reads the synchronous snapshot, which is current even
             // immediately after a store write in the same tick.
-            if (!store.select("open")) {
+            if (!store.peek("open")) {
               return false;
             }
 

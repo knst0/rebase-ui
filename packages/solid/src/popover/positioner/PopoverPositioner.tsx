@@ -93,7 +93,7 @@ export function PopoverPositioner<T extends ValidComponent = "div">(props: Popov
   createEffect(
     () => floatingRootContext.select("domReferenceElement") as Element | null,
     (currentTriggerElement) => {
-      const previousTriggerElementValue = previousTriggerElement();
+      const previousTriggerElementValue = untrack(previousTriggerElement);
       if (currentTriggerElement) {
         setPreviousTriggerElement(currentTriggerElement);
       }

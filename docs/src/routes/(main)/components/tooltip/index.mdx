@@ -96,6 +96,7 @@ const demoTooltip = Tooltip.createHandle();
 
 The tooltip can render different content depending on which trigger opened it.
 This is achieved by passing a `payload` to the `<Tooltip.Trigger>` and using the function-as-a-child pattern in `<Tooltip.Root>`.
+The function is called once and its argument exposes `payload` as a reactive getter, so read it inside JSX (never destructure it) to keep the content updating in place.
 
 The payload can be strongly typed by providing a type argument to the `createHandle()` function:
 
@@ -116,14 +117,14 @@ const demoTooltip = Tooltip.createHandle<{ text: string }>();
 </Tooltip.Trigger>
 
 <Tooltip.Root handle={demoTooltip}>
-  {({ payload }) => ( // @highlight-text "payload"
+  {(root) => ( // @highlight-text "payload"
     <Tooltip.Portal>
       <Tooltip.Positioner sideOffset={8}>
         <Tooltip.Popup>
           <Tooltip.Arrow />
-          {payload !== undefined && ( // @highlight-text "payload"
+          {root.payload !== undefined && ( // @highlight-text "payload"
             <span>
-              Tooltip opened by {payload.text} {/* @highlight-text "payload" */}
+              Tooltip opened by {root.payload.text} {/* @highlight-text "payload" */}
             </span>
           )}
         </Tooltip.Popup>

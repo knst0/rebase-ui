@@ -466,7 +466,12 @@ export function trackOpenStateTransitions(
   store: PopupStoreLike,
   onUnmount?: () => void,
 ): { forceUnmount: () => void; transitionStatus: () => TransitionStatus } {
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open);
+  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open, {
+    // Hold the "starting" status until the popup element has mounted: portal
+    // rendering and subtree replacement can mount it after the blind frame,
+    // which would otherwise drop the enter transition entirely.
+    ready: () => store.select("popupElement") != null,
+  });
 
   store.useSyncedValue("mounted", mounted);
   store.useSyncedValue("transitionStatus", transitionStatus);

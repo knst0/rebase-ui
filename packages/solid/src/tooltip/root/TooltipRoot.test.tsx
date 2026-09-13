@@ -119,7 +119,7 @@ describe("<Tooltip.Root />", () => {
   it("renders trigger payloads through function children", async () => {
     render(() => (
       <Tooltip.Root>
-        {({ payload }: { payload: string | undefined }) => (
+        {(root: { payload: string | undefined }) => (
           <>
             <Tooltip.Trigger delay={0} payload="Trigger payload">
               Hover me
@@ -127,7 +127,7 @@ describe("<Tooltip.Root />", () => {
             <Tooltip.Portal>
               <Tooltip.Positioner>
                 <Tooltip.Popup>
-                  <span>Payload: {payload}</span>
+                  <span>Payload: {root.payload}</span>
                 </Tooltip.Popup>
               </Tooltip.Positioner>
             </Tooltip.Portal>

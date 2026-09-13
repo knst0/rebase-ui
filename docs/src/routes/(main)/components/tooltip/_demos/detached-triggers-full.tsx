@@ -27,7 +27,7 @@ export default function TooltipDetachedTriggersFullDemo() {
       </div>
 
       <Tooltip.Root handle={demoTooltip}>
-        {({ payload }) => (
+        {(root) => (
           <Tooltip.Portal>
             <Tooltip.Positioner
               sideOffset={11}
@@ -88,7 +88,7 @@ export default function TooltipDetachedTriggersFullDemo() {
                     [[data-instant]_&_[data-current]]:transition-none
                     [[data-instant]_&_[data-previous]]:transition-none"
                 >
-                  {payload}
+                  {root.payload}
                 </Tooltip.Viewport>
               </Tooltip.Popup>
             </Tooltip.Positioner>

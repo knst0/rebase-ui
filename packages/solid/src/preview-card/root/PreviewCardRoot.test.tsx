@@ -108,10 +108,10 @@ describe("<PreviewCard.Root />", () => {
           Link A
         </PreviewCard.Trigger>
         <PreviewCard.Root handle={handle}>
-          {({ payload }) => (
+          {(root) => (
             <PreviewCard.Portal>
               <PreviewCard.Positioner>
-                <PreviewCard.Popup>{payload !== undefined && <span>Opened by {payload.title}</span>}</PreviewCard.Popup>
+                <PreviewCard.Popup>{root.payload !== undefined && <span>Opened by {root.payload.title}</span>}</PreviewCard.Popup>
               </PreviewCard.Positioner>
             </PreviewCard.Portal>
           )}

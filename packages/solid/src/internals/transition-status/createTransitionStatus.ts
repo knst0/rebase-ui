@@ -27,6 +27,16 @@ export interface CreateTransitionStatusOptions {
    * @default false
    */
   alwaysMounted?: boolean | undefined;
+  /**
+   * Whether the entering element is ready to animate. The `"starting"` status
+   * is cleared one frame after this becomes true, so the starting styles are
+   * guaranteed at least one painted frame. Popups pass their mounted element:
+   * subtree replacement (e.g. a payload-driven remount on trigger switch) and
+   * deferred portal rendering can otherwise mount the element after the blind
+   * frame, silently dropping the enter transition.
+   * @default () => true
+   */
+  ready?: Accessor<boolean> | undefined;
 }
 
 /**
@@ -38,7 +48,7 @@ export function createTransitionStatus(
   open: Accessor<boolean>,
   options: CreateTransitionStatusOptions = {},
 ): CreateTransitionStatusReturnValue {
-  const { enableIdleState = false, deferEndingState = false, alwaysMounted = false } = options;
+  const { enableIdleState = false, deferEndingState = false, alwaysMounted = false, ready = () => true } = options;
   const initiallyOpen = untrack(open);
 
   const [transitionStatus, setTransitionStatus] = createSignal<TransitionStatus>(initiallyOpen && enableIdleState ? "idle" : undefined);
@@ -88,19 +98,22 @@ export function createTransitionStatus(
     },
   );
 
-  createRenderEffect(open, (isOpen) => {
-    if (!isOpen || enableIdleState) {
-      return undefined;
-    }
+  createRenderEffect(
+    () => ({ isOpen: open(), isReady: ready() }),
+    ({ isOpen, isReady }) => {
+      if (!isOpen || enableIdleState || !isReady) {
+        return undefined;
+      }
 
-    const frame = requestAnimationFrame(() => {
-      setTransitionStatus(undefined);
-    });
+      const frame = requestAnimationFrame(() => {
+        setTransitionStatus(undefined);
+      });
 
-    return () => {
-      cancelAnimationFrame(frame);
-    };
-  });
+      return () => {
+        cancelAnimationFrame(frame);
+      };
+    },
+  );
 
   createRenderEffect(
     () => ({ open: open(), mounted: mounted(), status: transitionStatus() }),

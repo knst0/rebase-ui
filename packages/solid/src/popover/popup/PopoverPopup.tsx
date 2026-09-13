@@ -182,14 +182,14 @@ export function PopoverPopup<T extends ValidComponent = "div">(props: PopoverPop
   return (
     <FloatingFocusManager
       context={untrack(() => store.select("floatingRootContext"))}
-      openInteractionType={store.select("openMethod") as FloatingFocusManagerInteractionType | null}
+      openInteractionType={store.peek("openMethod") as FloatingFocusManagerInteractionType | null}
       modal={store.select("focusManagerModal") as boolean}
       disabled={!(store.select("mounted") as boolean) || store.select("openChangeReason") === REASONS.triggerHover}
       initialFocus={resolveInitialFocus}
       returnFocus={resolveFinalFocus}
       restoreFocus="popup"
       previousFocusableElement={(() => {
-        const element = store.select("activeTriggerElement") as Element | null;
+        const element = store.peek("activeTriggerElement") as Element | null;
         return isHTMLElement(element) ? element : undefined;
       })()}
       nextFocusableElement={store.context.triggerFocusTargetRef}

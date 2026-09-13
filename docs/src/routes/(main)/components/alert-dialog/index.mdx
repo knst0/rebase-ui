@@ -101,6 +101,7 @@ const demoAlertDialog = AlertDialog.createHandle();
 
 The alert dialog can render different content depending on which trigger opened it.
 This is achieved by passing a `payload` to the `<AlertDialog.Trigger>` and using the function-as-a-child pattern in `<AlertDialog.Root>`.
+The function is called once and its argument exposes `payload` as a reactive getter, so read it inside JSX (never destructure it) to keep the content updating in place.
 
 The payload can be strongly typed by providing a type argument to the `createHandle()` function:
 
@@ -121,12 +122,12 @@ const demoAlertDialog = AlertDialog.createHandle<{ message: string }>();
 </AlertDialog.Trigger>
 
 <AlertDialog.Root handle={demoAlertDialog}>
-  {({ payload }) => ( // @highlight-text "payload"
+  {(root) => ( // @highlight-text "payload"
     <AlertDialog.Portal>
       <AlertDialog.Popup>
         <AlertDialog.Title>Confirm</AlertDialog.Title>
-        {payload !== undefined && ( // @highlight-text "payload"
-          <AlertDialog.Description>{payload.message}</AlertDialog.Description> // @highlight-text "payload"
+        {root.payload !== undefined && ( // @highlight-text "payload"
+          <AlertDialog.Description>{root.payload.message}</AlertDialog.Description> // @highlight-text "payload"
         )}
       </AlertDialog.Popup>
     </AlertDialog.Portal>

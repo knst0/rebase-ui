@@ -1,6 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
-import { flush } from "solid-js";
+import { createEffect, createSignal, flush, onCleanup, untrack } from "solid-js";
 
 import { adaptiveOrigin } from "../anchor-positioning/adaptiveOrigin";
 import type { Side } from "../anchor-positioning/createAnchorPositioning";
@@ -27,9 +26,10 @@ export interface CreatePopupViewportOptions {
    */
   side: () => Side;
   /**
-   * Viewport children to render in the current container.
+   * Viewport children to render in the current container. Read lazily so a payload change
+   * updates the content in place instead of replacing the container.
    */
-  children: JSX.Element;
+  children: () => JSX.Element;
 }
 
 export interface CreatePopupViewportReturnValue {
@@ -56,6 +56,18 @@ type Offset = {
 export function createPopupViewport(options: CreatePopupViewportOptions): CreatePopupViewportReturnValue {
   const { store } = options;
 
+  let currentContainer: HTMLDivElement | null = null;
+  let previousContainer: HTMLDivElement | null = null;
+  let capturedNode: HTMLElement | null = null;
+
+  const [previousContentNode, setPreviousContentNode] = createSignal<HTMLElement | null>(null);
+  const [newTriggerOffset, setNewTriggerOffset] = createSignal<Offset | null>(null);
+  const [previousContentDimensions, setPreviousContentDimensions] = createSignal<Dimensions | null>(null);
+  const [showStartingStyleAttribute, setShowStartingStyleAttribute] = createSignal(false);
+  const [contentKey, setContentKey] = createSignal(0);
+
+  // Mirrors upstream's layout effect: the positioner switches to side-anchored
+  // offsets while a viewport is mounted.
   store.set("adaptiveOrigin", adaptiveOrigin);
   onCleanup(() => {
     untrack(() => {
@@ -63,17 +75,8 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
     });
   });
 
-  const currentContainerRef: { current: HTMLDivElement | null } = { current: null };
-  const previousContainerRef: { current: HTMLDivElement | null } = { current: null };
-  const capturedNodeRef: { current: HTMLElement | null } = { current: null };
-
-  const [previousContentNode, setPreviousContentNode] = createSignal<HTMLElement | null>(null);
-  const [newTriggerOffset, setNewTriggerOffset] = createSignal<Offset | null>(null);
-  const [previousContentDimensions, setPreviousContentDimensions] = createSignal<Dimensions | null>(null);
-  const [showStartingStyleAttribute, setShowStartingStyleAttribute] = createSignal(false);
-
   const onAnimationsFinished = createAnimationsFinishedRunner(
-    () => currentContainerRef.current,
+    () => currentContainer,
     () => true,
   );
 
@@ -96,13 +99,12 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
     onAnimationsFinished(() => {
       setPreviousContentNode(null);
       setPreviousContentDimensions(null);
-      capturedNodeRef.current = null;
+      capturedNode = null;
     }, controller.signal);
   };
 
   // Remount current content on trigger changes (and once more when payload lags) to avoid DOM reuse flashes.
   // The key bumps immediately on trigger switches, then again if the payload arrives on a later run.
-  const [contentKey, setContentKey] = createSignal(0);
   let previousActiveTriggerId = untrack(() => store.select("activeTriggerId")) as string | null;
   let previousPayload = untrack(() => store.select("payload"));
   let pendingPayloadUpdate = false;
@@ -155,8 +157,8 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
 
       // When a trigger changes, set the captured children HTML to state,
       // so we can render both new and old content.
-      if (activeTrigger && prev && activeTrigger !== prev && lastHandledTrigger !== activeTrigger && capturedNodeRef.current) {
-        setPreviousContentNode(capturedNodeRef.current);
+      if (activeTrigger && prev && activeTrigger !== prev && lastHandledTrigger !== activeTrigger && capturedNode) {
+        setPreviousContentNode(capturedNode);
         setShowStartingStyleAttribute(true);
 
         // Calculate the relative position between the previous and new trigger,
@@ -201,11 +203,11 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
   // Capture a clone of the current content DOM subtree when not transitioning.
   // We can't store previous nodes as they may be stateful; instead we capture DOM clones for visual continuity.
   createEffect(
-    () => ({ key: getContentKey() }),
+    () => ({ key: getContentKey(), payload: store.select("payload") }),
     () => {
-      // When a transition is in progress, we store the next content in capturedNodeRef.
+      // When a transition is in progress, we store the next content in `capturedNode`.
       // This handles the case where the trigger changes multiple times before the transition finishes.
-      const source = currentContainerRef.current;
+      const source = currentContainer;
       if (!source) {
         return undefined;
       }
@@ -215,7 +217,7 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
         wrapper.appendChild(child.cloneNode(true));
       }
 
-      capturedNodeRef.current = wrapper;
+      capturedNode = wrapper;
       return undefined;
     },
   );
@@ -224,7 +226,7 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
   createEffect(
     () => previousContentNode(),
     (node) => {
-      const container = previousContainerRef.current;
+      const container = previousContainer;
       if (!container || !node) {
         return undefined;
       }
@@ -235,17 +237,17 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
   );
 
   const handleMeasureLayout = () => {
-    currentContainerRef.current?.style.setProperty("animation", "none");
-    currentContainerRef.current?.style.setProperty("transition", "none");
+    currentContainer?.style.setProperty("animation", "none");
+    currentContainer?.style.setProperty("transition", "none");
 
-    previousContainerRef.current?.style.setProperty("display", "none");
+    previousContainer?.style.setProperty("display", "none");
   };
 
   const handleMeasureLayoutComplete = (previousDimensions: Dimensions | null) => {
-    currentContainerRef.current?.style.removeProperty("animation");
-    currentContainerRef.current?.style.removeProperty("transition");
+    currentContainer?.style.removeProperty("animation");
+    currentContainer?.style.removeProperty("transition");
 
-    previousContainerRef.current?.style.removeProperty("display");
+    previousContainer?.style.removeProperty("display");
 
     if (previousDimensions) {
       setPreviousContentDimensions(previousDimensions);
@@ -272,10 +274,10 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
         <div
           data-current=""
           ref={(element: HTMLDivElement | null) => {
-            currentContainerRef.current = element;
+            currentContainer = element;
           }}
         >
-          {options.children}
+          {options.children()}
         </div>
       );
     }
@@ -287,7 +289,7 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
           data-previous=""
           inert={true}
           ref={(element: HTMLDivElement | null) => {
-            previousContainerRef.current = element;
+            previousContainer = element;
           }}
           style={
             {
@@ -300,11 +302,11 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
         <div
           data-current=""
           ref={(element: HTMLDivElement | null) => {
-            currentContainerRef.current = element;
+            currentContainer = element;
           }}
           data-starting-style={showStartingStyleAttribute() ? "" : undefined}
         >
-          {options.children}
+          {options.children()}
         </div>
       </>
     );

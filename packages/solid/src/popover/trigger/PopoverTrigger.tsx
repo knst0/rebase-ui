@@ -85,6 +85,27 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
     },
   );
 
+  // Syncs the hover config to the store eagerly (while closed), not only once
+  // the popup is mounted. `setupTrigger` above applies these fields only while
+  // the popup is mounted, but `PopoverPopup` reads them once when it mounts on
+  // open — without this, the popup's hover interaction would observe the
+  // initial `false`/`0` on first open and mis-handle trigger-to-popup hover.
+  createEffect(
+    () => ({ liveStore: store(), element: triggerElement(), openOnHover: openOnHover(), closeDelay: local.closeDelay ?? 0 }),
+    ({ liveStore, element, openOnHover, closeDelay }) => {
+      if (!liveStore || element === null) {
+        return undefined;
+      }
+      const activeTriggerId = untrack(() => liveStore.peek("activeTriggerId")) as string | null;
+      if (activeTriggerId !== null && activeTriggerId !== thisTriggerId) {
+        return undefined;
+      }
+      liveStore.set("openOnHover", openOnHover);
+      liveStore.set("closeDelay", closeDelay);
+      return undefined;
+    },
+  );
+
   // Written from the setup child's body, so owned writes are intentional.
   const [clickProps, setClickProps] = createSignal<ClickReferenceProps | undefined>(undefined, { ownedWrite: true });
   const [hoverProps, setHoverProps] = createSignal<HoverReferenceProps | undefined>(undefined, { ownedWrite: true });
@@ -332,8 +353,11 @@ function PopoverTriggerInteractions(props: {
         mouseOnly: true,
         move: false,
         handleClose: safePolygon(),
-        restMs: props.delay ?? OPEN_DELAY,
-        delay: { close: props.closeDelay ?? 0 },
+        // `delay` is an enter delay: hovering the trigger opens the popover
+        // once it elapses, without requiring further mouse movement. It must
+        // not be passed as `restMs`, which only starts its timer on mousemove
+        // and leaves a plain hover (enter + wait) unable to ever open.
+        delay: { open: props.delay ?? OPEN_DELAY, close: props.closeDelay ?? 0 },
         triggerElementRef: props.triggerElementRef,
         isActiveTrigger,
         isClosing: () => (liveStore.select("transitionStatus") as string | undefined) === "ending",

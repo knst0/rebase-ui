@@ -185,13 +185,13 @@ describe("<Popover.Root />", () => {
   it("renders trigger payloads through function children", async () => {
     render(() => (
       <Popover.Root>
-        {({ payload }: { payload: string | undefined }) => (
+        {(root: { payload: string | undefined }) => (
           <>
             <Popover.Trigger payload="Trigger payload">Open popover</Popover.Trigger>
             <Popover.Portal>
               <Popover.Positioner>
                 <Popover.Popup>
-                  <span>Payload: {payload}</span>
+                  <span>Payload: {root.payload}</span>
                 </Popover.Popup>
               </Popover.Positioner>
             </Popover.Portal>

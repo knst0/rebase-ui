@@ -23,7 +23,7 @@ export default function PopoverDetachedTriggersFullDemo() {
       </Popover.Trigger>
 
       <Popover.Root handle={demoPopover}>
-        {({ payload: Payload }) => (
+        {(root) => (
           <Popover.Portal>
             <Popover.Positioner
               sideOffset={8}
@@ -56,7 +56,10 @@ export default function PopoverDetachedTriggersFullDemo() {
                     data-[activation-direction~='right']:[&_[data-previous][data-ending-style]]:-translate-x-1/2
                     data-[activation-direction~='right']:[&_[data-previous][data-ending-style]]:opacity-0"
                 >
-                  {Payload !== undefined && <Payload />}
+                  {(() => {
+                    const Payload = root.payload;
+                    return Payload === undefined ? null : <Payload />;
+                  })()}
                 </Popover.Viewport>
               </Popover.Popup>
             </Popover.Positioner>

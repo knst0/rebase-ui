@@ -90,11 +90,11 @@ describe("TooltipHandle", () => {
           Second
         </Tooltip.Trigger>
         <Tooltip.Root handle={handle}>
-          {({ payload }) => (
+          {(root) => (
             <Tooltip.Portal>
               <Tooltip.Positioner>
                 <Tooltip.Popup>
-                  <Tooltip.Viewport>{payload}</Tooltip.Viewport>
+                  <Tooltip.Viewport>{root.payload}</Tooltip.Viewport>
                 </Tooltip.Popup>
               </Tooltip.Positioner>
             </Tooltip.Portal>
@@ -118,6 +118,61 @@ describe("TooltipHandle", () => {
     fireEvent.mouseEnter(second);
     await sleep(10);
     flush();
+    await nextFrames();
+    expect(screen.queryByText("Second payload")).toBeInTheDocument();
+  });
+
+  it("slides viewport content and keeps positioner coordinates when switching triggers", async () => {
+    const handle = Tooltip.createHandle<string>();
+
+    render(() => (
+      <Tooltip.Provider>
+        <Tooltip.Trigger handle={handle} id="first" delay={0} payload="First payload">
+          First
+        </Tooltip.Trigger>
+        <Tooltip.Trigger handle={handle} id="second" delay={0} payload="Second payload">
+          Second
+        </Tooltip.Trigger>
+        <Tooltip.Root handle={handle}>
+          {(root) => (
+            <Tooltip.Portal>
+              <Tooltip.Positioner data-testid="positioner">
+                <Tooltip.Popup>
+                  <Tooltip.Viewport data-testid="viewport">{root.payload}</Tooltip.Viewport>
+                </Tooltip.Popup>
+              </Tooltip.Positioner>
+            </Tooltip.Portal>
+          )}
+        </Tooltip.Root>
+      </Tooltip.Provider>
+    ));
+    flush();
+    await nextFrames();
+
+    handle.open("first");
+    await sleep(10);
+    flush();
+    await nextFrames();
+    await nextFrames();
+    expect(screen.queryByText("First payload")).toBeInTheDocument();
+
+    const topBefore = screen.getByTestId("positioner").style.top;
+
+    handle.open("second");
+    flush();
+
+    // The viewport keeps both contents for the directional slide instead of
+    // dropping the previous content when the payload changes.
+    const viewport = screen.getByTestId("viewport");
+    expect(viewport.querySelector("[data-previous]")).not.toBeNull();
+    expect(viewport.getAttribute("data-activation-direction")).not.toBeNull();
+    // The positioner element survives the payload change, so it glides from the
+    // committed coordinates instead of jumping to the viewport origin.
+    expect(screen.getByTestId("positioner").style.top).toBe(topBefore);
+
+    await sleep(10);
+    flush();
+    await nextFrames();
     await nextFrames();
     expect(screen.queryByText("Second payload")).toBeInTheDocument();
   });
