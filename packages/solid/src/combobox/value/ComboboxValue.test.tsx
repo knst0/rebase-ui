@@ -58,9 +58,13 @@ describe('<Combobox.Value />', () => {
     expect(screen.getByText('Sans-serif, Serif')).toBeInTheDocument();
   });
 
-  it('accepts a render function receiving the value', () => {
+  it('accepts a render function receiving the value accessor', () => {
     renderValue(
-      { children: (value: unknown) => (value ? `Selected: ${String(value)}` : 'Nothing') },
+      {
+        children: (value: () => unknown) => (
+          <span>{value() ? `Selected: ${String(value())}` : 'Nothing'}</span>
+        ),
+      },
       { storeState: { selectedValue: 'sans', items: RECORD_ITEMS } },
     );
     flush();

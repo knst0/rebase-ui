@@ -1,6 +1,5 @@
 import { Combobox } from "@rebase-ui/solid/combobox";
 import type { ComponentProps } from "@solidjs/web";
-import { For } from "solid-js";
 
 export default function ExamplePopoverCombobox() {
   return (
@@ -32,19 +31,17 @@ export default function ExamplePopoverCombobox() {
                   </div>
                 </Combobox.Empty>
                 <Combobox.List class="max-h-[min(calc(24.5rem-var(--input-container-height)-2px),calc(var(--available-height)-var(--input-container-height)-2px))] overflow-auto overscroll-contain py-1 scroll-py-1 empty:p-0">
-                  <For each={countries}>
-                    {(country: Country) => (
-                      <Combobox.Item
-                        value={country}
-                        class="grid min-w-[var(--anchor-width)] cursor-default grid-cols-[1rem_1fr] items-center gap-2 p-2 text-sm leading-4 outline-hidden select-none data-highlighted:relative data-highlighted:z-0 data-highlighted:text-white data-highlighted:before:absolute data-highlighted:before:inset-0 data-highlighted:before:z-[-1] data-highlighted:before:bg-neutral-950 dark:data-highlighted:text-neutral-950 dark:data-highlighted:before:bg-white"
-                      >
-                        <Combobox.ItemIndicator class="col-start-1">
-                          <CheckIcon aria-hidden="true" />
-                        </Combobox.ItemIndicator>
-                        <span class="col-start-2">{country.label}</span>
-                      </Combobox.Item>
-                    )}
-                  </For>
+                  {(country: Country) => (
+                    <Combobox.Item
+                      value={country}
+                      class="grid min-w-[var(--anchor-width)] cursor-default grid-cols-[1rem_1fr] items-center gap-2 p-2 text-sm leading-4 outline-hidden select-none data-highlighted:relative data-highlighted:z-0 data-highlighted:text-white data-highlighted:before:absolute data-highlighted:before:inset-0 data-highlighted:before:z-[-1] data-highlighted:before:bg-neutral-950 dark:data-highlighted:text-neutral-950 dark:data-highlighted:before:bg-white"
+                    >
+                      <Combobox.ItemIndicator class="col-start-1">
+                        <CheckIcon aria-hidden="true" />
+                      </Combobox.ItemIndicator>
+                      <span class="col-start-2">{country.label}</span>
+                    </Combobox.Item>
+                  )}
                 </Combobox.List>
               </div>
             </Combobox.Popup>

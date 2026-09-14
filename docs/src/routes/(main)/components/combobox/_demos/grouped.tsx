@@ -1,6 +1,6 @@
 import { Combobox } from "@rebase-ui/solid/combobox";
 import type { ComponentProps } from "@solidjs/web";
-import { For, createUniqueId } from "solid-js";
+import { createUniqueId } from "solid-js";
 
 export default function ExampleGroupedCombobox() {
   const id = createUniqueId();
@@ -40,31 +40,26 @@ export default function ExampleGroupedCombobox() {
               </div>
             </Combobox.Empty>
             <Combobox.List class="max-h-[min(22.5rem,var(--available-height))] overflow-auto overscroll-contain py-1 scroll-py-1 outline-0">
-              <For each={groupedProduce}>
-                {(group: ProduceGroup) => (
-                  <Combobox.Group items={group.items} class="block pb-2 last:pb-0">
-                    <Combobox.GroupLabel class="py-2 pr-2 pl-8 text-sm leading-4 text-neutral-500 select-none dark:text-neutral-400">
-                      {group.value}
-                    </Combobox.GroupLabel>
-                    <Combobox.Collection>
-                      {(item: unknown) => {
-                        const produce = item as Produce;
-                        return (
-                          <Combobox.Item
-                            class="grid cursor-default grid-cols-[1rem_1fr] items-center gap-2 p-2 text-sm leading-4 outline-none select-none data-highlighted:relative data-highlighted:z-0 data-highlighted:text-white data-highlighted:before:absolute data-highlighted:before:inset-0 data-highlighted:before:z-[-1] data-highlighted:before:bg-neutral-950 dark:data-highlighted:text-neutral-950 dark:data-highlighted:before:bg-white"
-                            value={produce}
-                          >
-                            <Combobox.ItemIndicator class="col-start-1 flex items-center justify-center">
-                              <CheckIcon aria-hidden="true" />
-                            </Combobox.ItemIndicator>
-                            <span class="col-start-2">{produce.label}</span>
-                          </Combobox.Item>
-                        );
-                      }}
-                    </Combobox.Collection>
-                  </Combobox.Group>
-                )}
-              </For>
+              {(group: ProduceGroup) => (
+                <Combobox.Group items={group.items} class="block pb-2 last:pb-0">
+                  <Combobox.GroupLabel class="py-2 pr-2 pl-8 text-sm leading-4 text-neutral-500 select-none dark:text-neutral-400">
+                    {group.value}
+                  </Combobox.GroupLabel>
+                  <Combobox.Collection>
+                    {(item: Produce) => (
+                      <Combobox.Item
+                        class="grid cursor-default grid-cols-[1rem_1fr] items-center gap-2 p-2 text-sm leading-4 outline-none select-none data-highlighted:relative data-highlighted:z-0 data-highlighted:text-white data-highlighted:before:absolute data-highlighted:before:inset-0 data-highlighted:before:z-[-1] data-highlighted:before:bg-neutral-950 dark:data-highlighted:text-neutral-950 dark:data-highlighted:before:bg-white"
+                        value={item}
+                      >
+                        <Combobox.ItemIndicator class="col-start-1 flex items-center justify-center">
+                          <CheckIcon aria-hidden="true" />
+                        </Combobox.ItemIndicator>
+                        <span class="col-start-2">{item.label}</span>
+                      </Combobox.Item>
+                    )}
+                  </Combobox.Collection>
+                </Combobox.Group>
+              )}
             </Combobox.List>
           </Combobox.Popup>
         </Combobox.Positioner>

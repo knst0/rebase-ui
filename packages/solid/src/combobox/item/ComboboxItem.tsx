@@ -97,13 +97,28 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
     }
   }
 
+  // Solid has no `onPointerDownCapture` prop (`on*Capture` names bind a literal
+  // `pointerdowncapture` listener that never fires), so the capture-phase
+  // handler is attached imperatively.
+  function handlePointerDownCapture(event: PointerEvent) {
+    // The `mouseup` pairing only fires for the primary pointer, so a non-primary
+    // touch must not overwrite the shared ref — a mismatch would make the primary
+    // pointer's release read as a drag-select and commit a second time after `click`.
+    if (event.isPrimary) {
+      store.context.pointerDownItemRef.current = event.currentTarget as Element;
+    }
+    event.preventDefault();
+  }
+
   function setItemElement(element: HTMLElement | null) {
     const prevIndex = itemElement === null ? -1 : untrack(index);
     if (prevIndex !== -1 && element === null) {
       syncStoreRefs(null, prevIndex);
     }
+    itemElement?.removeEventListener("pointerdown", handlePointerDownCapture, true);
     itemElement = element;
     if (element !== null) {
+      element.addEventListener("pointerdown", handlePointerDownCapture, true);
       const itemIndex = untrack(index);
       syncStoreRefs(element, itemIndex);
       syncValueRef(itemIndex, untrack(() => local.value ?? null));
@@ -189,15 +204,6 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
     // Focusable items steal focus from the input upon mouseup, so items stay
     // unfocusable: the input keeps focus while the user picks an item.
     tabIndex: undefined as number | undefined,
-    onPointerDownCapture(event: PointerEvent) {
-      // The `mouseup` pairing only fires for the primary pointer, so a non-primary
-      // touch must not overwrite the shared ref — a mismatch would make the primary
-      // pointer's release read as a drag-select and commit a second time after `click`.
-      if (event.isPrimary) {
-        store.context.pointerDownItemRef.current = event.currentTarget as Element;
-      }
-      event.preventDefault();
-    },
     onMouseDown(event: MouseEvent) {
       // iOS Safari can emit a synthetic mousedown for touch taps without a preceding
       // pointerdown. Prevent default here too so tapping an item does not blur the input.

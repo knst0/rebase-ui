@@ -141,16 +141,28 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
         }
       }
     },
-    onKeyDownCapture() {
-      store.context.keyboardActiveRef.current = true;
-    },
-    onPointerMoveCapture() {
-      store.context.keyboardActiveRef.current = false;
-    },
   };
+
+  // Solid has no `on*Capture` props (such a name binds a literal
+  // `keydowncapture` listener that never fires), so capture-phase listeners
+  // are attached imperatively.
+  function trackKeyboardActive() {
+    store.context.keyboardActiveRef.current = true;
+  }
+
+  function trackPointerActive() {
+    store.context.keyboardActiveRef.current = false;
+  }
+
+  let listElement: HTMLDivElement | null = null;
 
   const refProps = (externalProps: Record<string, any>) => ({
     ref: mergeRefs<HTMLDivElement>(externalProps.ref, (element: HTMLDivElement | null) => {
+      listElement?.removeEventListener("keydown", trackKeyboardActive, true);
+      listElement?.removeEventListener("pointermove", trackPointerActive, true);
+      listElement = element;
+      element?.addEventListener("keydown", trackKeyboardActive, true);
+      element?.addEventListener("pointermove", trackPointerActive, true);
       store.set("listElement", element);
       if (!hasPositionerContext) {
         store.set("positionerElement", element);
@@ -176,7 +188,12 @@ export interface ComboboxListState {
 }
 
 export interface ComboboxListOwnProps {
-  children?: JSX.Element | ((item: unknown, index: number) => JSX.Element);
+  /**
+   * A function child renders the filtered items ("closed template"), mirroring
+   * an implicit `Combobox.Collection`. The item type is opaque here; annotate
+   * it at the call site.
+   */
+  children?: JSX.Element | ((item: any, index: number) => JSX.Element);
 }
 
 export type ComboboxListProps<T extends ValidComponent = 'div'> = Omit<

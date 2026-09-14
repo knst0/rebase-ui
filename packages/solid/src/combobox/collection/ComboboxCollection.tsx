@@ -28,7 +28,11 @@ export function ComboboxCollection(props: ComboboxCollection.Props): JSX.Element
 export interface ComboboxCollectionState {}
 
 export interface ComboboxCollectionProps {
-  children: (item: unknown, index: number) => JSX.Element;
+  /**
+   * Renders one filtered item. The item type is opaque here; annotate it at the
+   * call site.
+   */
+  children: (item: any, index: number) => JSX.Element;
 }
 
 export namespace ComboboxCollection {

@@ -184,15 +184,15 @@ Base UI does not ship these strings. Translate them together with the rest of y
 Visible chips can be limited by slicing the selected values rendered in `<Combobox.Value>`:
 
 ```tsx title="Limiting visible chips"
-import { For } from "solid-js";
+import { For, type Accessor } from "solid-js";
 
 const CHIP_LIMIT = 3;
 
 <Combobox.Value>
-  {(selectedValue: string[]) => {
+  {(selectedValue: Accessor<string[]>) => {
     // @highlight-start
-    const visibleValue = () => selectedValue.slice(0, CHIP_LIMIT);
-    const hiddenCount = () => selectedValue.length - visibleValue().length;
+    const visibleValue = () => selectedValue().slice(0, CHIP_LIMIT);
+    const hiddenCount = () => selectedValue().length - visibleValue().length;
     // @highlight-end
     return (
       <>
@@ -209,8 +209,8 @@ const CHIP_LIMIT = 3;
         {/* @highlight-end */}
         <Combobox.Input
           aria-description={
-            selectedValue.length > 0
-              ? `${selectedValue.length} selected. From the start of the input, press Left Arrow to focus the selected items`
+            selectedValue().length > 0
+              ? `${selectedValue().length} selected. From the start of the input, press Left Arrow to focus the selected items`
               : undefined
           }
         />

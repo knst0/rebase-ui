@@ -67,7 +67,11 @@ function renderComponent(component: ValidComponent, componentProps: Record<strin
         component,
         untrack(() => componentProps.is),
       );
-  spread(element, componentProps, !("children" in componentProps));
+  spread(
+    element,
+    componentProps,
+    untrack(() => !("children" in componentProps)),
+  );
   return element;
 }
 
@@ -95,6 +99,58 @@ function createDomElement(tagName: string, is: string | undefined) {
 
 type PropsSourceList = ReadonlyArray<Record<string, any> | ((props: any) => Record<string, any>) | undefined>;
 
+const DYNAMIC_LAYER = Symbol("rebase-ui:dynamic-layer");
+
+/**
+ * A props source whose key set can change over time: a layer may gain or drop
+ * keys after mount (e.g. props a store publishes from an effect), so a frozen
+ * snapshot of its keys would silently drop them.
+ *
+ * `keys`/`has` track a key *signature* rather than the layer value, so probing
+ * for a key subscribes the reader to key-set changes only. Values stay behind
+ * `read`, keeping a consumer that reads one key out of unrelated layers'
+ * dependency sets.
+ */
+interface DynamicLayer {
+  [DYNAMIC_LAYER]: true;
+  read: () => Record<string, any>;
+  keys: () => readonly string[];
+  has: (key: string) => boolean;
+}
+
+type Layer = Record<string, any> | DynamicLayer;
+
+const KEY_SEPARATOR = "\u0000";
+
+function createDynamicLayer(read: () => Record<string, any>): DynamicLayer {
+  const signature = createMemo(() => Object.keys(read()).join(KEY_SEPARATOR));
+  const keys = createMemo(() => {
+    const current = signature();
+    return current === "" ? (EMPTY_KEYS as readonly string[]) : current.split(KEY_SEPARATOR);
+  });
+  const keySet = createMemo(() => new Set(keys()));
+
+  return { [DYNAMIC_LAYER]: true, read, keys, has: (key) => keySet().has(key) };
+}
+
+const EMPTY_KEYS: readonly string[] = [];
+
+function isDynamicLayer(layer: Layer): layer is DynamicLayer {
+  return DYNAMIC_LAYER in layer;
+}
+
+function layerHas(layer: Layer, key: string): boolean {
+  return isDynamicLayer(layer) ? layer.has(key) : key in layer;
+}
+
+function layerGet(layer: Layer, key: string): unknown {
+  return isDynamicLayer(layer) ? layer.read()[key] : layer[key];
+}
+
+function layerKeys(layer: Layer): readonly string[] {
+  return isDynamicLayer(layer) ? layer.keys() : Object.keys(layer);
+}
+
 function resolveProps<T extends ValidComponent, State extends Record<string, Accessor<unknown>>>(
   state: State | undefined,
   props: RenderElementProps<T, State, undefined>["props"],
@@ -107,7 +163,7 @@ function resolveProps<T extends ValidComponent, State extends Record<string, Acc
 
   const resolveSource = createSourceResolver(stateValue);
   const refs = createRefChain();
-  const layers: Record<string, any>[] = [];
+  const layers: Layer[] = [];
 
   if (!bindsStateDirectly) {
     const stateAttributes = getStateAttributes(stateValue, stateAttributesMapping);
@@ -124,10 +180,9 @@ function resolveProps<T extends ValidComponent, State extends Record<string, Acc
     if (typeof source === "function") {
       const externalProps = combineLayers(layers.slice());
       const resolved = createMemo(() => resolveSource(source(externalProps)));
-      const layer = reactiveLayer(resolved);
 
-      layers.push(layer);
-      refs.replaceWith(layer);
+      layers.push(createDynamicLayer(resolved));
+      refs.replaceWith(resolved);
       continue;
     }
 
@@ -144,21 +199,26 @@ function resolveProps<T extends ValidComponent, State extends Record<string, Acc
   return combineLayers(layers) as ComponentProps<T>;
 }
 
-function combineLayers(layers: Record<string, any>[]): Record<string, any> {
+function combineLayers(layers: Layer[]): Record<string, any> {
   if (layers.length === 0) {
     return {};
   }
-  if (layers.some(hasDynamicKeys)) {
-    return layers.length === 1 ? layers[0] : merge(...layers);
+  if (layers.some(isDynamicLayer)) {
+    return createDynamicProps(layers);
+  }
+
+  const staticLayers = layers as Record<string, any>[];
+  if (staticLayers.some(hasDynamicKeys)) {
+    return staticLayers.length === 1 ? staticLayers[0] : merge(...staticLayers);
   }
 
   // Object styles merge per-property (later layers win) instead of replacing
   // each other wholesale, so internal positioning styles survive user styles.
-  const mergeStyles = shouldMergeLayerStyles(layers);
+  const mergeStyles = shouldMergeLayerStyles(staticLayers);
 
   const target: Record<string, any> = {};
 
-  for (const layer of layers) {
+  for (const layer of staticLayers) {
     for (const key of Object.keys(layer)) {
       if (key === "__proto__" || key === "constructor") {
         continue;
@@ -171,7 +231,7 @@ function combineLayers(layers: Record<string, any>[]): Record<string, any> {
   }
 
   if (mergeStyles) {
-    defineMergedStyle(target, layers);
+    defineMergedStyle(target, staticLayers);
   }
 
   return target;
@@ -232,15 +292,113 @@ function defineMergedStyle(target: Record<string, any>, layers: Record<string, a
   });
 }
 
-function reactiveLayer(resolved: () => Record<string, any>) {
-  const snapshot = untrack(resolved);
-  const layer: Record<string, any> = {};
+/**
+ * Combines layers whose key sets can change over time. Key probes track each
+ * dynamic layer's key signature, and value reads track only the layer that
+ * owns the key, so a consumer reading one prop does not subscribe to every
+ * layer's value.
+ */
+function createDynamicProps(layers: Layer[]): Record<string, any> {
+  const readStyle = () => {
+    const styles: unknown[] = [];
 
-  for (const key of Object.keys(snapshot)) {
-    Object.defineProperty(layer, key, { enumerable: true, configurable: true, get: () => resolved()[key] });
-  }
+    for (const layer of layers) {
+      if (!layerHas(layer, "style")) {
+        continue;
+      }
+      const style = layerGet(layer, "style");
+      if (style != null) {
+        styles.push(style);
+      }
+    }
 
-  return layer;
+    if (styles.length === 0) {
+      return undefined;
+    }
+    // A string style cannot merge per-property; keep last-wins behavior.
+    if (styles.some((style) => typeof style !== "object")) {
+      return styles[styles.length - 1];
+    }
+
+    const merged: Record<string, unknown> = {};
+    for (const style of styles as Record<string, unknown>[]) {
+      for (const key of Object.keys(style)) {
+        if (key === "__proto__") {
+          continue;
+        }
+        merged[key] = style[key];
+      }
+    }
+    return merged;
+  };
+
+  const read = (key: string) => {
+    // Object styles merge per-property (later layers win) instead of replacing
+    // each other wholesale, so internal positioning styles survive user styles.
+    if (key === "style") {
+      return readStyle();
+    }
+    for (let index = layers.length - 1; index >= 0; index -= 1) {
+      if (layerHas(layers[index], key)) {
+        return layerGet(layers[index], key);
+      }
+    }
+    return undefined;
+  };
+
+  const hasKey = (key: PropertyKey) => {
+    if (typeof key !== "string") {
+      return false;
+    }
+    for (const layer of layers) {
+      if (layerHas(layer, key)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const proxy: Record<string, any> = new Proxy({} as Record<string, any>, {
+    get(_target, key) {
+      // `$PROXY` self-identification makes Solid read own keys reflectively and
+      // lets `merge` treat this object as a reactive source.
+      if (key === $PROXY) {
+        return proxy;
+      }
+      return typeof key === "string" ? read(key) : undefined;
+    },
+    has(_target, key) {
+      return key === $PROXY || hasKey(key);
+    },
+    ownKeys() {
+      const keys = new Set<string>();
+      for (const layer of layers) {
+        for (const key of layerKeys(layer)) {
+          if (key === "__proto__" || key === "constructor") {
+            continue;
+          }
+          keys.add(key);
+        }
+      }
+      return [...keys];
+    },
+    getOwnPropertyDescriptor(_target, key) {
+      if (!hasKey(key)) {
+        return undefined;
+      }
+      // The proxy target lacks the property, so the descriptor must be
+      // configurable to satisfy proxy invariants.
+      return { enumerable: true, configurable: true, get: () => read(key as string) };
+    },
+    set() {
+      return true;
+    },
+    deleteProperty() {
+      return true;
+    },
+  });
+
+  return proxy;
 }
 
 function createSourceResolver<State>(stateValue: State) {
@@ -273,8 +431,8 @@ function createSourceResolver<State>(stateValue: State) {
 function createRefChain() {
   let refs = new Set<(element: unknown) => void>();
 
-  const readRef = (layer: Record<string, any>) => {
-    const ref = untrack(() => layer?.ref);
+  const readRef = (layer: Record<string, any> | (() => Record<string, any>)) => {
+    const ref = untrack(() => (typeof layer === "function" ? layer() : layer)?.ref);
     return typeof ref === "function" ? (ref as (element: unknown) => void) : undefined;
   };
 
@@ -283,7 +441,7 @@ function createRefChain() {
       const ref = readRef(layer);
       if (ref !== undefined) refs.add(ref);
     },
-    replaceWith(layer: Record<string, any>) {
+    replaceWith(layer: () => Record<string, any>) {
       const ref = readRef(layer);
       if (ref === undefined) return;
       refs = new Set([ref]);

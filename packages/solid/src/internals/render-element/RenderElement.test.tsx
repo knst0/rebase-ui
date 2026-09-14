@@ -161,6 +161,52 @@ describe("<RenderElement />", () => {
     expect(element.id).toBe("second-base");
   });
 
+  it("applies keys a function prop source publishes after mount", () => {
+    // Interaction props are published from an effect, so a layer's key set is
+    // not final during the first render.
+    const [extra, setExtra] = createSignal<Record<string, string>>({}, { ownedWrite: true });
+    const { container } = render(() => <RenderElement as="div" props={[{ id: "base" }, () => extra()]} />);
+    const element = container.querySelector("div")!;
+    expect(element.getAttribute("role")).toBeNull();
+
+    setExtra({ role: "combobox", "aria-expanded": "false" });
+    flush();
+    expect(element.getAttribute("role")).toBe("combobox");
+    expect(element.getAttribute("aria-expanded")).toBe("false");
+
+    setExtra({ role: "combobox", "aria-expanded": "true" });
+    flush();
+    expect(element.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("keeps a later function source out of an earlier one's dependencies", () => {
+    // Reading one key must not subscribe the reader to unrelated layers, or a
+    // ref layer would be rebuilt whenever any other layer changes.
+    const [title, setTitle] = createSignal("first");
+    const resolved = vi.fn();
+    const { container } = render(() => (
+      <RenderElement
+        as="div"
+        props={[
+          { id: "base" },
+          () => ({ title: title() }),
+          (external): Record<string, unknown> => {
+            resolved();
+            return { "data-id": external.id };
+          },
+        ]}
+      />
+    ));
+    const element = container.querySelector("div")!;
+    expect(element.getAttribute("data-id")).toBe("base");
+    expect(resolved).toHaveBeenCalledTimes(1);
+
+    setTitle("second");
+    flush();
+    expect(element.getAttribute("title")).toBe("second");
+    expect(resolved).toHaveBeenCalledTimes(1);
+  });
+
   it("does not resolve props when disabled", () => {
     const propsResolver = vi.fn();
     const [enabled, setEnabled] = createSignal(false);

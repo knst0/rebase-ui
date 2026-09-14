@@ -1,4 +1,4 @@
-import { type Accessor, createRenderEffect } from "solid-js";
+import { type Accessor, createRenderEffect, untrack } from "solid-js";
 
 type UnwrapAccessor<T> = T extends () => infer R ? R : T;
 
@@ -68,20 +68,23 @@ export function applyStateAttributes<State extends Record<string, Accessor<unkno
   ownedByProps: Record<string, unknown>,
 ): void {
   const steps: AttributeStep[] = [];
+  // `ownedByProps` may be a reactive props proxy; ownership probes are a
+  // setup-time decision and must not subscribe this scope.
+  const ownsAttribute = (name: string) => untrack(() => name in ownedByProps);
 
   for (const key in state) {
     const mapping = customMapping?.[key];
     const read = () => unwrapStateValue(state[key]);
 
     if (mapping !== undefined) {
-      if (mapping.keys.some((name) => !(name in ownedByProps))) {
+      if (mapping.keys.some((name) => !ownsAttribute(name))) {
         steps.push({ mapping, read, name: undefined });
       }
       continue;
     }
 
     const name = `data-${key.toLowerCase()}`;
-    if (!(name in ownedByProps)) {
+    if (!ownsAttribute(name)) {
       steps.push({ mapping: undefined, read, name });
     }
   }
@@ -111,7 +114,7 @@ export function applyStateAttributes<State extends Record<string, Accessor<unkno
         }
 
         for (const name in attributes) {
-          if (!(name in ownedByProps)) {
+          if (!ownsAttribute(name)) {
             next.set(name, attributes[name]);
           }
         }

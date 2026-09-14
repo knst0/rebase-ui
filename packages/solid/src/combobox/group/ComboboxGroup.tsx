@@ -28,7 +28,9 @@ export function ComboboxGroup<T extends ValidComponent = "div">(props: ComboboxG
   const store = useComboboxRootContext() as ComboboxStore;
   const grid = () => store.select("grid") as boolean;
 
-  const [labelId, setLabelId] = createSignal<string | undefined>(undefined);
+  // `ComboboxGroupLabel` registers and clears the id from its own effect and
+  // cleanup, which run inside this owner's scope.
+  const [labelId, setLabelId] = createSignal<string | undefined>(undefined, { ownedWrite: true });
 
   const contextValue: ComboboxGroupContext = {
     get labelId() {
