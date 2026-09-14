@@ -46,6 +46,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # profiling harness output
 test/profile/output/
 
+# bundle analyzer output (baseline JSON is committed intentionally)
+bundle-report.html
+
 # temporary files
 .tmp-up/
 .eve

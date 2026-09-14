@@ -119,6 +119,10 @@
   },
   "scripts": {
     "build": "tsdown",
+    "bundle:check": "node ./scripts/measure-bundle.mjs --compare",
+    "bundle:report": "node ./scripts/measure-bundle.mjs --format html --out ./bundle-report.html",
+    "bundle:size": "node ./scripts/measure-bundle.mjs --format table",
+    "bundle:update-baseline": "node ./scripts/measure-bundle.mjs --update-baseline",
     "inline-scripts": "node ./scripts/inline-scripts.mjs",
     "prepack": "tsdown"
   },

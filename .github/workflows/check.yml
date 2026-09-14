@@ -49,6 +49,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Bundle sizes
+        run: pnpm --filter @rebase-ui/solid bundle:size
+
       - name: Pack
         run: pnpm --filter @rebase-ui/solid pack --pack-destination "$RUNNER_TEMP"
 
