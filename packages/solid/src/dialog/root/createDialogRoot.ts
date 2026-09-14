@@ -23,6 +23,11 @@ export interface CreateDialogRootParameters {
   triggerId: () => string | null | undefined;
   role: "dialog" | "alertdialog";
   parentContext?: CreateDialogRootReturnValue | undefined;
+  /**
+   * Marks the root as a drawer so nesting is reported to the parent as a nested
+   * drawer rather than a nested dialog. Used by `Drawer.Root`.
+   */
+  isDrawer?: boolean | undefined;
 }
 
 export interface CreateDialogRootReturnValue {
@@ -36,6 +41,18 @@ export interface CreateDialogRootReturnValue {
   transitionStatus: Accessor<TransitionStatus>;
   nested: boolean;
   nestedOpenDialogCount: Accessor<number>;
+  /**
+   * Number of open nested drawers. Tracked separately from nested dialogs so
+   * drawer parts can react to nested drawers specifically.
+   */
+  nestedOpenDrawerCount: Accessor<number>;
+  /**
+   * Gate for outside-press dismissal. `Drawer.SwipeArea` disables it while a
+   * swipe-open gesture is in flight so the release click cannot synchronously
+   * dismiss the drawer it just opened.
+   */
+  outsidePressEnabled: Accessor<boolean>;
+  setOutsidePressEnabled: (enabled: boolean) => void;
   modal: Accessor<boolean | "trap-focus">;
   disablePointerDismissal: Accessor<boolean>;
   role: "dialog" | "alertdialog";
@@ -69,6 +86,7 @@ export interface CreateDialogRootReturnValue {
   ) => void;
   registerTrigger: (id: string, element: HTMLElement) => () => void;
   registerNestedDialog: () => () => void;
+  registerNestedDrawer: () => () => void;
   requestClose: () => void;
   forceUnmount: () => void;
   registerKeepMounted: () => () => void;
@@ -114,6 +132,8 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
   const [viewportElement, setViewportElement] = createSignal<HTMLDivElement | null>(null);
 
   const [nestedOpenDialogCount, setNestedOpenDialogCount] = createSignal(0);
+  const [nestedOpenDrawerCount, setNestedOpenDrawerCount] = createSignal(0);
+  const [outsidePressEnabled, setOutsidePressEnabled] = createSignal(true);
   const [keepMountedCount, setKeepMountedCount] = createSignal(0);
 
   function registerKeepMounted(): () => void {
@@ -187,6 +207,14 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
     };
   }
 
+  function registerNestedDrawer(): () => void {
+    setNestedOpenDrawerCount((count) => count + 1);
+
+    return () => {
+      setNestedOpenDrawerCount((count) => Math.max(0, count - 1));
+    };
+  }
+
   function requestClose() {
     setOpen(false, createChangeEventDetails(REASONS.imperativeAction, undefined, untrack(activeTriggerElement) ?? undefined));
   }
@@ -212,6 +240,9 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
     transitionStatus,
     nested,
     nestedOpenDialogCount,
+    nestedOpenDrawerCount,
+    outsidePressEnabled,
+    setOutsidePressEnabled,
     modal,
     disablePointerDismissal,
     role,
@@ -241,6 +272,7 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
     registerKeepMounted,
     resolveTriggerElement,
     registerNestedDialog,
+    registerNestedDrawer,
     requestClose,
     forceUnmount,
     attachHandle,
@@ -250,6 +282,7 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
   // Notify the parent dialog about nested open state so only the topmost dialog
   // handles Escape and outside presses.
   if (parentContext) {
+    const isDrawerRoot = untrack(() => parameters.isDrawer) ?? false;
     createEffect(
       () => open(),
       (isOpen) => {
@@ -257,7 +290,7 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
           return undefined;
         }
 
-        return parentContext.registerNestedDialog();
+        return isDrawerRoot ? parentContext.registerNestedDrawer() : parentContext.registerNestedDialog();
       },
     );
   }
@@ -302,14 +335,14 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
 
   // Close the topmost dialog on Escape.
   createEffect(
-    () => ({ isOpen: open(), nestedCount: nestedOpenDialogCount() }),
+    () => ({ isOpen: open(), nestedCount: nestedOpenDialogCount(), nestedDrawerCount: nestedOpenDrawerCount() }),
     ({ isOpen }) => {
       if (!isOpen || typeof document === "undefined") {
         return undefined;
       }
 
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key !== "Escape" || untrack(nestedOpenDialogCount) > 0) {
+        if (event.key !== "Escape" || untrack(nestedOpenDialogCount) > 0 || untrack(nestedOpenDrawerCount) > 0) {
           return;
         }
 
@@ -326,16 +359,16 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
 
   // Close on outside presses and, for non-modal dialogs, on focus moving outside.
   createEffect(
-    () => ({ isOpen: open(), nestedCount: nestedOpenDialogCount() }),
+    () => ({ isOpen: open(), nestedCount: nestedOpenDialogCount(), nestedDrawerCount: nestedOpenDrawerCount() }),
     ({ isOpen }) => {
       if (!isOpen || typeof document === "undefined") {
         return undefined;
       }
 
-      const isTopmost = () => untrack(nestedOpenDialogCount) === 0;
+      const isTopmost = () => untrack(nestedOpenDialogCount) === 0 && untrack(nestedOpenDrawerCount) === 0;
 
       const handlePointerDown = (event: PointerEvent) => {
-        if (!isTopmost() || untrack(disablePointerDismissal)) {
+        if (!isTopmost() || untrack(disablePointerDismissal) || !untrack(outsidePressEnabled)) {
           return;
         }
 

@@ -338,6 +338,64 @@ describe("<RenderElement />", () => {
     state.mutated = () => true;
     expect(() => render(() => <RenderElement as="div" state={state} />)).not.toThrow();
   });
+
+  it("re-resolves children when they eagerly read state by default", () => {
+    const [label, setLabel] = createSignal("a");
+    let calls = 0;
+    const { container } = render(() => (
+      <RenderElement
+        as="div"
+        state={{ label }}
+        props={{
+          get children() {
+            calls += 1;
+            // Eager read: subscribes this resolution to `label`.
+            const text = label();
+            // Lazy read inside JSX stays fine-grained on its own.
+            return <span>{`${text}-${label()}`}</span>;
+          },
+        }}
+      />
+    ));
+
+    expect(calls).toBe(1);
+    expect(container.textContent).toBe("a-a");
+
+    setLabel("b");
+    flush();
+
+    expect(calls).toBe(2);
+    expect(container.textContent).toBe("b-b");
+  });
+
+  it("resolves children once with untrackChildren while keeping inner updates live", () => {
+    const [label, setLabel] = createSignal("a");
+    let calls = 0;
+    const { container } = render(() => (
+      <RenderElement
+        as="div"
+        state={{ label }}
+        props={{
+          get children() {
+            calls += 1;
+            const text = label();
+            return <span>{`${text}-${label()}`}</span>;
+          },
+        }}
+        untrackChildren
+      />
+    ));
+
+    expect(calls).toBe(1);
+    expect(container.textContent).toBe("a-a");
+
+    setLabel("b");
+    flush();
+
+    // No re-resolution, but the created content still reads state on its own.
+    expect(calls).toBe(1);
+    expect(container.textContent).toBe("a-b");
+  });
 });
 
 describe("<RenderElement /> prop layers", () => {

@@ -23,10 +23,13 @@ export function RenderElement<T extends ValidComponent, State extends Record<str
   const isDomElement = !isServer && typeof component === "string";
 
   const create = () => {
-    const componentProps = resolveProps<T, State>(props.state, props.props, props.stateAttributesMapping, isDomElement) as Record<
-      string,
-      any
-    >;
+    const componentProps = resolveProps<T, State>(
+      props.state,
+      props.props,
+      props.stateAttributesMapping,
+      isDomElement,
+      untrack(() => props.untrackChildren) ?? false,
+    ) as Record<string, any>;
 
     const element = renderComponent(component, componentProps);
 
@@ -156,12 +159,13 @@ function resolveProps<T extends ValidComponent, State extends Record<string, Acc
   props: RenderElementProps<T, State, undefined>["props"],
   stateAttributesMapping: StateAttributesMapping<State> | undefined,
   bindsStateDirectly: boolean,
+  untrackChildren: boolean,
 ) {
   const stateValue = state ?? ({} as State);
   const propsValue = props ?? {};
   const propsSources = (Array.isArray(propsValue) ? propsValue : [propsValue]) as PropsSourceList;
 
-  const resolveSource = createSourceResolver(stateValue);
+  const resolveSource = createSourceResolver(stateValue, untrackChildren);
   const refs = createRefChain();
   const layers: Layer[] = [];
 
@@ -401,7 +405,7 @@ function createDynamicProps(layers: Layer[]): Record<string, any> {
   return proxy;
 }
 
-function createSourceResolver<State>(stateValue: State) {
+function createSourceResolver<State>(stateValue: State, untrackChildren: boolean) {
   return <S extends Record<string, any>>(source: S): S => {
     if (!("class" in source) && !("style" in source) && !("children" in source)) {
       return source;
@@ -409,7 +413,24 @@ function createSourceResolver<State>(stateValue: State) {
 
     const resolvedClass = "class" in source ? createMemo(() => resolveClass(source.class, stateValue)) : undefined;
     const resolvedStyle = "style" in source ? createMemo(() => resolveStyle(source.style, stateValue)) : undefined;
-    const resolvedChildren = "children" in source ? createMemo(() => resolveChildren(source.children, stateValue)) : undefined;
+    // With `untrackChildren`, resolve children without subscribing to signals read
+    // while they are created. Invoking the children thunk runs component bodies
+    // synchronously (e.g. a root with trigger/portal parts), and eager reads there —
+    // such as `store.mounted()` in a `<Show>` — would otherwise re-create the whole
+    // subtree on every state change, discarding live state. Only the `children`
+    // prop itself stays reactive. By default children stay tracked so parts whose
+    // content reacts to state (e.g. a filtered list) keep re-resolving.
+    const resolvedChildren =
+      "children" in source
+        ? untrackChildren
+          ? createMemo(() =>
+              untrack(() => {
+                const childrenValue = source.children;
+                return resolveChildren(childrenValue, stateValue);
+              }),
+            )
+          : createMemo(() => resolveChildren(source.children, stateValue))
+        : undefined;
 
     const read = (key: string) => {
       if (key === "class") return resolvedClass?.();
@@ -513,4 +534,14 @@ export interface RenderElementProps<T extends ValidComponent, State, Enabled ext
    * A mapping of state to `data-*` attributes.
    */
   stateAttributesMapping?: StateAttributesMapping<State> | undefined;
+  /**
+   * Resolve `children` once, without subscribing to signals read while they are
+   * created. Use for wrappers whose children create stateful subtrees (e.g. an
+   * indent wrapping a root with trigger/portal parts): tracked resolution would
+   * re-create the whole subtree on every state change, discarding live state.
+   * Only the `children` prop itself stays reactive. Defaults to `false` so parts
+   * whose content reacts to state (e.g. a filtered list) keep re-resolving.
+   * @default false
+   */
+  untrackChildren?: boolean | undefined;
 }

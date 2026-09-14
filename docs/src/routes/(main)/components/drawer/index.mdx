@@ -1,0 +1,278 @@
+---
+title: Drawer
+description: A high-quality, unstyled Solid drawer component with swipe-to-dismiss gestures.
+---
+
+# Drawer
+
+A panel that slides in from the edge of the screen.
+
+<Demo hero />
+
+## Usage guidelines
+
+- **Drawer extends [Dialog](/components/dialog):** It adds gesture support, snap points, and indent effects. If you don't need these, use Dialog instead. A panel that slides in from the edge of the screen and doesn't need gesture support is a positioned Dialog.
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Drawer } from "@rebase-ui/solid/drawer";
+
+<Drawer.Provider>
+  <Drawer.IndentBackground />
+  <Drawer.Indent>
+    <Drawer.Root>
+      <Drawer.Trigger />
+      <Drawer.SwipeArea />
+      <Drawer.Portal>
+        <Drawer.Backdrop />
+        <Drawer.Viewport>
+          <Drawer.Popup>
+            <Drawer.Content>
+              <Drawer.Title />
+              <Drawer.Description />
+              <Drawer.Close />
+            </Drawer.Content>
+          </Drawer.Popup>
+        </Drawer.Viewport>
+      </Drawer.Portal>
+    </Drawer.Root>
+  </Drawer.Indent>
+</Drawer.Provider>;
+```
+
+Drawer supports swipe gestures to dismiss. Set `swipeDirection` to control which direction dismisses the drawer. `<Drawer.Content>` allows text selection of its children without swipe interference when using a mouse pointer. Add `data-base-ui-swipe-ignore` to a descendant when you need to opt that element out of swipe dismissal for all input types.
+
+Use `<Drawer.VirtualKeyboardProvider>` when a bottom sheet contains form fields and you want Rebase UI to manage keyboard-aware focus and scroll handling for software keyboards. Drawers without this provider are unaffected.
+
+## Examples
+
+### State
+
+By default, Drawer is an uncontrolled component that manages its own state.
+
+```jsx title="Uncontrolled drawer"
+<Drawer.Root>
+  <Drawer.Trigger>Open</Drawer.Trigger>
+  <Drawer.Portal>
+    <Drawer.Viewport>
+      <Drawer.Popup>
+        <Drawer.Content>
+          <Drawer.Title>Example drawer</Drawer.Title>
+          <Drawer.Close>Close</Drawer.Close>
+        </Drawer.Content>
+      </Drawer.Popup>
+    </Drawer.Viewport>
+  </Drawer.Portal>
+</Drawer.Root>
+```
+
+Use `open` and `onOpenChange` props if you need to access or control the state of the drawer.
+
+```jsx title="Controlled drawer"
+const [open, setOpen] = createSignal(false);
+return (
+  <Drawer.Root open={open()} onOpenChange={setOpen}>
+    <Drawer.Trigger>Open</Drawer.Trigger>
+    <Drawer.Portal>
+      <Drawer.Viewport>
+        <Drawer.Popup>
+          <Drawer.Content>
+            <Drawer.Title>Example drawer</Drawer.Title>
+            <Drawer.Close>Close</Drawer.Close>
+          </Drawer.Content>
+        </Drawer.Popup>
+      </Drawer.Viewport>
+    </Drawer.Portal>
+  </Drawer.Root>
+);
+```
+
+### Position
+
+Positioning is handled by your styles. `swipeDirection` defaults to `"down"` for bottom sheets. Use `"up"`, `"left"`, or `"right"` for other drawer positions.
+
+```jsx title="Swipe directions"
+<Drawer.Root swipeDirection="right">
+```
+
+<Demo position />
+
+### Nested drawers
+
+Use the `[data-nested-drawer-open]` selector and the `--nested-drawers` CSS variable to style drawers when a nested drawer is open.
+
+This demo stacks nested drawers using a constant peek so the frontmost drawer stays anchored to the bottom while the ones behind it are scaled down and lifted. It also uses the `--drawer-height` and `--drawer-frontmost-height` CSS variables to handle varying drawer heights.
+
+<Demo nested />
+
+### Snap points
+
+Use `snapPoints` to snap a bottom sheet drawer to preset heights. Numbers between 0 and 1 represent fractions of the viewport height, and numbers greater than 1 are treated as pixel values. String values support `px` and `rem` units (for example, `'148px'` or `'30rem'`).
+
+```jsx title="Controlled snap point"
+const snapPoints = ["148px", 1];
+const [snapPoint, setSnapPoint] = (createSignal < Drawer.Root.SnapPoint) | (null > snapPoints[0]);
+
+<Drawer.Root snapPoints={snapPoints} snapPoint={snapPoint()} onSnapPointChange={setSnapPoint}>
+  {/* ... */}
+</Drawer.Root>;
+```
+
+Apply the snap point offset in your styles when using vertical drawers:
+
+```css title="Snap point offset"
+.DrawerPopup {
+  transform: translateY(calc(var(--drawer-snap-point-offset) + var(--drawer-swipe-movement-y)));
+}
+```
+
+<Demo snap-points />
+
+### Virtual keyboard aware
+
+Wrap a bottom sheet in `<Drawer.VirtualKeyboardProvider>` to make it react to software keyboards when it contains form controls. When the keyboard opens, the provider scrolls the body to keep the focused field visible.
+
+- **Keep the popup frame stable:** place header and footer content outside a plain scrollable body.
+- **Lift a pinned footer input:** if a footer contains its own input, reserve a footer slot below the scroll area and offset it by `var(--drawer-keyboard-inset, 0px)`. The demo switches the focused footer to `position: fixed` — positioned against the popup, since its `transform` contains fixed descendants — and adds the inset to its bottom padding.
+- **Always include the `0px` fallback:** the provider only sets `--drawer-keyboard-inset` while the keyboard is aligned, so a bare `var(--drawer-keyboard-inset)` is invalid before the first alignment and after cleanup.
+
+<Demo virtual-keyboard-aware />
+
+### Indent effect
+
+Scale the background down when any drawer opens by wrapping your app in `<Drawer.Provider>` and use `<Drawer.IndentBackground>` + `<Drawer.Indent>` at the top of your tree. Any `<Drawer.Root>` within the provider notifies it when it mounts, which activates the indent parts (they receive `[data-active]` state attributes).
+
+<Demo indent-provider />
+
+### Non-modal
+
+Set `modal={false}` to opt out of focus trapping and `disablePointerDismissal` to keep the drawer open on outside clicks.
+
+<Demo non-modal />
+
+### Mobile navigation
+
+You can build a full-screen mobile navigation sheet using Drawer parts, including a flick-to-dismiss from the top gesture.
+
+<Demo mobile-nav />
+
+### Swipe to open
+
+Place `<Drawer.SwipeArea>` along the edge of the viewport to enable swipe-to-open gestures.
+
+<Demo swipe-area />
+
+### Close confirmation
+
+This example shows a nested confirmation dialog that opens if the text entered in the drawer is going to be discarded.
+
+To implement this, both the drawer and the confirmation dialog should be controlled. The confirmation dialog may be opened when the `onOpenChange` callback of the drawer receives a request to close while there is text in the textarea. This way, the confirmation is automatically shown when the user clicks the backdrop, presses the Esc key, clicks a close button, or dismisses the drawer with a swipe gesture.
+
+Use `eventDetails.cancel()` in `onOpenChange` to prevent the drawer from closing while the confirmation prompt is shown.
+
+<Demo close-confirmation />
+
+### Action sheet with separate destructive action
+
+This demo builds an action sheet with a grouped list of actions plus a separate destructive action button.
+
+<Demo uncontained />
+
+### Detached triggers
+
+A drawer can be controlled by a trigger located either inside or outside the `<Drawer.Root>` component. For simple, one-off interactions, place the `<Drawer.Trigger>` inside `<Drawer.Root>`.
+However, if defining the drawer's content next to its trigger is not practical, you can use a detached trigger. This involves placing the `<Drawer.Trigger>` outside of `<Drawer.Root>` and linking them with a `handle` created by the `Drawer.createHandle()` function.
+
+The imperative methods on the handle, such as `open()` and `openWithPayload()`, require a `<Drawer.Root>` using the same handle to be mounted.
+Calls made while no root is attached to the handle — before one mounts, or after it unmounts — are ignored. Each time a root mounts, it starts from fresh state: a call made while no root was attached is not replayed, and no open state carries over from a previous mount.
+
+```jsx title="Detached trigger"
+const demoDrawer = Drawer.createHandle();
+
+// @highlight
+// @highlight-text "handle={demoDrawer}"
+<Drawer.Trigger handle={demoDrawer}>Open</Drawer.Trigger>
+
+// @highlight
+// @highlight-text "handle={demoDrawer}"
+<Drawer.Root handle={demoDrawer}>
+  ...
+</Drawer.Root>
+```
+
+The drawer can render different content depending on which trigger opened it. This is achieved by passing a `payload` to the `<Drawer.Trigger>` and using the function-as-a-child pattern in `<Drawer.Root>`.
+The function is called once and its argument exposes `payload` as a reactive getter, so read it inside JSX (never destructure it) to keep the content updating in place.
+
+```jsx title="Detached triggers with payload"
+// @highlight
+const demoDrawer = Drawer.createHandle<{ title: string }>();
+
+// @highlight
+// @highlight-text "payload"
+<Drawer.Trigger handle={demoDrawer} payload={{ title: "Profile" }}>
+  Profile
+</Drawer.Trigger>
+
+// @highlight
+// @highlight-text "payload"
+<Drawer.Trigger handle={demoDrawer} payload={{ title: "Settings" }}>
+  Settings
+</Drawer.Trigger>
+
+<Drawer.Root handle={demoDrawer}>
+  {(root) => (
+    <Drawer.Portal>
+      <Drawer.Popup>
+        <Drawer.Content>
+          <Drawer.Title>{root.payload?.title}</Drawer.Title> {/* @highlight-text "payload" */}
+        </Drawer.Content>
+      </Drawer.Popup>
+    </Drawer.Portal>
+  )}
+</Drawer.Root>
+```
+
+### Stacking and animations
+
+Use CSS transitions or animations to animate drawer opening, closing, swipe interactions, and nested stacking. The `data-starting-style` attribute is applied when a drawer starts to open, and `data-ending-style` is applied when it starts to close.
+
+The `--nested-drawers` CSS variable can be used to determine stack depth. The frontmost drawer has index `0`.
+
+```css title="Scale stacked drawers"
+.DrawerPopup {
+  --stack-step: 0.05;
+  --stack-scale: calc(1 - (var(--nested-drawers) * var(--stack-step)));
+  transform: translateY(var(--drawer-swipe-movement-y)) scale(var(--stack-scale));
+}
+```
+
+When stacked drawers have varying heights, use the `--drawer-height` and `--drawer-frontmost-height` variables to keep collapsed drawers aligned with the frontmost one.
+
+```css title="Align varying drawer heights"
+.DrawerPopup {
+  --bleed: 3rem;
+  --stack-height: max(0px, calc(var(--drawer-frontmost-height, var(--drawer-height)) - var(--bleed)));
+  height: var(--drawer-height, auto);
+}
+.DrawerPopup[data-nested-drawer-open] {
+  height: calc(var(--stack-height) + var(--bleed));
+  overflow: hidden;
+}
+```
+
+The `data-nested-drawer-open` attribute marks drawers behind the frontmost drawer. Use it with `data-nested-drawer-swiping` to dim or hide parent drawer content while keeping it visible during nested swipe interactions.
+
+```css title="Dim parent drawer content"
+.DrawerContent {
+  transition: opacity 300ms;
+}
+/* @highlight-text "data-nested-drawer-open" */
+.DrawerContent {
+  opacity: 1;
+}
+```
+
+<ApiReference slug="drawer" />
