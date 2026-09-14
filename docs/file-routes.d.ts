@@ -129,7 +129,31 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/input/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/menu/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/meter/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/number-field/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/otp-field/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -142,6 +166,12 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/(main)/components/preview-card/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/radio/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -250,6 +280,14 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/menu/";
+              id: "/menu/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/tabs/";
               id: "/tabs/";
               page: true;
@@ -266,8 +304,24 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/input/";
+              id: "/input/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/meter/";
               id: "/meter/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/radio/";
+              id: "/radio/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
@@ -386,6 +440,14 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/otp-field/";
+              id: "/otp-field/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/separator/";
               id: "/separator/";
               page: true;
@@ -412,6 +474,14 @@ declare module "virtual:file-routes" {
             {
               path: "/alert-dialog/";
               id: "/alert-dialog/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/number-field/";
+              id: "/number-field/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

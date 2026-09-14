@@ -67,7 +67,9 @@ export function FloatingNode(props: FloatingNodeProps): JSX.Element {
     parentId,
   }));
 
-  return <FloatingNodeContext value={value()}>{props.children}</FloatingNodeContext>;
+  // Intentional one-shot read: the memo has no reactive dependencies (the id is consumed
+  // untracked by design), so there is nothing to subscribe to here.
+  return <FloatingNodeContext value={untrack(value)}>{props.children}</FloatingNodeContext>;
 }
 
 export interface FloatingTreeProps {
