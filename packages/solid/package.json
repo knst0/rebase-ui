@@ -60,7 +60,8 @@
     "./tooltip": "./src/tooltip/index.ts",
     "./popover": "./src/popover/index.ts",
     "./preview-card": "./src/preview-card/index.ts",
-    "./select": "./src/select/index.ts"
+    "./select": "./src/select/index.ts",
+    "./toast": "./src/toast/index.ts"
   },
   "publishConfig": {
     "imports": {
@@ -97,7 +98,8 @@
       "./tooltip": "./dist/tooltip/index.js",
       "./popover": "./dist/popover/index.js",
       "./preview-card": "./dist/preview-card/index.js",
-      "./select": "./dist/select/index.js"
+      "./select": "./dist/select/index.js",
+      "./toast": "./dist/toast/index.js"
     },
     "access": "public"
   },

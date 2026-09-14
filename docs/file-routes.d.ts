@@ -183,6 +183,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/toast/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/toggle/";
       page: true;
       $component: FileRouteLazyRef;
@@ -262,6 +268,14 @@ declare module "virtual:file-routes" {
             {
               path: "/meter/";
               id: "/meter/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/toast/";
+              id: "/toast/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
