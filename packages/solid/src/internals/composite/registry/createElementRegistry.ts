@@ -46,10 +46,15 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
   });
 
   const indexOf = (element: HTMLElement | null) => {
+    // Read unconditionally so index queries subscribe to registry changes even
+    // when there is nothing to look up yet (e.g. before the item's ref runs).
+    // Otherwise the first `-1` would stick forever: later registrations could
+    // never invalidate the reader.
+    const map = indices();
     if (element === null) {
       return -1;
     }
-    return indices().get(element) ?? -1;
+    return map.get(element) ?? -1;
   };
 
   const metadataOf = (element: HTMLElement) => {

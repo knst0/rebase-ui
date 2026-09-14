@@ -99,6 +99,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/combobox/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/dialog/";
       page: true;
       $component: FileRouteLazyRef;
@@ -336,6 +342,14 @@ declare module "virtual:file-routes" {
             {
               path: "/checkbox/";
               id: "/checkbox/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/combobox/";
+              id: "/combobox/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
