@@ -241,6 +241,35 @@ describe("<Button />", () => {
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
+    it("reacts to focusableWhenDisabled changes after mount", async () => {
+      function TestButton() {
+        const [focusable, setFocusable] = createSignal(false);
+
+        return (
+          <>
+            <Button disabled focusableWhenDisabled={focusable()}>
+              Save
+            </Button>
+            <button type="button" onClick={() => setFocusable(true)}>
+              Make focusable
+            </button>
+          </>
+        );
+      }
+
+      const user = userEvent.setup();
+      render(() => <TestButton />);
+
+      const button = screen.getByRole("button", { name: "Save" });
+      expect(button.hasAttribute("disabled")).toBe(true);
+
+      await user.click(screen.getByRole("button", { name: "Make focusable" }));
+
+      expect(button.hasAttribute("disabled")).toBe(false);
+      expect(button.getAttribute("aria-disabled")).toBe("true");
+      expect(button.getAttribute("tabindex")).toBe("0");
+    });
+
     it("custom element: prevents interactions but remains focusable", async () => {
       const handleClick = vi.fn();
       const handleMouseDown = vi.fn();

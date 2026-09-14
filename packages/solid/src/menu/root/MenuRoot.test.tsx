@@ -1,13 +1,24 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
+import type { ValidComponent } from "@solidjs/web";
 import userEvent from "@testing-library/user-event";
-import { flush } from "solid-js";
+import { flush, omit } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { nextFrames } from "#test-utils";
 
+import { Button as ButtonPrimitive } from "../../button";
 import * as Menu from "../index.parts";
 import { createMenuHandle } from "../store/MenuHandle";
+
+// A custom `as` wrapper like apps build: pulls its own props out with `omit` in the
+// body, computes `class` in JSX, and forwards the rest. Feeds the inner Button a
+// RenderElement dynamic proxy, which used to warn STRICT_READ_UNTRACKED on every read.
+function TriggerButton<T extends ValidComponent = "button">(props: ButtonPrimitive.Props<T> & { variant?: string; iconOnly?: boolean }) {
+  const rest = omit(props, "variant", "iconOnly", "class");
+
+  return <ButtonPrimitive class={`nk-button-${props.variant ?? "soft"} ${props.class ?? ""}`} {...rest} />;
+}
 
 function renderMenu(rootProps: Menu.Root.Props = {}, itemProps: Menu.Item.Props = {}) {
   render(() => (
@@ -303,6 +314,56 @@ describe("<Menu.Root />", () => {
       await nextFrames();
 
       expect(popup()).toBeNull();
+      expect(diagnostics).toEqual([]);
+    } finally {
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("reads no reactive values outside a tracking scope when the trigger renders as a wrapped Button", async () => {
+    const diagnostics: string[] = [];
+    const originalWarn = console.warn;
+    const originalError = console.error;
+    const recordDiagnostic = (...args: unknown[]) => {
+      if (typeof args[0] === "string" && args[0].includes("STRICT_READ_UNTRACKED")) {
+        diagnostics.push(args[0]);
+      }
+    };
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
+      recordDiagnostic(...args);
+      originalWarn(...args);
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+      recordDiagnostic(...args);
+      originalError(...args);
+    });
+
+    try {
+      render(() => (
+        <Menu.Root>
+          <Menu.Trigger openOnHover as={TriggerButton} variant="ghost" iconOnly aria-label="Open menu">
+            Open menu
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner data-testid="positioner">
+              <Menu.Popup data-testid="popup">
+                <Menu.Item>Profile</Menu.Item>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      ));
+
+      const trigger = screen.getByRole("button", { name: "Open menu" });
+      const user = await openViaTrigger(trigger);
+      expect(screen.queryByTestId("popup")).toBeInTheDocument();
+
+      await user.click(trigger);
+      flush();
+      await nextFrames();
+
+      expect(screen.queryByTestId("popup")).toBeNull();
       expect(diagnostics).toEqual([]);
     } finally {
       warnSpy.mockRestore();

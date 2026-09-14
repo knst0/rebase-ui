@@ -1,3 +1,5 @@
+import { untrack } from "solid-js";
+
 type Group<T> = readonly (keyof T & string)[];
 
 type Defaulted<P, D> = Omit<P, keyof D> & { [K in Extract<keyof P, keyof D>]-?: Exclude<P[K], undefined> };
@@ -21,6 +23,7 @@ export function split<T extends Record<string, any>, const G extends readonly Gr
   options: SplitOptions<T, D>,
   ...groups: G
 ): [...Grouped<T, G, D>, Rest<T, G, D>];
+
 export function split(props: Record<string, any>, ...args: any[]): any[] {
   const hasOptions = args.length > 0 && !Array.isArray(args[0]);
   const groups: string[][] = hasOptions ? args.slice(1) : args;
@@ -42,12 +45,18 @@ export function split(props: Record<string, any>, ...args: any[]): any[] {
   const rest: Record<string, any> = {};
   targets.push(rest);
 
+  // Key routing is init-time structure: bodies never re-run, so subscribing the
+  // enumeration to a reactive source's key signature is dead weight — and when the
+  // source is a RenderElement dynamic proxy (component composed via `as`), probing
+  // its keys outside a tracking scope warns STRICT_READ_UNTRACKED. Values stay live:
+  // forwardProp forwards them behind lazy getters.
   const seen = new Set<string>();
-
-  for (const key in props) {
-    seen.add(key);
-    forwardProp(owners.get(key) ?? rest, props, key, defaults);
-  }
+  untrack(() => {
+    for (const key in props) {
+      seen.add(key);
+      forwardProp(owners.get(key) ?? rest, props, key, defaults);
+    }
+  });
 
   if (defaults !== undefined) {
     for (const key in defaults) {

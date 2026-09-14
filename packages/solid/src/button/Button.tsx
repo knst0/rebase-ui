@@ -20,8 +20,8 @@ export function Button<T extends ValidComponent = "button">(props: Button.Props<
 
   const { getButtonProps, buttonRef } = createButton({
     disabled,
-    focusableWhenDisabled: local.focusableWhenDisabled,
-    native: local.nativeButton,
+    focusableWhenDisabled: () => local.focusableWhenDisabled,
+    native: () => local.nativeButton ?? true,
   });
 
   const state: ButtonState = { disabled };
