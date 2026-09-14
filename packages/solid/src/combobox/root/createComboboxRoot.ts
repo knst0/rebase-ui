@@ -564,7 +564,9 @@ export function createComboboxRoot(
     } else {
       lastHighlight = { value, index };
     }
-    onItemHighlighted(value, createGenericEventDetails(type, undefined, { index }));
+    // One-shot callback read: the effect apply scopes that reach this emitter
+    // must not subscribe to the handler identity, so read it untracked.
+    untrack(() => onItemHighlighted(value, createGenericEventDetails(type, undefined, { index })));
   }
 
   function setIndices(options: {
@@ -943,7 +945,10 @@ export function createComboboxRoot(
     grid: setupGrid ? gridNavigation : undefined,
     onNavigate(nextActiveIndex, event) {
       // Retain the highlight only while actually transitioning out or closed.
-      if ((!event && !open()) || transitionStatus() === "ending") {
+      // This callback runs from the navigation interaction's untracked effect,
+      // so read the current state once without subscribing.
+      const [isOpen, status] = untrack(() => [open(), transitionStatus()] as const);
+      if ((!event && !isOpen) || status === "ending") {
         return;
       }
       if (!event) {
@@ -1281,9 +1286,13 @@ export function createComboboxRoot(
                   ? currentSelectedValue.length > 0
                   : currentMode !== "none" && currentSelectedValue != null;
               if (hasSelection) {
+                // The apply callback (and this deferred microtask) are
+                // untracked, so use the compute function's snapshot instead of
+                // reading the signals again (which would warn as
+                // STRICT_READ_UNTRACKED and never subscribe).
                 const registry =
-                  hasItems() || parameters.filteredItems() !== undefined
-                    ? flatFilteredValues()
+                  hasSourceItems || hasExternalItems
+                    ? filtered
                     : store.context.valuesRef.current;
                 // A selection-driven clear keeps the just-selected item highlighted;
                 // otherwise return to the open anchor. A selection that is no longer in

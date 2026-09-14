@@ -1,5 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import { For } from "solid-js";
+import { createMemo, For } from "solid-js";
 
 import { useComboboxDerivedItemsContext } from "../root/ComboboxRootContext";
 import { useGroupCollectionContext } from "./GroupCollectionContext";
@@ -22,7 +22,17 @@ export function ComboboxCollection(props: ComboboxCollection.Props): JSX.Element
   const itemsToRender = () =>
     (groupContext?.items ?? derived.filteredItems) as readonly unknown[];
 
-  return <For each={itemsToRender()}>{(item, index) => props.children(item, index())}</For>;
+  return (
+    <For each={itemsToRender()}>
+      {(item, index) => {
+        // `For` runs its mapper untracked, so reading `index()` here would
+        // never subscribe. Resolve it inside a per-row memo (a tracking
+        // scope) and read the memo from JSX instead.
+        const rendered = createMemo(() => props.children(item, index()));
+        return <>{rendered()}</>;
+      }}
+    </For>
+  );
 }
 
 export interface ComboboxCollectionState {}

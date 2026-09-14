@@ -39,7 +39,10 @@ export function ComboboxChips<T extends ValidComponent = 'div'>(props: ComboboxC
   createEffect(
     () => store.select('open'),
     (open) => {
-      if (open && highlightedChipIndex() !== undefined) {
+      // The apply callback is untracked: read nothing reactive here. Writing
+      // the same value is a no-op, so the `!== undefined` guard can go — the
+      // setter already skips identical values.
+      if (open) {
         setHighlightedChipIndex(undefined);
       }
       return undefined;

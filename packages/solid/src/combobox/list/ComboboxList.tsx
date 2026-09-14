@@ -1,5 +1,5 @@
 import type { JSX, ValidComponent } from "@solidjs/web";
-import { createEffect, For, untrack } from "solid-js";
+import { createEffect, createMemo, For, untrack } from "solid-js";
 
 import { useCompositeListContext } from "../../internals/composite";
 import { stopEvent } from "../../internals/floating/utils/event";
@@ -62,8 +62,10 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
   // registry, which this effect mirrors into the store's element/label arrays.
   const compositeList = useCompositeListContext<{ label?: string | null }>();
   createEffect(
-    () => compositeList.map(),
-    (map) => {
+    // The apply callback is untracked, so every reactive value it needs must
+    // be read in this compute function.
+    () => ({ map: compositeList.map(), hasItems: getHasItems() }),
+    ({ map, hasItems }) => {
       const nextElements: Array<HTMLElement | null> = Array.from({ length: map.size });
       const nextLabels: Array<string | null> = Array.from({ length: map.size });
       for (const [element, entry] of map) {
@@ -71,7 +73,7 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
         nextLabels[entry.index] = entry.label ?? element.textContent ?? null;
       }
       store.context.listRef.current = nextElements;
-      if (!(getHasItems() && !store.peek("forceMounted"))) {
+      if (!(hasItems && !store.peek("forceMounted"))) {
         store.context.labelsRef.current = nextLabels;
       }
       return undefined;
@@ -94,9 +96,15 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
         // upstream's implicit `Combobox.Collection` wrapper.
         return (
           <For each={getFilteredItems()}>
-            {(item: unknown, index) =>
-              (childrenProp as (item: unknown, index: number) => JSX.Element)(item, index())
-            }
+            {(item: unknown, index) => {
+              // `For` runs its mapper untracked, so reading `index()` here
+              // would never subscribe. Resolve it inside a per-row memo (a
+              // tracking scope) and read the memo from JSX instead.
+              const rendered = createMemo(() =>
+                (childrenProp as (item: unknown, index: number) => JSX.Element)(item, index()),
+              );
+              return <>{rendered()}</>;
+            }}
           </For>
         );
       }
