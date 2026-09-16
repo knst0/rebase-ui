@@ -41,6 +41,11 @@ jobs:
           case "$base" in /*) ;; *) base="/$base" ;; esac
           case "$base" in */) ;; *) base="$base/" ;; esac
           echo "DOCS_BASE=$base" >> "$GITHUB_ENV"
+          if [ -n "${{ inputs.cname }}" ]; then
+            echo "DOCS_URL=https://${{ inputs.cname }}" >> "$GITHUB_ENV"
+          else
+            echo "DOCS_URL=https://knst0.github.io" >> "$GITHUB_ENV"
+          fi
 
       - name: Build the docs
         run: pnpm --filter @rebase-ui/docs exec vite build

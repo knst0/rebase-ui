@@ -112,26 +112,6 @@ export async function collectDemo(mdxFile: string, name: string): Promise<Demo |
   }
 }
 
-export async function listDemos(mdxFile: string): Promise<string[]> {
-  if (typeof process === "undefined" || process.env.NODE_ENV !== "development") return [];
-  const root = join(dirname(mdxFile), DEMOS_DIR);
-  const names = new Set<string>();
-
-  try {
-    for (const entry of await readdir(root, { withFileTypes: true })) {
-      if (entry.isDirectory()) {
-        names.add(entry.name);
-        continue;
-      }
-      if (ENTRY_EXTENSIONS.has(extname(entry.name))) names.add(entry.name.slice(0, -extname(entry.name).length));
-    }
-  } catch {
-    return [];
-  }
-
-  return [...names].sort();
-}
-
 export function demoToMarkdown(demo: Demo): string {
   const blocks = demo.variants.flatMap((variant) => {
     const title = demo.variants.length > 1 ? `### ${variant.title}` : "";

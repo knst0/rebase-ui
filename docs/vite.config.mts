@@ -26,6 +26,11 @@ const API_REFERENCE = {
   shared: ["../packages/solid/src/internals/types.ts", "../packages/solid/src/types/index.ts"],
 };
 
+function resolveSiteUrl(): string | undefined {
+  const raw = process.env.DOCS_URL?.trim();
+  return raw === undefined || raw === "" ? undefined : raw.replace(/\/+$/, "");
+}
+
 function resolveBase(): string {
   const raw = (process.env.DOCS_BASE ?? "/").replace(/\\/g, "/");
   const segments = raw.split("/").filter(Boolean);
@@ -37,6 +42,7 @@ function resolveBase(): string {
 
 const base = resolveBase();
 const basePath = base === "/" ? "" : base.replace(/\/$/, "");
+const siteUrl = resolveSiteUrl();
 
 export default defineConfig({
   base,
@@ -74,8 +80,7 @@ export default defineConfig({
     }),
     apiReference(API_REFERENCE),
     {
-      ...llms({ componentsDir: "src/routes/(main)/components", api: API_REFERENCE }),
-      apply: "build",
+      ...llms({ componentsDir: "src/routes/(main)/components", api: API_REFERENCE, basePath, siteUrl }),
       applyToEnvironment: (environment) => environment.name === "client",
     },
     tailwindcss(),
