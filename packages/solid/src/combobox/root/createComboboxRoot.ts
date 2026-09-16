@@ -1,4 +1,4 @@
-import { getOverflowAncestors } from "@floating-ui/dom";
+import { getOverflowAncestors } from "@floating-ui/utils/dom";
 import {
   createEffect,
   createMemo,

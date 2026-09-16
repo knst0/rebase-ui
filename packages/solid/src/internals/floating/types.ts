@@ -89,22 +89,6 @@ export type {
   Strategy,
   VirtualElement,
 };
-export {
-  arrow,
-  autoPlacement,
-  autoUpdate,
-  computePosition,
-  detectOverflow,
-  flip,
-  getOverflowAncestors,
-  hide,
-  inline,
-  limitShift,
-  offset,
-  platform,
-  shift,
-  size,
-} from "@floating-ui/dom";
 
 type Prettify<T> = {
   [K in keyof T]: T[K];
