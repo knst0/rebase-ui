@@ -1,15 +1,15 @@
-import type { Side } from '../../internals/anchor-positioning/createAnchorPositioning';
-import { useComboboxDerivedItemsContext } from '../root/ComboboxRootContext';
-import type { ComboboxStore } from '../store/ComboboxStore';
+import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { useComboboxDerivedItemsContext } from "../root/ComboboxRootContext";
+import type { ComboboxStore } from "../store/ComboboxStore";
 
 /**
  * The popup side is only meaningful while the positioner is mounted, as the store retains the
  * last resolved side after the popup unmounts.
  */
 export function usePopupSide(store: ComboboxStore): Side | null {
-  const mounted = store.select('mounted') as boolean;
-  const popupSide = store.select('popupSide') as Side | null;
-  const positionerElement = store.select('positionerElement') as HTMLElement | null;
+  const mounted = store.select("mounted") as boolean;
+  const popupSide = store.select("popupSide") as Side | null;
+  const positionerElement = store.select("positionerElement") as HTMLElement | null;
 
   return mounted && positionerElement ? popupSide : null;
 }
@@ -24,10 +24,8 @@ export function useListEmpty(): boolean {
 /**
  * The arrow keys that move the chip highlight backwards and forwards, in that order.
  */
-export function getChipNavigationKeys(direction: 'ltr' | 'rtl') {
-  return direction === 'rtl'
-    ? (['ArrowRight', 'ArrowLeft'] as const)
-    : (['ArrowLeft', 'ArrowRight'] as const);
+export function getChipNavigationKeys(direction: "ltr" | "rtl") {
+  return direction === "rtl" ? (["ArrowRight", "ArrowLeft"] as const) : (["ArrowLeft", "ArrowRight"] as const);
 }
 
 /**
@@ -42,11 +40,7 @@ export function getIndexAfterChipRemoval(index: number, chipCount: number) {
  * Commits the highlighted item by clicking it, tagging the originating event so the item's
  * handler can attribute the selection to it.
  */
-export function clickHighlightedItem(
-  store: ComboboxStore,
-  activeIndex: number,
-  nativeEvent: KeyboardEvent,
-) {
+export function clickHighlightedItem(store: ComboboxStore, activeIndex: number, nativeEvent: KeyboardEvent) {
   const listItem = store.context.listRef.current[activeIndex];
 
   if (listItem) {

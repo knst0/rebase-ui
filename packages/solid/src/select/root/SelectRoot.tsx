@@ -11,20 +11,13 @@ import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visua
 import { defaultItemEquality } from "../utils/itemEquality";
 import { stringifyAsLabel, stringifyAsValue, type SelectItemsInput } from "../utils/resolveValueLabel";
 import { createSelectRoot } from "./createSelectRoot";
-import {
-  SelectFloatingContext,
-  SelectRootContext,
-  SelectRootPropsContext,
-  type SelectRootPropsContextValue,
-} from "./SelectRootContext";
+import { SelectFloatingContext, SelectRootContext, SelectRootPropsContext, type SelectRootPropsContextValue } from "./SelectRootContext";
 
 /**
  * Groups all parts of the select.
  * Doesn't render its own HTML element.
  */
-export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
-  props: SelectRoot.Props<Value, Multiple>,
-) {
+export function SelectRoot<Value, Multiple extends boolean | undefined = false>(props: SelectRoot.Props<Value, Multiple>) {
   const multiple = () => props.multiple ?? false;
 
   const defaultValue = untrack((): any => {
@@ -51,14 +44,9 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
     itemToStringLabel: () => props.itemToStringLabel as ((item: any) => string) | undefined,
     itemToStringValue: () => props.itemToStringValue as ((item: any) => string) | undefined,
     isItemEqualToValue: () =>
-      (props.isItemEqualToValue as ((itemValue: any, selectedValue: any) => boolean) | undefined) ??
-      defaultItemEquality,
+      (props.isItemEqualToValue as ((itemValue: any, selectedValue: any) => boolean) | undefined) ?? defaultItemEquality,
     onValueChange: (value, eventDetails) =>
-      (
-        props.onValueChange as
-          | ((value: any, eventDetails: SelectRoot.ChangeEventDetails) => void)
-          | undefined
-      )?.(value, eventDetails),
+      (props.onValueChange as ((value: any, eventDetails: SelectRoot.ChangeEventDetails) => void) | undefined)?.(value, eventDetails),
     onOpenChange: (open, eventDetails) => props.onOpenChange?.(open, eventDetails),
     onOpenChangeComplete: (open) => props.onOpenChangeComplete?.(open),
     hasActionsRef: untrack(() => props.actionsRef) !== undefined,
@@ -98,9 +86,12 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
     itemProps: root.itemProps,
   };
 
-  const mergedInputRef = mergeRefs(untrack(() => props.inputRef), (element: HTMLInputElement) => {
-    field.validation.inputElement = element;
-  });
+  const mergedInputRef = mergeRefs(
+    untrack(() => props.inputRef),
+    (element: HTMLInputElement) => {
+      field.validation.inputElement = element;
+    },
+  );
 
   function handleHiddenInputFocus() {
     // Move focus to the trigger element when the hidden input is focused.
@@ -181,9 +172,7 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
             onFocus: handleHiddenInputFocus,
             onChange: handleAutofillChange,
             get id() {
-              return root.generatedId() && hiddenInputName() == null
-                ? `${root.generatedId()}-hidden-input`
-                : undefined;
+              return root.generatedId() && hiddenInputName() == null ? `${root.generatedId()}-hidden-input` : undefined;
             },
             get form() {
               return props.form;
@@ -219,7 +208,10 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
             type="hidden"
             form={props.form}
             name={root.name()}
-            value={stringifyAsValue(itemValue, untrack(() => props.itemToStringValue))}
+            value={stringifyAsValue(
+              itemValue,
+              untrack(() => props.itemToStringValue),
+            )}
             disabled={root.disabled()}
           />
         )}
@@ -228,9 +220,7 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
   );
 }
 
-type SelectValueType<Value, Multiple extends boolean | undefined> = Multiple extends true
-  ? Value[]
-  : Value;
+type SelectValueType<Value, Multiple extends boolean | undefined> = Multiple extends true ? Value[] : Value;
 
 export interface SelectRootProps<Value, Multiple extends boolean | undefined = false> {
   children?: JSX.Element | undefined;
@@ -387,10 +377,7 @@ export type SelectRootChangeEventReason =
 export type SelectRootChangeEventDetails = RebaseUIChangeEventDetails<SelectRootChangeEventReason>;
 
 export namespace SelectRoot {
-  export type Props<Value, Multiple extends boolean | undefined = false> = SelectRootProps<
-    Value,
-    Multiple
-  >;
+  export type Props<Value, Multiple extends boolean | undefined = false> = SelectRootProps<Value, Multiple>;
   export type State = SelectRootState;
   export type Actions = SelectRootActions;
   export type ChangeEventReason = SelectRootChangeEventReason;

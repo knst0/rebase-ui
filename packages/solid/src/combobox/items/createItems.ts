@@ -1,20 +1,14 @@
 import { EMPTY_ARRAY } from "#utils/empty";
 
 import { error } from "../../internals/utils/error";
-import { flattenLeafItems, stringifyAsLabel } from "../../select/utils/resolveValueLabel";
 import type { ItemEqualityComparer } from "../../select/utils/itemEquality";
+import { flattenLeafItems, stringifyAsLabel } from "../../select/utils/resolveValueLabel";
 import { findCollectionItem, type ComboboxItemCollection } from "./itemCollection";
 
 export type ComboboxPrimitiveValue = string | number | bigint | boolean;
 
 type RemoveIndexSignature<Type> = {
-  [Key in keyof Type as string extends Key
-    ? never
-    : number extends Key
-      ? never
-      : symbol extends Key
-        ? never
-        : Key]: Type[Key];
+  [Key in keyof Type as string extends Key ? never : number extends Key ? never : symbol extends Key ? never : Key]: Type[Key];
 };
 
 /** Whether any constituent of `Item` explicitly declares an `items` field that may be an array. */
@@ -52,12 +46,7 @@ type GroupShapedItemsError =
  * @param options Functions that derive each source item's selection value and display label.
  * @returns A collection whose selection value is the `getValue` accessor's return value.
  */
-type RejectGroupShapedItems<Item> =
-  IsAny<Item> extends true
-    ? unknown
-    : true extends HasGroupShape<Item>
-      ? GroupShapedItemsError
-      : unknown;
+type RejectGroupShapedItems<Item> = IsAny<Item> extends true ? unknown : true extends HasGroupShape<Item> ? GroupShapedItemsError : unknown;
 
 // The group-shape guard stays outside this union because folding it in breaks tsc's leaf-item
 // inference for grouped data.
@@ -65,10 +54,7 @@ type ComboboxItemsData<Item> =
   | (Extract<Item, { items: ReadonlyArray<unknown> }> extends never ? readonly Item[] : never)
   | readonly { items: ReadonlyArray<Item> }[];
 
-export interface CreateComboboxItemsOptions<
-  Item,
-  Value extends ComboboxPrimitiveValue = ComboboxPrimitiveValue,
-> {
+export interface CreateComboboxItemsOptions<Item, Value extends ComboboxPrimitiveValue = ComboboxPrimitiveValue> {
   /**
    * Projects an item to the primitive value that identifies it, used as the item's
    * selection value.
@@ -144,11 +130,7 @@ export function createComboboxItems<Item, Value extends ComboboxPrimitiveValue>(
       return findCollectionItem(ensureDerived(), itemValue, isEqual) !== undefined;
     },
     itemLabel: getLabel,
-    label(
-      itemValue: Value,
-      isEqual: ItemEqualityComparer<Value>,
-      fallback?: ((itemValue: Value) => string) | undefined,
-    ) {
+    label(itemValue: Value, isEqual: ItemEqualityComparer<Value>, fallback?: ((itemValue: Value) => string) | undefined) {
       const item = findCollectionItem(ensureDerived(), itemValue, isEqual);
       if (item !== undefined) {
         return getLabel(item);

@@ -1,13 +1,9 @@
 import type { ValidComponent } from "@solidjs/web";
 import { createEffect, untrack } from "solid-js";
 
-import {
-  createChangeEventDetails,
-  createGenericEventDetails,
-  REASONS,
-} from "../../internals/event-details";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { createRegisterFieldControl } from "../../internals/field-register-control";
+import { useFieldRootContext } from "../../internals/field-root-context";
 import { useFormContext } from "../../internals/form-context";
 import { useLabelableContext } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
@@ -15,9 +11,8 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { formatNumber } from "../../slider/utils/formatNumber";
-import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
 import type { NumberFieldRootState } from "../root/NumberFieldRoot";
-import { stateAttributesMapping } from "../utils/stateAttributesMapping";
+import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
 import {
   ANY_MINUS_DETECT_RE,
   ANY_MINUS_RE,
@@ -28,17 +23,10 @@ import {
   isNumeralChar,
   parseNumber,
 } from "../utils/parse";
+import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 import { hasNumberFormatRoundingOptions, removeFloatingPointErrors } from "../utils/validate";
 
-const NAVIGATE_KEYS = new Set([
-  "Backspace",
-  "Delete",
-  "ArrowLeft",
-  "ArrowRight",
-  "Tab",
-  "Enter",
-  "Escape",
-]);
+const NAVIGATE_KEYS = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter", "Escape"]);
 
 /**
  * The native input control in the number field.
@@ -56,8 +44,7 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
   const { disabled, readOnly, required, value, inputValue } = state;
 
   const { clearErrors } = useFormContext();
-  const { validationMode, setTouched, setFocused, invalid, shouldValidateOnChange, validation } =
-    useFieldRootContext();
+  const { validationMode, setTouched, setFocused, invalid, shouldValidateOnChange, validation } = useFieldRootContext();
   const { labelId } = useLabelableContext();
 
   let hasTouchedInput = false;
@@ -112,14 +99,7 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
     const target: Record<string, any> = {};
 
     for (const key in externalProps) {
-      if (
-        key === "onFocus" ||
-        key === "onBlur" ||
-        key === "onInput" ||
-        key === "onChange" ||
-        key === "onKeyDown" ||
-        key === "onPaste"
-      ) {
+      if (key === "onFocus" || key === "onBlur" || key === "onInput" || key === "onChange" || key === "onKeyDown" || key === "onPaste") {
         continue;
       }
       Object.defineProperty(target, key, { enumerable: true, configurable: true, get: () => externalProps[key] });
@@ -362,9 +342,7 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
           const existingIndex = currentText.search(globalRe);
           const isReplacingExisting = existingIndex !== -1 && selectionContainsIndex(existingIndex);
           isAllowedNonNumericKey =
-            !(ANY_MINUS_DETECT_RE.test(currentText) || ANY_PLUS_DETECT_RE.test(currentText)) ||
-            isAllSelected ||
-            isReplacingExisting;
+            !(ANY_MINUS_DETECT_RE.test(currentText) || ANY_PLUS_DETECT_RE.test(currentText)) || isAllSelected || isReplacingExisting;
         }
       });
 
@@ -417,9 +395,7 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
       // When the text is already synced, parsing the rounded display would collapse precision,
       // so pass no `currentValue` and let `incrementValue` fall back to the numeric state
       // (mirrors the button path).
-      const currentValue = hadManualInput
-        ? parseNumber(currentText, untrack(store.locale), untrack(store.format))
-        : null;
+      const currentValue = hadManualInput ? parseNumber(currentText, untrack(store.locale), untrack(store.format)) : null;
 
       const amount = store.getStepAmount(event);
 

@@ -1,23 +1,19 @@
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, onCleanup, untrack } from "solid-js";
 
-import { createButton } from "../../internals/create-button";
-import { useCompositeListItem } from "../../internals/composite/list/useCompositeListItem";
 import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
+import { useCompositeListItem } from "../../internals/composite/list/useCompositeListItem";
 import { useContext } from "../../internals/context";
+import { createButton } from "../../internals/create-button";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { compareItemEquality, findItemIndex, resolveSelectedIndex } from "../../select/utils/itemEquality";
-import {
-  useComboboxDerivedItemsContext,
-  useComboboxHasItemsContext,
-  useComboboxRootContext,
-} from "../root/ComboboxRootContext";
-import type { ComboboxStore } from "../store/ComboboxStore";
+import { useComboboxDerivedItemsContext, useComboboxHasItemsContext, useComboboxRootContext } from "../root/ComboboxRootContext";
 import { useComboboxRowContext } from "../row/ComboboxRowContext";
+import type { ComboboxStore } from "../store/ComboboxStore";
 import { ComboboxItemContext } from "./ComboboxItemContext";
 import * as ComboboxItemDataAttributes from "./ComboboxItemDataAttributes";
 
@@ -36,13 +32,14 @@ interface ComboboxItemInnerProps {
   indexFromFilter: number | undefined;
 }
 
-
 function ComboboxItemInner(props: ComboboxItemInnerProps) {
-  const [local, elementProps] = split(
-    props.componentProps as ComboboxItem.Props,
-    { default: defaultProps },
-    ["as", "value", "index", "disabled", "nativeButton"],
-  );
+  const [local, elementProps] = split(props.componentProps as ComboboxItem.Props, { default: defaultProps }, [
+    "as",
+    "value",
+    "index",
+    "disabled",
+    "nativeButton",
+  ]);
 
   const as = untrack(() => local.as);
   const indexProp = untrack(() => local.index);
@@ -121,7 +118,10 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
       element.addEventListener("pointerdown", handlePointerDownCapture, true);
       const itemIndex = untrack(index);
       syncStoreRefs(element, itemIndex);
-      syncValueRef(itemIndex, untrack(() => local.value ?? null));
+      syncValueRef(
+        itemIndex,
+        untrack(() => local.value ?? null),
+      );
     }
   }
 
@@ -151,14 +151,7 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
 
       let nextIndex = store.peek("selectedIndex") as number | null;
       if (selectionMode === "multiple" && Array.isArray(selectedValue)) {
-        nextIndex = resolveSelectedIndex(
-          itemIndex,
-          value,
-          store.context.valuesRef.current,
-          selectedValue,
-          comparer,
-          nextIndex,
-        );
+        nextIndex = resolveSelectedIndex(itemIndex, value, store.context.valuesRef.current, selectedValue, comparer, nextIndex);
       } else if (compareItemEquality(value, selectedValue, comparer)) {
         nextIndex = itemIndex;
       }
@@ -176,7 +169,10 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
 
   function commitSelection(nativeEvent: MouseEvent | PointerEvent | KeyboardEvent) {
     function selectItem() {
-      store.context.handleSelection(nativeEvent, untrack(() => local.value ?? null));
+      store.context.handleSelection(
+        nativeEvent,
+        untrack(() => local.value ?? null),
+      );
     }
 
     if (store.peek("submitOnItemClick") as boolean) {
@@ -216,8 +212,7 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
       commitSelection(event);
     },
     onMouseUp(event: MouseEvent) {
-      const pointerStartedOnItem =
-        store.context.pointerDownItemRef.current === event.currentTarget;
+      const pointerStartedOnItem = store.context.pointerDownItemRef.current === event.currentTarget;
       store.context.pointerDownItemRef.current = null;
 
       if (
@@ -267,35 +262,19 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
       <RenderElement
         as={as}
         state={state}
-        props={[
-          () => store.select("itemProps") as Record<string, unknown>,
-          defaultItemProps,
-          elementProps,
-          getButtonProps,
-          { ref },
-        ]}
+        props={[() => store.select("itemProps") as Record<string, unknown>, defaultItemProps, elementProps, getButtonProps, { ref }]}
         stateAttributesMapping={stateAttributesMapping}
       />
     </ComboboxItemContext>
   );
 }
-function ComboboxItemVirtualizedIndex(props: {
-  componentProps: ComboboxItem.Props;
-  virtualized: boolean;
-}) {
+function ComboboxItemVirtualizedIndex(props: { componentProps: ComboboxItem.Props; virtualized: boolean }) {
   const store = useComboboxRootContext() as ComboboxStore;
   const derived = useComboboxDerivedItemsContext();
 
   const lookupValue = untrack(() => (props.componentProps as ComboboxItem.Props).value ?? null);
-  const indexFromFilter = () =>
-    findItemIndex(derived.flatFilteredValues, lookupValue, store.select("isItemEqualToValue"));
-  return (
-    <ComboboxItemInner
-      componentProps={props.componentProps}
-      virtualized={props.virtualized}
-      indexFromFilter={indexFromFilter()}
-    />
-  );
+  const indexFromFilter = () => findItemIndex(derived.flatFilteredValues, lookupValue, store.select("isItemEqualToValue"));
+  return <ComboboxItemInner componentProps={props.componentProps} virtualized={props.virtualized} indexFromFilter={indexFromFilter()} />;
 }
 
 /**
@@ -316,9 +295,7 @@ export function ComboboxItem<T extends ValidComponent = "div">(props: ComboboxIt
     return <ComboboxItemVirtualizedIndex componentProps={props} virtualized={virtualized} />;
   }
 
-  return (
-    <ComboboxItemInner componentProps={props} virtualized={virtualized} indexFromFilter={undefined} />
-  );
+  return <ComboboxItemInner componentProps={props} virtualized={virtualized} indexFromFilter={undefined} />;
 }
 
 const defaultProps = Object.freeze({

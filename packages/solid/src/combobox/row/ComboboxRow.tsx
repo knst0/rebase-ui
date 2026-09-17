@@ -31,10 +31,7 @@ const defaultProps = Object.freeze({
 
 export interface ComboboxRowState {}
 
-export type ComboboxRowProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  ComboboxRowState
->;
+export type ComboboxRowProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, ComboboxRowState>;
 
 export namespace ComboboxRow {
   export type State = ComboboxRowState;

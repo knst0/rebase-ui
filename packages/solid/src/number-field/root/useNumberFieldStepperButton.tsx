@@ -2,28 +2,23 @@ import type { JSX, ValidComponent } from "@solidjs/web";
 import { onCleanup, untrack } from "solid-js";
 
 import { createButton } from "../../internals/create-button";
-import {
-  createChangeEventDetails,
-  createGenericEventDetails,
-  REASONS,
-} from "../../internals/event-details";
+import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
-import type { NumberFieldRootState } from "./NumberFieldRoot";
-import { useNumberFieldRootContext } from "./NumberFieldRootContext";
 import { CHANGE_VALUE_TICK_DELAY, START_AUTO_CHANGE_DELAY } from "../utils/constants";
 import { parseNumber } from "../utils/parse";
-import type { DirectionalChangeReason, EventWithOptionalKeyState } from "../utils/types";
 import { stateAttributesMapping } from "../utils/stateAttributesMapping";
+import type { DirectionalChangeReason, EventWithOptionalKeyState } from "../utils/types";
+import type { NumberFieldRootState } from "./NumberFieldRoot";
+import { useNumberFieldRootContext } from "./NumberFieldRootContext";
 
 const SELECT_NONE_STYLE = {
   "-webkit-user-select": "none",
   "user-select": "none",
 } as const;
 
-type StepperButtonProps<T extends ValidComponent = "button"> = NativeButtonProps &
-  RebaseUIComponentProps<T, NumberFieldRootState>;
+type StepperButtonProps<T extends ValidComponent = "button"> = NativeButtonProps & RebaseUIComponentProps<T, NumberFieldRootState>;
 
 function isTouchLikePointerType(pointerType: string | undefined): boolean {
   return pointerType === "touch" || pointerType === "pen";

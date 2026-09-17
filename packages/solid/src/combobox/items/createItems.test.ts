@@ -68,11 +68,7 @@ describe("createComboboxItems", () => {
 
   it("resolves labels for known values and falls back otherwise", () => {
     const internal = createUserItems() as unknown as {
-      label: (
-        value: number,
-        isEqual: typeof defaultItemEquality,
-        fallback?: (value: number) => string,
-      ) => string;
+      label: (value: number, isEqual: typeof defaultItemEquality, fallback?: (value: number) => string) => string;
     };
 
     expect(internal.label(1, defaultItemEquality)).toBe("Alice");

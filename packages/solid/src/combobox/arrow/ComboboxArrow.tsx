@@ -1,19 +1,19 @@
-import type { ValidComponent } from '@solidjs/web';
-import { untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { untrack } from "solid-js";
 
-import type { Align, Side } from '../../internals/anchor-positioning/createAnchorPositioning';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import type { RebaseUIComponentProps } from '../../internals/types';
-import { useComboboxRootContext } from '../root/ComboboxRootContext';
-import { useComboboxPositionerContext } from '../positioner/ComboboxPositionerContext';
-import * as ComboboxArrowDataAttributes from './ComboboxArrowDataAttributes';
+import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import { useComboboxPositionerContext } from "../positioner/ComboboxPositionerContext";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
+import * as ComboboxArrowDataAttributes from "./ComboboxArrowDataAttributes";
 
-const ARROW_OPEN_HOOK = { [ComboboxArrowDataAttributes.open]: '' };
-const ARROW_CLOSED_HOOK = { [ComboboxArrowDataAttributes.closed]: '' };
-const ARROW_UNCENTERED_HOOK = { [ComboboxArrowDataAttributes.uncentered]: '' };
+const ARROW_OPEN_HOOK = { [ComboboxArrowDataAttributes.open]: "" };
+const ARROW_CLOSED_HOOK = { [ComboboxArrowDataAttributes.closed]: "" };
+const ARROW_UNCENTERED_HOOK = { [ComboboxArrowDataAttributes.uncentered]: "" };
 
 const comboboxArrowStateMapping: StateAttributesMapping<ComboboxArrowState> = {
   open: {
@@ -40,8 +40,8 @@ const comboboxArrowStateMapping: StateAttributesMapping<ComboboxArrowState> = {
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxArrow<T extends ValidComponent = 'div'>(props: ComboboxArrow.Props<T>) {
-  const [local, elementProps] = split(props as ComboboxArrow.Props, { default: defaultProps }, ['as']);
+export function ComboboxArrow<T extends ValidComponent = "div">(props: ComboboxArrow.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxArrow.Props, { default: defaultProps }, ["as"]);
 
   const as = untrack(() => local.as);
 
@@ -50,7 +50,7 @@ export function ComboboxArrow<T extends ValidComponent = 'div'>(props: ComboboxA
 
   const state: ComboboxArrowState = {
     get open() {
-      return store.select('open') as boolean;
+      return store.select("open") as boolean;
     },
     get side() {
       return positioner.side();
@@ -67,7 +67,7 @@ export function ComboboxArrow<T extends ValidComponent = 'div'>(props: ComboboxA
     get style() {
       return positioner.arrowStyles();
     },
-    'aria-hidden': 'true' as const,
+    "aria-hidden": "true" as const,
   };
 
   const refProps = (externalProps: Record<string, any>) => ({
@@ -77,17 +77,12 @@ export function ComboboxArrow<T extends ValidComponent = 'div'>(props: ComboboxA
   });
 
   return (
-    <RenderElement
-      as={as}
-      state={state}
-      props={[arrowProps, elementProps, refProps]}
-      stateAttributesMapping={comboboxArrowStateMapping}
-    />
+    <RenderElement as={as} state={state} props={[arrowProps, elementProps, refProps]} stateAttributesMapping={comboboxArrowStateMapping} />
   );
 }
 
 const defaultProps = Object.freeze({
-  as: 'div',
+  as: "div",
 } satisfies Partial<ComboboxArrow.Props>);
 
 export interface ComboboxArrowState {
@@ -109,12 +104,9 @@ export interface ComboboxArrowState {
   uncentered: boolean;
 }
 
-export type ComboboxArrowProps<T extends ValidComponent = 'div'> = RebaseUIComponentProps<
-  T,
-  ComboboxArrowState
->;
+export type ComboboxArrowProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, ComboboxArrowState>;
 
 export namespace ComboboxArrow {
   export type State = ComboboxArrowState;
-  export type Props<T extends ValidComponent = 'div'> = ComboboxArrowProps<T>;
+  export type Props<T extends ValidComponent = "div"> = ComboboxArrowProps<T>;
 }

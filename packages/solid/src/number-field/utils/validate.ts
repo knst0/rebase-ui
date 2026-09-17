@@ -16,9 +16,7 @@ type NumberFormatOptionsWithRounding = Intl.NumberFormatOptions & {
   roundingPriority?: string | undefined;
 };
 
-export function hasNumberFormatRoundingOptions(
-  format?: NumberFormatOptionsWithRounding,
-): format is NumberFormatOptionsWithRounding {
+export function hasNumberFormatRoundingOptions(format?: NumberFormatOptionsWithRounding): format is NumberFormatOptionsWithRounding {
   return (
     format?.maximumFractionDigits != null ||
     format?.minimumFractionDigits != null ||
@@ -48,10 +46,7 @@ export function removeFloatingPointErrors(value: number, format?: NumberFormatOp
     // that from the `2^19` binade (~5.2e5) up, a single ULP exceeds the absolute cap, so genuine
     // stepping noise is left uncleaned there (e.g. `1000000.1 + 0.2` stays `1000000.2999999999`)
     // rather than risk corrupting real precision.
-    const cleanupTolerance = Math.min(
-      Number.EPSILON * Math.max(1, Math.abs(value)),
-      MAX_FLOATING_POINT_CLEANUP_DELTA,
-    );
+    const cleanupTolerance = Math.min(Number.EPSILON * Math.max(1, Math.abs(value)), MAX_FLOATING_POINT_CLEANUP_DELTA);
 
     return cleanupDelta <= cleanupTolerance ? roundedValue : value;
   }

@@ -17,9 +17,7 @@ export const ComboboxGroupContext = createContext<ComboboxGroupContext>();
 export function useComboboxGroupContext(): ComboboxGroupContext {
   const context = useContext(ComboboxGroupContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: ComboboxGroupContext is missing. ComboboxGroup parts must be placed within <Combobox.Group>.",
-    );
+    throw new Error("Rebase UI: ComboboxGroupContext is missing. ComboboxGroup parts must be placed within <Combobox.Group>.");
   }
   return context;
 }

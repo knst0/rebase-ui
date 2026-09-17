@@ -47,11 +47,7 @@ export function SelectList<T extends ValidComponent = "div">(props: SelectList.P
   return (
     <RenderElement
       as={as}
-      props={[
-        listProps,
-        elementProps,
-        { ref: (element: HTMLDivElement | null) => store.set("listElement", element) },
-      ]}
+      props={[listProps, elementProps, { ref: (element: HTMLDivElement | null) => store.set("listElement", element) }]}
     />
   );
 }
@@ -62,10 +58,7 @@ const defaultProps = Object.freeze({
 
 export interface SelectListState {}
 
-export type SelectListProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  SelectListState
->;
+export type SelectListProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, SelectListState>;
 
 export namespace SelectList {
   export type State = SelectListState;

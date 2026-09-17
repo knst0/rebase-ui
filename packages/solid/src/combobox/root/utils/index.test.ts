@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { createCollatorItemFilter, createSingleSelectionCollatorFilter, getComboboxPopupId } from "./index";
 import { getFilter } from "./useFilter";
-import {
-  createCollatorItemFilter,
-  createSingleSelectionCollatorFilter,
-  getComboboxPopupId,
-} from "./index";
 
 describe("Combobox root utilities", () => {
   const filter = getFilter({ locale: "en" });

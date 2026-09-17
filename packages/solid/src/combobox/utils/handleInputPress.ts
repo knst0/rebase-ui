@@ -1,8 +1,8 @@
-import { isElement } from '@floating-ui/utils/dom';
+import { isElement } from "@floating-ui/utils/dom";
 
-import { createChangeEventDetails, REASONS } from '../../internals/event-details';
-import { getTarget, isInteractiveElement } from '../../internals/floating/utils/element';
-import type { ComboboxStore } from '../store/ComboboxStore';
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { getTarget, isInteractiveElement } from "../../internals/floating/utils/element";
+import type { ComboboxStore } from "../store/ComboboxStore";
 
 export function handleInputPress(
   event: MouseEvent & { rebaseUIHandlerPrevented?: boolean | undefined },
@@ -16,10 +16,7 @@ export function handleInputPress(
 
   const target = getTarget(event);
   const targetElement = isElement(target) ? (target as Element) : null;
-  if (
-    targetElement !== event.currentTarget &&
-    (shouldIgnoreTarget?.(targetElement) || isInteractiveElement(targetElement))
-  ) {
+  if (targetElement !== event.currentTarget && (shouldIgnoreTarget?.(targetElement) || isInteractiveElement(targetElement))) {
     return;
   }
 

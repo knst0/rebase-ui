@@ -25,27 +25,19 @@ export function ComboboxRoot<Value, Multiple extends boolean | undefined = false
       selectionMode={local.multiple ? "multiple" : "single"}
       selectedValue={local.value as Value | Value[] | undefined}
       defaultSelectedValue={local.defaultValue as Value | Value[] | null | undefined}
-      onSelectedValueChange={local.onValueChange as
-        | ((value: Value | Value[], eventDetails: ComboboxRoot.ChangeEventDetails) => void)
-        | undefined}
+      onSelectedValueChange={
+        local.onValueChange as ((value: Value | Value[], eventDetails: ComboboxRoot.ChangeEventDetails) => void) | undefined
+      }
       formAutoComplete={local.autoComplete}
     />
   );
 }
 
-type ModeFromMultiple<Multiple extends boolean | undefined> = Multiple extends true
-  ? "multiple"
-  : "single";
+type ModeFromMultiple<Multiple extends boolean | undefined> = Multiple extends true ? "multiple" : "single";
 
-type ComboboxValueType<Value, Multiple extends boolean | undefined> = Multiple extends true
-  ? Value[]
-  : Value;
+type ComboboxValueType<Value, Multiple extends boolean | undefined> = Multiple extends true ? Value[] : Value;
 
-export type ComboboxRootProps<
-  Value,
-  Multiple extends boolean | undefined = false,
-  Item = Value,
-> = Omit<
+export type ComboboxRootProps<Value, Multiple extends boolean | undefined = false, Item = Value> = Omit<
   AriaCombobox.Props<Value, ModeFromMultiple<Multiple>, Item>,
   | "fillInputOnItemPress"
   | "autoComplete"
@@ -123,15 +115,11 @@ export type ComboboxRootProps<
   /**
    * Event handler called when the popup is opened or closed.
    */
-  onOpenChange?:
-    | ((open: boolean, eventDetails: ComboboxRoot.ChangeEventDetails) => void)
-    | undefined;
+  onOpenChange?: ((open: boolean, eventDetails: ComboboxRoot.ChangeEventDetails) => void) | undefined;
   /**
    * Event handler called when the input value changes.
    */
-  onInputValueChange?:
-    | ((inputValue: string, eventDetails: ComboboxRoot.ChangeEventDetails) => void)
-    | undefined;
+  onInputValueChange?: ((inputValue: string, eventDetails: ComboboxRoot.ChangeEventDetails) => void) | undefined;
   /**
    * Callback fired when an item is highlighted or unhighlighted.
    * Receives the highlighted item value (or `undefined` if no item is highlighted) and event details with a `reason` property describing why the highlight changed.
@@ -140,12 +128,7 @@ export type ComboboxRootProps<
    * - `'pointer'`: the highlight changed due to pointer hovering.
    * - `'none'`: the highlight changed programmatically.
    */
-  onItemHighlighted?:
-    | ((
-        highlightedValue: Value | undefined,
-        eventDetails: ComboboxRoot.HighlightEventDetails,
-      ) => void)
-    | undefined;
+  onItemHighlighted?: ((highlightedValue: Value | undefined, eventDetails: ComboboxRoot.HighlightEventDetails) => void) | undefined;
   /**
    * The selected value of the combobox. Use when controlled.
    */
@@ -172,11 +155,7 @@ export type ComboboxRootHighlightEventReason = AriaCombobox.HighlightEventReason
 export type ComboboxRootHighlightEventDetails = AriaCombobox.HighlightEventDetails;
 
 export namespace ComboboxRoot {
-  export type Props<
-    Value,
-    Multiple extends boolean | undefined = false,
-    Item = Value,
-  > = ComboboxRootProps<Value, Multiple, Item>;
+  export type Props<Value, Multiple extends boolean | undefined = false, Item = Value> = ComboboxRootProps<Value, Multiple, Item>;
   export type State = ComboboxRootState;
   export type Actions = ComboboxRootActions;
   export type ChangeEventReason = ComboboxRootChangeEventReason;

@@ -1,7 +1,7 @@
 import type { Accessor } from "solid-js";
 
-import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import { createContext, useContext } from "../../internals/context";
+import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import type { ComboboxStore } from "../store/ComboboxStore";
 
 export interface ComboboxDerivedItemsContextValue {
@@ -26,9 +26,7 @@ export const ComboboxInputValueContext = createContext<Accessor<string>>();
 export function useComboboxRootContext(): ComboboxStore {
   const store = useContext(ComboboxRootContext);
   if (store === undefined) {
-    throw new Error(
-      "Rebase UI: ComboboxRootContext is missing. Combobox parts must be placed within <Combobox.Root>.",
-    );
+    throw new Error("Rebase UI: ComboboxRootContext is missing. Combobox parts must be placed within <Combobox.Root>.");
   }
   return store;
 }
@@ -36,9 +34,7 @@ export function useComboboxRootContext(): ComboboxStore {
 export function useComboboxFloatingContext(): FloatingRootStore {
   const context = useContext(ComboboxFloatingContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: ComboboxFloatingContext is missing. Combobox parts must be placed within <Combobox.Root>.",
-    );
+    throw new Error("Rebase UI: ComboboxFloatingContext is missing. Combobox parts must be placed within <Combobox.Root>.");
   }
   return context;
 }
@@ -46,9 +42,7 @@ export function useComboboxFloatingContext(): FloatingRootStore {
 export function useComboboxDerivedItemsContext(): ComboboxDerivedItemsContextValue {
   const context = useContext(ComboboxDerivedItemsContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: ComboboxItemsContext is missing. Combobox parts must be placed within <Combobox.Root>.",
-    );
+    throw new Error("Rebase UI: ComboboxItemsContext is missing. Combobox parts must be placed within <Combobox.Root>.");
   }
   return context;
 }
@@ -56,9 +50,7 @@ export function useComboboxDerivedItemsContext(): ComboboxDerivedItemsContextVal
 export function useComboboxInputValueContext(): Accessor<string> {
   const context = useContext(ComboboxInputValueContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: ComboboxInputValueContext is missing. Combobox parts must be placed within <Combobox.Root>.",
-    );
+    throw new Error("Rebase UI: ComboboxInputValueContext is missing. Combobox parts must be placed within <Combobox.Root>.");
   }
   return context;
 }
@@ -66,9 +58,7 @@ export function useComboboxInputValueContext(): Accessor<string> {
 export function useComboboxHasItemsContext(): boolean {
   const context = useContext(ComboboxHasItemsContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: ComboboxHasItemsContext is missing. Combobox parts must be placed within <Combobox.Root>.",
-    );
+    throw new Error("Rebase UI: ComboboxHasItemsContext is missing. Combobox parts must be placed within <Combobox.Root>.");
   }
   return context();
 }

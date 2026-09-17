@@ -1,8 +1,8 @@
 import type { Accessor, Setter } from "solid-js";
 
 import { createContext, useContext } from "../../internals/context";
-import type { NumberFieldRoot, NumberFieldRootState } from "./NumberFieldRoot";
 import type { EventWithOptionalKeyState, IncrementValueParameters } from "../utils/types";
+import type { NumberFieldRoot, NumberFieldRootState } from "./NumberFieldRoot";
 
 export type InputMode = "numeric" | "decimal" | "text";
 

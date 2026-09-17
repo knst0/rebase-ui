@@ -12,12 +12,7 @@ export function useGroupCollectionContext(): GroupCollectionContextValue | undef
   return useContext(GroupCollectionContext);
 }
 
-export function GroupCollectionProvider(props: {
-  children: JSX.Element;
-  items: readonly unknown[];
-}): JSX.Element {
+export function GroupCollectionProvider(props: { children: JSX.Element; items: readonly unknown[] }): JSX.Element {
   const contextValue: GroupCollectionContextValue = { items: props.items };
-  return (
-    <GroupCollectionContext value={contextValue}>{props.children}</GroupCollectionContext>
-  );
+  return <GroupCollectionContext value={contextValue}>{props.children}</GroupCollectionContext>;
 }

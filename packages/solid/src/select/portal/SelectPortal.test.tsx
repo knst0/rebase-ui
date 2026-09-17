@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import { nextFrames } from "#test-utils";
 
-import * as Select from "../index.parts";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import * as Select from "../index.parts";
 import { SelectPopup } from "../popup/SelectPopup";
 import { SelectPositioner } from "../positioner/SelectPositioner";
 import { useSelectRootContext } from "../root/SelectRootContext";

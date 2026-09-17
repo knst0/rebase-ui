@@ -5,11 +5,7 @@ import { RenderElement } from "../../internals/render-element";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
-import {
-  createTransitionStatus,
-  type TransitionStatus,
-  transitionStatusMapping,
-} from "../../internals/transition-status";
+import { createTransitionStatus, type TransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useSelectItemContext } from "../item/SelectItemContext";
 
@@ -19,14 +15,8 @@ import { useSelectItemContext } from "../item/SelectItemContext";
  *
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
-export function SelectItemIndicator<T extends ValidComponent = "span">(
-  props: SelectItemIndicator.Props<T>,
-) {
-  const [local, elementProps] = split(
-    props as SelectItemIndicator.Props,
-    { default: defaultProps },
-    ["as", "keepMounted"],
-  );
+export function SelectItemIndicator<T extends ValidComponent = "span">(props: SelectItemIndicator.Props<T>) {
+  const [local, elementProps] = split(props as SelectItemIndicator.Props, { default: defaultProps }, ["as", "keepMounted"]);
 
   const as = untrack(() => local.as);
 
@@ -105,8 +95,8 @@ export interface SelectItemIndicatorOwnProps {
   keepMounted?: boolean | undefined;
 }
 
-export type SelectItemIndicatorProps<T extends ValidComponent = "span"> =
-  SelectItemIndicatorOwnProps & RebaseUIComponentProps<T, SelectItemIndicatorState>;
+export type SelectItemIndicatorProps<T extends ValidComponent = "span"> = SelectItemIndicatorOwnProps &
+  RebaseUIComponentProps<T, SelectItemIndicatorState>;
 
 export namespace SelectItemIndicator {
   export type State = SelectItemIndicatorState;

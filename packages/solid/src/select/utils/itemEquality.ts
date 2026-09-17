@@ -1,13 +1,9 @@
 import { areArraysEqual } from "../../slider/utils/areArraysEqual";
 
-export type ItemEqualityComparer<Item = any, Value = Item> = (
-  itemValue: Item,
-  selectedValue: Value,
-) => boolean;
+export type ItemEqualityComparer<Item = any, Value = Item> = (itemValue: Item, selectedValue: Value) => boolean;
 
 // Compared by identity in `findSelectionIndex`; don't wrap it.
-export const defaultItemEquality: ItemEqualityComparer = (itemValue, selectedValue) =>
-  Object.is(itemValue, selectedValue);
+export const defaultItemEquality: ItemEqualityComparer = (itemValue, selectedValue) => Object.is(itemValue, selectedValue);
 
 export function compareItemEquality<Item, Value>(
   itemValue: Item,
@@ -20,11 +16,7 @@ export function compareItemEquality<Item, Value>(
   return comparer(itemValue, selectedValue);
 }
 
-export function isSelectedValueDirty(
-  currentValue: unknown,
-  initialValue: unknown,
-  comparer: ItemEqualityComparer,
-): boolean {
+export function isSelectedValueDirty(currentValue: unknown, initialValue: unknown, comparer: ItemEqualityComparer): boolean {
   if (Array.isArray(currentValue) && Array.isArray(initialValue)) {
     return !areArraysEqual(currentValue, initialValue, (itemValue, initialItemValue) =>
       compareItemEquality(itemValue, initialItemValue, comparer),
@@ -78,9 +70,7 @@ function createSelectionMatcher<Item, Value>(
   const index = new Set<unknown>(selectedValues);
   index.delete(undefined);
   // `Set` treats +0 and -0 as equal; `Object.is` does not.
-  return (itemValue) =>
-    index.has(itemValue) &&
-    (itemValue !== 0 || selectedValues.some((v) => Object.is(itemValue, v)));
+  return (itemValue) => index.has(itemValue) && (itemValue !== 0 || selectedValues.some((v) => Object.is(itemValue, v)));
 }
 
 export function findSelectionIndex<Item, Value>(
@@ -111,16 +101,12 @@ export function resolveSelectedIndex<Item, Value>(
 ): number | null {
   if (selectedValueIncludes(selectedValues, itemValue, comparer)) {
     // A later item only takes over once the current anchor stops being selected.
-    return currentIndex != null &&
-      index > currentIndex &&
-      selectedValueIncludes(selectedValues, registry[currentIndex], comparer)
+    return currentIndex != null && index > currentIndex && selectedValueIncludes(selectedValues, registry[currentIndex], comparer)
       ? currentIndex
       : index;
   }
   // The holder re-elects the anchor once it stops being selected.
-  return index === currentIndex
-    ? findSelectionIndex(registry, selectedValues, comparer, true)
-    : currentIndex;
+  return index === currentIndex ? findSelectionIndex(registry, selectedValues, comparer, true) : currentIndex;
 }
 
 export function removeItem<Item, Value>(
@@ -128,7 +114,5 @@ export function removeItem<Item, Value>(
   itemValue: Value,
   comparer: ItemEqualityComparer<Value, Item>,
 ): Item[] {
-  return selectedValues.filter(
-    (selectedValue) => !compareItemEquality(itemValue, selectedValue, comparer),
-  );
+  return selectedValues.filter((selectedValue) => !compareItemEquality(itemValue, selectedValue, comparer));
 }

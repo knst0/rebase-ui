@@ -8,8 +8,8 @@ import { nextFrames } from "#test-utils";
 import * as Select from "../index.parts";
 import { SelectPortal } from "../portal/SelectPortal";
 import { SelectPositioner } from "../positioner/SelectPositioner";
-import { clearStyles, LIST_FUNCTIONAL_STYLES } from "./utils";
 import { SelectPopup } from "./SelectPopup";
+import { clearStyles, LIST_FUNCTIONAL_STYLES } from "./utils";
 
 function renderOpenPopup() {
   return render(() => (
@@ -51,9 +51,7 @@ describe("<Select.Popup />", () => {
     await nextFrames();
     await nextFrames();
 
-    expect(screen.getByTestId("popup").getAttribute("data-side")).toBe(
-      screen.getByTestId("positioner").getAttribute("data-side"),
-    );
+    expect(screen.getByTestId("popup").getAttribute("data-side")).toBe(screen.getByTestId("positioner").getAttribute("data-side"));
   });
 
   it("renders nothing when the select is closed", () => {

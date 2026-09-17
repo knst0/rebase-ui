@@ -1,12 +1,12 @@
-import type { ValidComponent } from '@solidjs/web';
-import { onCleanup, untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { onCleanup, untrack } from "solid-js";
 
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { RebaseUIComponentProps } from '../../internals/types';
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { RebaseUIComponentProps } from "../../internals/types";
 
 // Word Joiner is invisible and zero-width, so it forces a text mutation without shifting layout.
-const LIVE_REGION_MARKER = '\u2060';
+const LIVE_REGION_MARKER = "\u2060";
 export const INITIAL_LIVE_REGION_TEXT_MUTATION_RESET_DELAY = 200;
 
 function findLastTextNode(root: HTMLElement): Text | null {
@@ -15,7 +15,7 @@ function findLastTextNode(root: HTMLElement): Text | null {
 
   while (walker.nextNode()) {
     const textNode = walker.currentNode as Text;
-    if (textNode.nodeValue !== '') {
+    if (textNode.nodeValue !== "") {
       lastTextNode = textNode;
     }
   }
@@ -24,13 +24,10 @@ function findLastTextNode(root: HTMLElement): Text | null {
 }
 
 function isIOS(): boolean {
-  if (typeof navigator === 'undefined') {
+  if (typeof navigator === "undefined") {
     return false;
   }
-  return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  );
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
 /**
@@ -86,8 +83,8 @@ function useInitialLiveRegionTextMutation<T extends HTMLElement>(ref: () => T | 
  * component itself with `display: none`, `hidden`, `aria-hidden`, or conditional
  * rendering. Prefer updating or conditionally rendering its children instead.
  */
-export function ComboboxStatus<T extends ValidComponent = 'div'>(props: ComboboxStatus.Props<T>) {
-  const [local, elementProps] = split(props as ComboboxStatus.Props, { default: defaultProps }, ['as']);
+export function ComboboxStatus<T extends ValidComponent = "div">(props: ComboboxStatus.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxStatus.Props, { default: defaultProps }, ["as"]);
 
   const as = untrack(() => local.as);
 
@@ -108,9 +105,9 @@ export function ComboboxStatus<T extends ValidComponent = 'div'>(props: Combobox
       state={{}}
       props={[
         {
-          role: 'status',
-          'aria-live': 'polite',
-          'aria-atomic': 'true',
+          role: "status",
+          "aria-live": "polite",
+          "aria-atomic": "true",
         },
         elementProps,
         refProps,
@@ -120,17 +117,14 @@ export function ComboboxStatus<T extends ValidComponent = 'div'>(props: Combobox
 }
 
 const defaultProps = Object.freeze({
-  as: 'div',
+  as: "div",
 } satisfies Partial<ComboboxStatus.Props>);
 
 export interface ComboboxStatusState {}
 
-export type ComboboxStatusProps<T extends ValidComponent = 'div'> = RebaseUIComponentProps<
-  T,
-  ComboboxStatusState
->;
+export type ComboboxStatusProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, ComboboxStatusState>;
 
 export namespace ComboboxStatus {
   export type State = ComboboxStatusState;
-  export type Props<T extends ValidComponent = 'div'> = ComboboxStatusProps<T>;
+  export type Props<T extends ValidComponent = "div"> = ComboboxStatusProps<T>;
 }

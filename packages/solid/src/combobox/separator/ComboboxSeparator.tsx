@@ -11,14 +11,8 @@ import type { Orientation, RebaseUIComponentProps } from "../../internals/types"
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxSeparator<T extends ValidComponent = "div">(
-  props: ComboboxSeparator.Props<T>,
-) {
-  const [local, elementProps] = split(
-    props as ComboboxSeparator.Props,
-    { default: defaultProps },
-    ["as", "orientation"],
-  );
+export function ComboboxSeparator<T extends ValidComponent = "div">(props: ComboboxSeparator.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxSeparator.Props, { default: defaultProps }, ["as", "orientation"]);
 
   const as = untrack(() => local.as);
 
@@ -63,8 +57,8 @@ export interface ComboboxSeparatorOwnProps {
   orientation?: Orientation | undefined;
 }
 
-export type ComboboxSeparatorProps<T extends ValidComponent = "div"> =
-  ComboboxSeparatorOwnProps & RebaseUIComponentProps<T, ComboboxSeparatorState>;
+export type ComboboxSeparatorProps<T extends ValidComponent = "div"> = ComboboxSeparatorOwnProps &
+  RebaseUIComponentProps<T, ComboboxSeparatorState>;
 
 export namespace ComboboxSeparator {
   export type State = ComboboxSeparatorState;

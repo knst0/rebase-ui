@@ -1,21 +1,21 @@
-import type { JSX } from '@solidjs/web';
-import { render } from '@solidjs/testing-library';
-import { createSignal, type Accessor } from 'solid-js';
+import { render } from "@solidjs/testing-library";
+import type { JSX } from "@solidjs/web";
+import { createSignal, type Accessor } from "solid-js";
 
-import type { FloatingRootStore } from '../internals/floating/tree/FloatingRootStore';
+import type { FloatingRootStore } from "../internals/floating/tree/FloatingRootStore";
+import {
+  ComboboxDerivedItemsContext,
+  ComboboxInputValueContext,
+  ComboboxRootContext,
+  type ComboboxDerivedItemsContextValue,
+} from "./root/ComboboxRootContext";
 import {
   ComboboxStore,
   createInitialComboboxStoreContext,
   createInitialComboboxStoreState,
   type ComboboxStoreContext,
   type ComboboxStoreState,
-} from './store/ComboboxStore';
-import {
-  ComboboxDerivedItemsContext,
-  ComboboxInputValueContext,
-  ComboboxRootContext,
-  type ComboboxDerivedItemsContextValue,
-} from './root/ComboboxRootContext';
+} from "./store/ComboboxStore";
 
 export interface RecordedCall {
   reason: unknown;
@@ -37,23 +37,23 @@ export interface ComboboxHarnessOptions {
 }
 
 function readLabel(item: unknown): string {
-  if (typeof item === 'string') {
+  if (typeof item === "string") {
     return item;
   }
-  if (item != null && typeof item === 'object') {
+  if (item != null && typeof item === "object") {
     const record = item as Record<string, unknown>;
     const label = record.label ?? record.value;
-    return typeof label === 'string' ? label : String(label ?? '');
+    return typeof label === "string" ? label : String(label ?? "");
   }
-  return String(item ?? '');
+  return String(item ?? "");
 }
 
 export function createComboboxHarness(options: ComboboxHarnessOptions = {}): ComboboxTestHarness {
-  const [inputValue, setInputValueSignal] = createSignal('');
+  const [inputValue, setInputValueSignal] = createSignal("");
   const items = options.items ?? [];
   const state = createInitialComboboxStoreState({
     floatingRootContext: null as unknown as FloatingRootStore,
-    id: 'test-combobox',
+    id: "test-combobox",
     items: items as readonly unknown[],
     // Parts render outside a positioner unless a test opts into popup placement.
     inputInsidePopup: false,
@@ -91,24 +91,21 @@ export function createComboboxHarness(options: ComboboxHarnessOptions = {}): Com
 
   context.setOpen = (open: boolean, details: { reason: unknown }) => {
     harness.openCalls.push({ open, reason: details.reason });
-    store.set('open', open);
+    store.set("open", open);
     if (open) {
-      store.set('mounted', true);
+      store.set("mounted", true);
     }
   };
   context.setInputValue = (value: string, details: { reason: unknown }) => {
     harness.inputValueCalls.push({ value, reason: details.reason });
     setInputValueSignal(value);
-    store.set('hasInputValue', value !== '');
+    store.set("hasInputValue", value !== "");
   };
   context.setSelectedValue = (value: unknown, details: { reason: unknown }) => {
     harness.selectedValueCalls.push({ value, reason: details.reason });
-    store.set('selectedValue', value);
+    store.set("selectedValue", value);
   };
-  context.setIndices = (indices: {
-    activeIndex?: number | null | undefined;
-    selectedIndex?: number | null | undefined;
-  }) => {
+  context.setIndices = (indices: { activeIndex?: number | null | undefined; selectedIndex?: number | null | undefined }) => {
     harness.indicesCalls.push({ ...indices });
     const patch: Partial<ComboboxStoreState> = {};
     if (indices.activeIndex !== undefined) {
@@ -120,7 +117,7 @@ export function createComboboxHarness(options: ComboboxHarnessOptions = {}): Com
     store.update(patch);
   };
   context.forceMount = () => {
-    store.set('forceMounted', true);
+    store.set("forceMounted", true);
   };
   context.handleSelection = () => {};
   context.requestSubmit = () => {};
@@ -129,19 +126,14 @@ export function createComboboxHarness(options: ComboboxHarnessOptions = {}): Com
   return harness;
 }
 
-export function renderWithCombobox(
-  ui: (harness: ComboboxTestHarness) => JSX.Element,
-  options: ComboboxHarnessOptions = {},
-) {
+export function renderWithCombobox(ui: (harness: ComboboxTestHarness) => JSX.Element, options: ComboboxHarnessOptions = {}) {
   let harness!: ComboboxTestHarness;
   const result = render(() => {
     harness = createComboboxHarness(options);
     return (
       <ComboboxRootContext value={harness.store}>
         <ComboboxInputValueContext value={harness.inputValue}>
-          <ComboboxDerivedItemsContext value={harness.derivedItems}>
-            {ui(harness)}
-          </ComboboxDerivedItemsContext>
+          <ComboboxDerivedItemsContext value={harness.derivedItems}>{ui(harness)}</ComboboxDerivedItemsContext>
         </ComboboxInputValueContext>
       </ComboboxRootContext>
     );

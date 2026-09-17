@@ -12,9 +12,7 @@ export const SelectItemContext = createContext<SelectItemContext>();
 export function useSelectItemContext(): SelectItemContext {
   const context = useContext(SelectItemContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: SelectItemContext is missing. SelectItem parts must be placed within <Select.Item>.",
-    );
+    throw new Error("Rebase UI: SelectItemContext is missing. SelectItem parts must be placed within <Select.Item>.");
   }
   return context;
 }

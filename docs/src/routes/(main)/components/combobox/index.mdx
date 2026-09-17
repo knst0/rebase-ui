@@ -78,9 +78,7 @@ Each `<Combobox.Item>` takes a `value` prop identifying it. Pass the item being 
 import { For } from "solid-js";
 
 <Combobox.List>
-  <For each={items}>
-    {(item) => <Combobox.Item value={item}>{item.label}</Combobox.Item>}
-  </For>
+  <For each={items}>{(item) => <Combobox.Item value={item}>{item.label}</Combobox.Item>}</For>
 </Combobox.List>;
 ```
 
@@ -121,9 +119,7 @@ const items = Combobox.createItems(users, {
 
 <Combobox.Root items={items}>
   <Combobox.List>
-    <For each={users}>
-      {(user) => <Combobox.Item value={user.id}>{user.name}</Combobox.Item>}
-    </For>
+    <For each={users}>{(user) => <Combobox.Item value={user.id}>{user.name}</Combobox.Item>}</For>
   </Combobox.List>
 </Combobox.Root>;
 ```
@@ -161,12 +157,7 @@ const items = createMemo(() =>
   }),
 );
 
-<Combobox.Root
-  items={items()}
-  filteredItems={searchResults()}
-  value={selectedUserId()}
-  onValueChange={setSelectedUserId}
-/>;
+<Combobox.Root items={items()} filteredItems={searchResults()} value={selectedUserId()} onValueChange={setSelectedUserId} />;
 ```
 
 Include the selected user's record in `knownUsers` so its label remains available when it is outside `searchResults`. Alternatively, provide `itemToStringLabel` when the label can be derived from the selected value alone.
@@ -347,9 +338,7 @@ function FruitItem(props: { item: Fruit }) {
 }
 
 <Combobox.List>
-  <For each={items}>
-    {(item: Fruit) => <FruitItem item={item} />}
-  </For>
+  <For each={items}>{(item: Fruit) => <FruitItem item={item} />}</For>
 </Combobox.List>;
 ```
 

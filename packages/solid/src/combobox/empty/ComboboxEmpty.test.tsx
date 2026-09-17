@@ -20,11 +20,7 @@ function renderEmpty(rootProps?: Record<string, unknown>) {
         <ComboboxPositioner>
           <ComboboxPopup>
             <ComboboxEmpty data-testid="empty">No results</ComboboxEmpty>
-            <ComboboxList>
-              {(item: unknown) => (
-                <ComboboxItem value={item}>{String(item)}</ComboboxItem>
-              )}
-            </ComboboxList>
+            <ComboboxList>{(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}</ComboboxList>
           </ComboboxPopup>
         </ComboboxPositioner>
       </ComboboxPortal>

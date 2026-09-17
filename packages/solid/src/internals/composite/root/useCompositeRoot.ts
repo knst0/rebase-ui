@@ -17,8 +17,8 @@ import {
 } from "../composite";
 import { ACTIVE_COMPOSITE_ITEM } from "../constants";
 import { createElementRegistry } from "../registry/createElementRegistry";
-import { type CompositeScrollBehavior } from "../scroll/scrollBehavior";
 import { preciseScrollBehavior } from "../scroll/preciseScrollBehavior";
+import { type CompositeScrollBehavior } from "../scroll/scrollBehavior";
 import type { CompositeItemMetadata, CompositeRootContext } from "./CompositeRootContext";
 import type { CompositeGridNavigator } from "./gridNavigation";
 import { getNavigationIntent, resolveNextIndex } from "./navigation";

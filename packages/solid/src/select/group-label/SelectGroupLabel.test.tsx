@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 import { SelectGroup } from "../group/SelectGroup";
 import { Root } from "../index.parts";
-import { SelectItem } from "../item/SelectItem";
 import { SelectItemText } from "../item-text/SelectItemText";
+import { SelectItem } from "../item/SelectItem";
 import { SelectList } from "../list/SelectList";
 import { SelectPositioner } from "../positioner/SelectPositioner";
 import { SelectGroupLabel } from "./SelectGroupLabel";

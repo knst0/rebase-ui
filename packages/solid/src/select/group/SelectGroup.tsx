@@ -50,10 +50,7 @@ const defaultProps = Object.freeze({
 
 export interface SelectGroupState {}
 
-export type SelectGroupProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  SelectGroupState
->;
+export type SelectGroupProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, SelectGroupState>;
 
 export namespace SelectGroup {
   export type State = SelectGroupState;

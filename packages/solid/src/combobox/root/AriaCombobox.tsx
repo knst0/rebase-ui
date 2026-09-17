@@ -2,19 +2,15 @@ import type { JSX } from "@solidjs/web";
 import { For, onSettled, untrack, type Setter } from "solid-js";
 
 import { CompositeListContext, createCompositeList } from "../../internals/composite";
+import { REASONS } from "../../internals/event-details";
+import type { RebaseUIChangeEventDetails, RebaseUIGenericEventDetails } from "../../internals/event-details/createEventDetails";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
 import { stringifyAsValue } from "../../select/utils/resolveValueLabel";
 import type { Group } from "../../select/utils/resolveValueLabel";
-import type {
-  RebaseUIChangeEventDetails,
-  RebaseUIGenericEventDetails,
-} from "../../internals/event-details/createEventDetails";
-import { REASONS } from "../../internals/event-details";
 import type { ComboboxItemCollection, ItemCollection } from "../items/itemCollection";
-import { createComboboxRoot } from "./createComboboxRoot";
 import {
   ComboboxDerivedItemsContext,
   ComboboxFloatingContext,
@@ -22,12 +18,9 @@ import {
   ComboboxInputValueContext,
   ComboboxRootContext,
 } from "./ComboboxRootContext";
+import { createComboboxRoot } from "./createComboboxRoot";
 
-type InternalAriaComboboxProps<
-  Value,
-  Mode extends SelectionMode,
-  Item = Value,
-> = AriaComboboxProps<Value, Mode, Item> & {
+type InternalAriaComboboxProps<Value, Mode extends SelectionMode, Item = Value> = AriaComboboxProps<Value, Mode, Item> & {
   filterQuery?: string | undefined;
 };
 
@@ -53,11 +46,10 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
     selectedValue: () => props.selectedValue as any,
     defaultSelectedValue: () => props.defaultSelectedValue as any,
     onSelectedValueChange: (value, eventDetails) =>
-      (
-        props.onSelectedValueChange as
-          | ((value: any, eventDetails: AriaCombobox.ChangeEventDetails) => void)
-          | undefined
-      )?.(value, eventDetails),
+      (props.onSelectedValueChange as ((value: any, eventDetails: AriaCombobox.ChangeEventDetails) => void) | undefined)?.(
+        value,
+        eventDetails,
+      ),
     inputValue: () => props.inputValue as any,
     defaultInputValue: () => props.defaultInputValue as any,
     onInputValueChange: (value, eventDetails) => props.onInputValueChange?.(value, eventDetails),
@@ -65,9 +57,9 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
     defaultOpen: () => props.defaultOpen ?? false,
     onOpenChange: (open, eventDetails) => props.onOpenChange?.(open, eventDetails),
     onOpenChangeComplete: (open) => props.onOpenChangeComplete?.(open),
-    onItemHighlighted: (props.onItemHighlighted as
+    onItemHighlighted: props.onItemHighlighted as
       | ((value: any, eventDetails: AriaCombobox.HighlightEventDetails) => void)
-      | undefined) as CreateComboboxOnItemHighlighted,
+      | undefined as CreateComboboxOnItemHighlighted,
     name: () => props.name,
     form: () => props.form,
     disabled: () => props.disabled ?? false,
@@ -76,15 +68,11 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
     grid: () => props.grid ?? false,
     items: () => props.items as readonly any[] | readonly Group<any>[] | ItemCollection | undefined,
     filteredItems: () => props.filteredItems as readonly any[] | readonly Group<any>[] | undefined,
-    filter: () => props.filter as
-      | ((item: any, query: string, itemToString?: (item: any) => string) => boolean)
-      | null
-      | undefined,
+    filter: () => props.filter as ((item: any, query: string, itemToString?: (item: any) => string) => boolean) | null | undefined,
     filterQuery: () => props.filterQuery,
     itemToStringLabel: () => props.itemToStringLabel as ((itemValue: any) => string) | undefined,
     itemToStringValue: () => props.itemToStringValue as ((itemValue: any) => string) | undefined,
-    isItemEqualToValue: () =>
-      props.isItemEqualToValue as ((itemValue: any, value: any) => boolean) | undefined,
+    isItemEqualToValue: () => props.isItemEqualToValue as ((itemValue: any, value: any) => boolean) | undefined,
     virtualized: () => props.virtualized ?? false,
     inline: () => props.inline ?? false,
     openOnInputClick: () => props.openOnInputClick ?? true,
@@ -122,9 +110,12 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
     });
   }
 
-  const mergedInputRef = mergeRefs(untrack(() => props.inputRef), (element: HTMLInputElement) => {
-    field.validation.inputElement = element;
-  });
+  const mergedInputRef = mergeRefs(
+    untrack(() => props.inputRef),
+    (element: HTMLInputElement) => {
+      field.validation.inputElement = element;
+    },
+  );
 
   const hiddenInputName = () => {
     const mode = root.store.select("selectionMode") as string;
@@ -138,9 +129,7 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
         <ComboboxHasItemsContext value={root.hasItems}>
           <ComboboxDerivedItemsContext value={root.derivedItems}>
             <ComboboxInputValueContext value={root.inputValueString}>
-              <CompositeListContext value={compositeList.contextValue}>
-                {untrack(() => props.children) as JSX.Element}
-              </CompositeListContext>
+              <CompositeListContext value={compositeList.contextValue}>{untrack(() => props.children) as JSX.Element}</CompositeListContext>
               <RenderElement
                 as="input"
                 props={[
@@ -151,9 +140,7 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
                     onFocus: root.handleHiddenInputFocus,
                     onChange: root.handleAutofillChange,
                     get id() {
-                      return root.generatedId() && hiddenInputName() == null
-                        ? `${root.generatedId()}-hidden-input`
-                        : undefined;
+                      return root.generatedId() && hiddenInputName() == null ? `${root.generatedId()}-hidden-input` : undefined;
                     },
                     get form() {
                       return props.form;
@@ -180,8 +167,7 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
                       return hiddenInputName() ? visuallyHiddenInput : visuallyHidden;
                     },
                   },
-                  (externalProps) =>
-                    field.validation.getValidationProps(root.disabled(), externalProps),
+                  (externalProps) => field.validation.getValidationProps(root.disabled(), externalProps),
                 ]}
               />
               <For each={root.multipleValues()}>
@@ -190,7 +176,10 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
                     type="hidden"
                     form={props.form}
                     name={root.name()}
-                    value={stringifyAsValue(itemValue, untrack(() => props.itemToStringValue))}
+                    value={stringifyAsValue(
+                      itemValue,
+                      untrack(() => props.itemToStringValue),
+                    )}
                     disabled={root.disabled()}
                   />
                 )}
@@ -204,15 +193,11 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
 }
 
 // Helper alias so the `onItemHighlighted` prop cast above stays readable.
-type CreateComboboxOnItemHighlighted =
-  | ((value: any, eventDetails: AriaCombobox.HighlightEventDetails) => void)
-  | undefined;
+type CreateComboboxOnItemHighlighted = ((value: any, eventDetails: AriaCombobox.HighlightEventDetails) => void) | undefined;
 
 export type SelectionMode = "single" | "multiple" | "none";
 
-export type ComboboxItemValueType<ItemValue, Mode extends SelectionMode> = Mode extends "multiple"
-  ? ItemValue[]
-  : ItemValue;
+export type ComboboxItemValueType<ItemValue, Mode extends SelectionMode> = Mode extends "multiple" ? ItemValue[] : ItemValue;
 
 interface ComboboxRootProps<ItemValue, Item = ItemValue> {
   children?: JSX.Element;
@@ -301,9 +286,7 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
   /**
    * Callback fired when the input value of the combobox changes.
    */
-  onInputValueChange?:
-    | ((value: string, eventDetails: AriaCombobox.ChangeEventDetails) => void)
-    | undefined;
+  onInputValueChange?: ((value: string, eventDetails: AriaCombobox.ChangeEventDetails) => void) | undefined;
   /**
    * The uncontrolled input value when initially rendered.
    *
@@ -324,9 +307,7 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
    * - `'pointer'`: the highlight changed due to pointer hovering.
    * - `'none'`: the highlight changed programmatically.
    */
-  onItemHighlighted?:
-    | ((itemValue: ItemValue | undefined, eventDetails: AriaCombobox.HighlightEventDetails) => void)
-    | undefined;
+  onItemHighlighted?: ((itemValue: ItemValue | undefined, eventDetails: AriaCombobox.HighlightEventDetails) => void) | undefined;
   /**
    * A ref to the hidden input element.
    */
@@ -358,10 +339,7 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
    * Receives the source item, which is the derived value's item when `items` is a `createItems()`
    * collection, and the item itself otherwise.
    */
-  filter?:
-    | null
-    | ((item: Item, query: string, itemToString?: (item: Item) => string) => boolean)
-    | undefined;
+  filter?: null | ((item: Item, query: string, itemToString?: (item: Item) => string) => boolean) | undefined;
   /**
    * When the item values are objects (`<Combobox.Item value={object}>`), this function converts the object value to a string representation for display in the input.
    * If the shape of the object is `{ value, label }`, the label will be used automatically without needing to specify this prop.
@@ -445,11 +423,7 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
 
 export interface AriaComboboxState {}
 
-export type AriaComboboxProps<
-  Value,
-  Mode extends SelectionMode = "none",
-  Item = Value,
-> = ComboboxRootProps<Value, Item> & {
+export type AriaComboboxProps<Value, Mode extends SelectionMode = "none", Item = Value> = ComboboxRootProps<Value, Item> & {
   /**
    * How the combobox should remember the selected value.
    * - `single`: Remembers the last selected value.
@@ -469,34 +443,19 @@ export type AriaComboboxProps<
   /**
    * Callback fired when the selected value of the combobox changes.
    */
-  onSelectedValueChange?:
-    | ((
-        value: ComboboxItemValueType<Value, Mode>,
-        eventDetails: AriaCombobox.ChangeEventDetails,
-      ) => void)
-    | undefined;
+  onSelectedValueChange?: ((value: ComboboxItemValueType<Value, Mode>, eventDetails: AriaCombobox.ChangeEventDetails) => void) | undefined;
 };
 
 export namespace AriaCombobox {
-  export type Props<
-    Value,
-    Mode extends SelectionMode = "none",
-    Item = Value,
-  > = AriaComboboxProps<Value, Mode, Item>;
+  export type Props<Value, Mode extends SelectionMode = "none", Item = Value> = AriaComboboxProps<Value, Mode, Item>;
   export type State = AriaComboboxState;
 
   export interface Actions {
     unmount: () => void;
   }
 
-  export type HighlightEventReason =
-    | typeof REASONS.keyboard
-    | typeof REASONS.pointer
-    | typeof REASONS.none;
-  export type HighlightEventDetails = RebaseUIGenericEventDetails<
-    HighlightEventReason,
-    { index: number }
-  >;
+  export type HighlightEventReason = typeof REASONS.keyboard | typeof REASONS.pointer | typeof REASONS.none;
+  export type HighlightEventDetails = RebaseUIGenericEventDetails<HighlightEventReason, { index: number }>;
 
   export type ChangeEventReason =
     | typeof REASONS.triggerPress

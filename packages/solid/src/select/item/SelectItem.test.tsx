@@ -18,11 +18,7 @@ function CaptureStore(props: { onStore: (store: SelectStore) => void }) {
   return null;
 }
 
-function renderItems(options?: {
-  rootProps?: Record<string, any>;
-  onStore?: (store: SelectStore) => void;
-  indicatorTestIds?: boolean;
-}) {
+function renderItems(options?: { rootProps?: Record<string, any>; onStore?: (store: SelectStore) => void; indicatorTestIds?: boolean }) {
   const { rootProps = {}, onStore, indicatorTestIds = false } = options ?? {};
   render(() => (
     <Root defaultOpen defaultValue={null} {...rootProps}>

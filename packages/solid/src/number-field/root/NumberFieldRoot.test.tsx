@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createRenderer, describeConformance, nextFrames } from "#test-utils";
 
-import { NumberField } from "../index";
 import { Field } from "../../field/index";
+import { NumberField } from "../index";
 import type { NumberFieldRoot } from "./NumberFieldRoot";
 
 function NumberFieldFixture(props: Partial<NumberFieldRoot.Props> = {}) {
@@ -114,9 +114,7 @@ describe("<NumberField.Root />", () => {
     it("increments and decrements with reasons and commits on click", async () => {
       const onValueChange = vi.fn();
       const onValueCommitted = vi.fn();
-      await renderWithFlush(() => (
-        <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />
-      ));
+      await renderWithFlush(() => <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />);
 
       fireEvent.click(screen.getByTestId("increment"));
       flush();
@@ -190,10 +188,7 @@ describe("<NumberField.Root />", () => {
         const input = screen.getByTestId("input") as HTMLInputElement;
         expect(Number(input.value)).toBeGreaterThan(100);
         expect(onValueCommitted).toHaveBeenCalledTimes(1);
-        expect(onValueCommitted).toHaveBeenLastCalledWith(
-          Number(input.value),
-          expect.objectContaining({ reason: "increment-press" }),
-        );
+        expect(onValueCommitted).toHaveBeenLastCalledWith(Number(input.value), expect.objectContaining({ reason: "increment-press" }));
         expect(onValueChange.mock.calls.length).toBeGreaterThanOrEqual(1);
       } finally {
         vi.useRealTimers();
@@ -205,9 +200,7 @@ describe("<NumberField.Root />", () => {
     it("steps with ArrowUp/ArrowDown and commits with the keyboard reason", async () => {
       const onValueChange = vi.fn();
       const onValueCommitted = vi.fn();
-      await renderWithFlush(() => (
-        <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />
-      ));
+      await renderWithFlush(() => <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />);
       const input = screen.getByTestId("input") as HTMLInputElement;
 
       pressKey(input, "ArrowUp");
@@ -246,9 +239,7 @@ describe("<NumberField.Root />", () => {
     it("updates the value live while typing and commits on blur", async () => {
       const onValueChange = vi.fn();
       const onValueCommitted = vi.fn();
-      await renderWithFlush(() => (
-        <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />
-      ));
+      await renderWithFlush(() => <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />);
       const input = screen.getByTestId("input") as HTMLInputElement;
 
       input.focus();
@@ -264,9 +255,7 @@ describe("<NumberField.Root />", () => {
     it("clears to null and commits when emptied", async () => {
       const onValueChange = vi.fn();
       const onValueCommitted = vi.fn();
-      await renderWithFlush(() => (
-        <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />
-      ));
+      await renderWithFlush(() => <NumberFieldFixture onValueChange={onValueChange} onValueCommitted={onValueCommitted} />);
       const input = screen.getByTestId("input") as HTMLInputElement;
 
       input.focus();
@@ -473,10 +462,7 @@ describe("<NumberField.Root />", () => {
         await nextFrames();
 
         const attribution = (capture.attribution?.events ?? []).map((event) => JSON.stringify(event));
-        expect(
-          capture.diagnostics,
-          attribution.length > 0 ? `attribution: ${attribution.join("\n")}` : undefined,
-        ).toEqual([]);
+        expect(capture.diagnostics, attribution.length > 0 ? `attribution: ${attribution.join("\n")}` : undefined).toEqual([]);
         expect(attribution).toEqual([]);
       } finally {
         capture.restore();

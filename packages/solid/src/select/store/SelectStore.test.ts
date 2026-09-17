@@ -1,14 +1,9 @@
 import { createEffect, createRoot, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
-import { PopupTriggerMap } from "../../internals/floating/triggerMap";
 import { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
-import {
-  createInitialSelectStoreContext,
-  createInitialSelectStoreState,
-  SelectStore,
-  type SelectStoreState,
-} from "./SelectStore";
+import { PopupTriggerMap } from "../../internals/floating/triggerMap";
+import { createInitialSelectStoreContext, createInitialSelectStoreState, SelectStore, type SelectStoreState } from "./SelectStore";
 
 function createTestStore(overrides: Partial<SelectStoreState> = {}): SelectStore {
   const floatingRootContext = new FloatingRootStore({
@@ -23,16 +18,13 @@ function createTestStore(overrides: Partial<SelectStoreState> = {}): SelectStore
     onOpenChange: undefined,
   });
 
-  return new SelectStore(
-    createInitialSelectStoreState({ floatingRootContext, ...overrides }),
-    {
-      ...createInitialSelectStoreContext(),
-      setValue: () => {},
-      setOpen: () => {},
-      handleScrollArrowVisibility: () => {},
-      onOpenChangeComplete: () => {},
-    },
-  );
+  return new SelectStore(createInitialSelectStoreState({ floatingRootContext, ...overrides }), {
+    ...createInitialSelectStoreContext(),
+    setValue: () => {},
+    setOpen: () => {},
+    handleScrollArrowVisibility: () => {},
+    onOpenChangeComplete: () => {},
+  });
 }
 
 describe("SelectStore", () => {

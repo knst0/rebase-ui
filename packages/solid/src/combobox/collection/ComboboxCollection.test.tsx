@@ -22,9 +22,7 @@ describe("<Combobox.Collection />", () => {
           <ComboboxPositioner>
             <ComboboxPopup>
               <ComboboxList>
-                <ComboboxCollection>
-                  {(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}
-                </ComboboxCollection>
+                <ComboboxCollection>{(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}</ComboboxCollection>
               </ComboboxList>
             </ComboboxPopup>
           </ComboboxPositioner>
@@ -45,9 +43,7 @@ describe("<Combobox.Collection />", () => {
           <ComboboxPositioner>
             <ComboboxPopup>
               <ComboboxList>
-                <ComboboxCollection>
-                  {(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}
-                </ComboboxCollection>
+                <ComboboxCollection>{(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}</ComboboxCollection>
               </ComboboxList>
             </ComboboxPopup>
           </ComboboxPositioner>
@@ -70,9 +66,7 @@ describe("<Combobox.Collection />", () => {
             <ComboboxPopup>
               <ComboboxList>
                 <ComboboxGroup data-testid="group">
-                  <ComboboxCollection>
-                    {(item: unknown) => <span>{String(item)}</span>}
-                  </ComboboxCollection>
+                  <ComboboxCollection>{(item: unknown) => <span>{String(item)}</span>}</ComboboxCollection>
                 </ComboboxGroup>
               </ComboboxList>
             </ComboboxPopup>

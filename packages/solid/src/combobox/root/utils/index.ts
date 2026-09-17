@@ -20,10 +20,7 @@ export function getComboboxPopupId(rootId: string | null | undefined) {
  * • When `item` is an object with a `value` property, that property is used.
  * • When `item` is a primitive (e.g. `string`), it is used directly.
  */
-export function createCollatorItemFilter(
-  collatorFilter: Filter,
-  itemToStringLabel?: FilterItemToString,
-) {
+export function createCollatorItemFilter(collatorFilter: Filter, itemToStringLabel?: FilterItemToString) {
   return (item: any, query: string) => {
     if (item == null) {
       return false;
@@ -37,11 +34,7 @@ export function createCollatorItemFilter(
  * Enhanced filter for single selection mode using Intl.Collator that shows all items
  * when query is empty or matches the current selection, making it easier to browse options.
  */
-export function createSingleSelectionCollatorFilter(
-  collatorFilter: Filter,
-  itemToStringLabel?: FilterItemToString,
-  selectedValue?: any,
-) {
+export function createSingleSelectionCollatorFilter(collatorFilter: Filter, itemToStringLabel?: FilterItemToString, selectedValue?: any) {
   return (item: any, query: string) => {
     if (item == null) {
       return false;
@@ -51,15 +44,10 @@ export function createSingleSelectionCollatorFilter(
     }
 
     const selectedValueToString = itemToStringLabel?.selected ?? itemToStringLabel;
-    const selectedString =
-      selectedValue != null ? stringifyAsLabel(selectedValue, selectedValueToString) : "";
+    const selectedString = selectedValue != null ? stringifyAsLabel(selectedValue, selectedValueToString) : "";
 
     // Handle case-insensitive matching consistently
-    if (
-      selectedString &&
-      collatorFilter.contains(selectedString, query) &&
-      selectedString.length === query.length
-    ) {
+    if (selectedString && collatorFilter.contains(selectedString, query) && selectedString.length === query.length) {
       return true;
     }
 

@@ -1,13 +1,13 @@
-import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@solidjs/testing-library';
-import { flush } from 'solid-js';
-import { describe, expect, it } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
+import { describe, expect, it } from "vitest";
 
-import * as Combobox from '../index.parts';
-import { ComboboxPortal } from './ComboboxPortal';
+import * as Combobox from "../index.parts";
+import { ComboboxPortal } from "./ComboboxPortal";
 
-describe('<Combobox.Portal />', () => {
-  it('portals popup content to the document body when open', () => {
+describe("<Combobox.Portal />", () => {
+  it("portals popup content to the document body when open", () => {
     render(() => (
       <Combobox.Root defaultOpen>
         <ComboboxPortal>
@@ -17,13 +17,13 @@ describe('<Combobox.Portal />', () => {
     ));
     flush();
 
-    const content = screen.getByTestId('portal-content');
-    expect(content).toHaveTextContent('Hello');
+    const content = screen.getByTestId("portal-content");
+    expect(content).toHaveTextContent("Hello");
     expect(content.parentElement?.ownerDocument).toBe(document);
     expect(document.body.contains(content)).toBe(true);
   });
 
-  it('renders nothing when the combobox is closed', () => {
+  it("renders nothing when the combobox is closed", () => {
     render(() => (
       <Combobox.Root>
         <ComboboxPortal>
@@ -33,10 +33,10 @@ describe('<Combobox.Portal />', () => {
     ));
     flush();
 
-    expect(screen.queryByTestId('portal-content')).toBeNull();
+    expect(screen.queryByTestId("portal-content")).toBeNull();
   });
 
-  it('keeps the portal mounted while closed when keepMounted is set', () => {
+  it("keeps the portal mounted while closed when keepMounted is set", () => {
     render(() => (
       <Combobox.Root>
         <ComboboxPortal keepMounted>
@@ -46,11 +46,11 @@ describe('<Combobox.Portal />', () => {
     ));
     flush();
 
-    expect(screen.getByTestId('portal-content')).toBeInTheDocument();
+    expect(screen.getByTestId("portal-content")).toBeInTheDocument();
   });
 
-  it('renders into a custom container when provided', () => {
-    const container = document.createElement('div');
+  it("renders into a custom container when provided", () => {
+    const container = document.createElement("div");
     document.body.appendChild(container);
     try {
       render(() => (
@@ -62,7 +62,7 @@ describe('<Combobox.Portal />', () => {
       ));
       flush();
 
-      expect(container.contains(screen.getByTestId('portal-content'))).toBe(true);
+      expect(container.contains(screen.getByTestId("portal-content"))).toBe(true);
     } finally {
       container.remove();
     }

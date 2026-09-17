@@ -22,11 +22,11 @@ export function InternalBackdrop(props: { cutout?: Element | null | undefined })
       // it an element that existed when the popup rendered.
       data-base-ui-inert=""
       style={{
-        position: 'fixed',
-        inset: '0',
-        'user-select': 'none',
-        '-webkit-user-select': 'none',
-        'clip-path': getClipPath(),
+        position: "fixed",
+        inset: "0",
+        "user-select": "none",
+        "-webkit-user-select": "none",
+        "clip-path": getClipPath(),
       }}
     />
   );

@@ -1,82 +1,68 @@
-import type { ValidComponent } from '@solidjs/web';
-import { createSignal, createUniqueId, onCleanup, Show, untrack } from 'solid-js';
-import { createButton } from '../../internals/create-button';
-import { createChangeEventDetails, REASONS } from '../../internals/event-details';
-import { DEFAULT_FIELD_STATE_ATTRIBUTES, fieldValidityMapping } from '../../internals/field-constants';
-import {
-  DEFAULT_FIELD_ROOT_CONTEXT,
-  FieldRootContext,
-  useFieldRootContext,
-} from '../../internals/field-root-context/FieldRootContext';
-import { stopEvent } from '../../internals/floating/utils/event';
-import type { Side } from '../../internals/floating/types';
-import { useLabelableContext } from '../../internals/labelable-provider/LabelableContext';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import type { RebaseUIComponentProps } from '../../internals/types';
-import { visuallyHiddenInput } from '../../internals/utils/visuallyHidden';
-import type { FieldRootState } from '../../field/root/FieldRoot';
-import { useComboboxChipsContext, type ComboboxChipsContext } from '../chips/ComboboxChipsContext';
-import { useComboboxPositionerContext } from '../positioner/ComboboxPositionerContext';
-import {
-  useComboboxDerivedItemsContext,
-  useComboboxInputValueContext,
-  useComboboxRootContext,
-} from '../root/ComboboxRootContext';
-import * as ComboboxInputDataAttributes from './ComboboxInputDataAttributes';
+import type { ValidComponent } from "@solidjs/web";
+import { createSignal, createUniqueId, onCleanup, Show, untrack } from "solid-js";
+
+import type { FieldRootState } from "../../field/root/FieldRoot";
+import { createButton } from "../../internals/create-button";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { DEFAULT_FIELD_STATE_ATTRIBUTES, fieldValidityMapping } from "../../internals/field-constants";
+import { DEFAULT_FIELD_ROOT_CONTEXT, FieldRootContext, useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
+import type { Side } from "../../internals/floating/types";
+import { stopEvent } from "../../internals/floating/utils/event";
+import { useLabelableContext } from "../../internals/labelable-provider/LabelableContext";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import { visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
+import { useComboboxChipsContext, type ComboboxChipsContext } from "../chips/ComboboxChipsContext";
+import { useComboboxPositionerContext } from "../positioner/ComboboxPositionerContext";
+import { useComboboxDerivedItemsContext, useComboboxInputValueContext, useComboboxRootContext } from "../root/ComboboxRootContext";
+import * as ComboboxInputDataAttributes from "./ComboboxInputDataAttributes";
 
 const comboboxInputStateMapping: StateAttributesMapping<ComboboxInputState> = {
   ...fieldValidityMapping,
   open: {
     keys: [ComboboxInputDataAttributes.popupOpen],
-    map: (value) => (value ? { [ComboboxInputDataAttributes.popupOpen]: '' } : null),
+    map: (value) => (value ? { [ComboboxInputDataAttributes.popupOpen]: "" } : null),
   },
   popupSide: {
     keys: [ComboboxInputDataAttributes.popupSide],
-    map: (value: Side | null) =>
-      value ? { [ComboboxInputDataAttributes.popupSide]: value } : null,
+    map: (value: Side | null) => (value ? { [ComboboxInputDataAttributes.popupSide]: value } : null),
   },
   listEmpty: {
     keys: [ComboboxInputDataAttributes.listEmpty],
-    map: (value) => (value ? { [ComboboxInputDataAttributes.listEmpty]: '' } : null),
+    map: (value) => (value ? { [ComboboxInputDataAttributes.listEmpty]: "" } : null),
   },
 };
 
 type EventHandlerValue = ((event: never) => void) | undefined;
 
 function callHandler(value: unknown, event: Event): void {
-  if (typeof value === 'function') {
+  if (typeof value === "function") {
     (value as (event: Event) => void)(event);
   }
 }
 
 function isAndroid(): boolean {
-  return typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+  return typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
 }
 
 function isGecko(): boolean {
-  return (
-    typeof navigator !== 'undefined' &&
-    /gecko\/\d/i.test(navigator.userAgent) &&
-    !/like gecko/i.test(navigator.userAgent)
-  );
+  return typeof navigator !== "undefined" && /gecko\/\d/i.test(navigator.userAgent) && !/like gecko/i.test(navigator.userAgent);
 }
 
-function getDirection(input: HTMLInputElement): 'ltr' | 'rtl' {
+function getDirection(input: HTMLInputElement): "ltr" | "rtl" {
   const doc = input.ownerDocument;
-  const dirElement = input.closest('[dir]') ?? doc?.documentElement;
-  return dirElement?.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
+  const dirElement = input.closest("[dir]") ?? doc?.documentElement;
+  return dirElement?.getAttribute("dir") === "rtl" ? "rtl" : "ltr";
 }
 
 /**
  * The arrow keys that move the chip highlight backwards and forwards, in that order.
  */
-function getChipNavigationKeys(direction: 'ltr' | 'rtl') {
-  return direction === 'rtl'
-    ? (['ArrowRight', 'ArrowLeft'] as const)
-    : (['ArrowLeft', 'ArrowRight'] as const);
+function getChipNavigationKeys(direction: "ltr" | "rtl") {
+  return direction === "rtl" ? (["ArrowRight", "ArrowLeft"] as const) : (["ArrowLeft", "ArrowRight"] as const);
 }
 
 /**
@@ -109,18 +95,13 @@ function clickHighlightedItem(
  * A visually hidden button that closes the popup when tabbed to, keeping focus
  * trapped while the popup is open in modal contexts.
  */
-function InternalDismissButton(props: {
-  ref: (element: HTMLSpanElement | null) => void;
-}) {
+function InternalDismissButton(props: { ref: (element: HTMLSpanElement | null) => void }) {
   const store = useComboboxRootContext();
 
   const { getButtonProps, buttonRef } = createButton({ native: false });
 
   function handleDismiss(event: MouseEvent | KeyboardEvent) {
-    store.context.setOpen(
-      false,
-      createChangeEventDetails(REASONS.closePress, event, event.currentTarget as Element),
-    );
+    store.context.setOpen(false, createChangeEventDetails(REASONS.closePress, event, event.currentTarget as Element));
   }
 
   return (
@@ -139,22 +120,12 @@ function InternalDismissButton(props: {
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxInput<T extends ValidComponent = 'input'>(props: ComboboxInput.Props<T>) {
+export function ComboboxInput<T extends ValidComponent = "input">(props: ComboboxInput.Props<T>) {
   const [local, userHandlers, elementProps] = split(
     props as ComboboxInput.Props,
     { default: defaultProps },
-    ['as', 'disabled', 'id'],
-    [
-      'onFocus',
-      'onBlur',
-      'onInput',
-      'onChange',
-      'onKeyDown',
-      'onCompositionStart',
-      'onCompositionEnd',
-      'onPointerMove',
-      'onPointerDown',
-    ],
+    ["as", "disabled", "id"],
+    ["onFocus", "onBlur", "onInput", "onChange", "onKeyDown", "onCompositionStart", "onCompositionEnd", "onPointerMove", "onPointerDown"],
   );
   const as = untrack(() => local.as);
   const idProp = untrack(() => local.id);
@@ -168,15 +139,11 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
   // `inputValue` can't be placed in the store.
   const inputValue = useComboboxInputValueContext();
 
-  const disabled = () =>
-    field.disabled() === true ||
-    (store.select('disabled') as boolean) === true ||
-    local.disabled === true;
+  const disabled = () => field.disabled() === true || (store.select("disabled") as boolean) === true || local.disabled === true;
 
-  const autoHighlightEnabled = () => Boolean(store.select('autoHighlight') as string | false);
+  const autoHighlightEnabled = () => Boolean(store.select("autoHighlight") as string | false);
 
-  const isInsidePopup = () =>
-    hasPositionerParent || (store.select('inline') as boolean) === true;
+  const isInsidePopup = () => hasPositionerParent || (store.select("inline") as boolean) === true;
 
   const generatedId = createUniqueId();
 
@@ -205,23 +172,21 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
   const state: ComboboxInputState = {
     ...(hasPositionerParent ? DEFAULT_FIELD_STATE_ATTRIBUTES : field.state),
     get open() {
-      return store.select('open') as boolean;
+      return store.select("open") as boolean;
     },
     get disabled() {
       return disabled;
     },
     get popupSide() {
-      const mounted = store.select('mounted') as boolean;
-      const positionerElement = store.select('positionerElement') as HTMLElement | null;
-      return mounted && positionerElement
-        ? (store.select('popupSide') as Side | null)
-        : null;
+      const mounted = store.select("mounted") as boolean;
+      const positionerElement = store.select("positionerElement") as HTMLElement | null;
+      return mounted && positionerElement ? (store.select("popupSide") as Side | null) : null;
     },
     get listEmpty() {
       return useComboboxDerivedItemsContext().filteredItems.length === 0;
     },
     get readOnly() {
-      return store.select('readOnly') as boolean;
+      return store.select("readOnly") as boolean;
     },
   };
 
@@ -234,7 +199,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
 
     const highlightedChipIndex = chips.highlightedChipIndex();
     const renderedChipsCount = chips.chipsRef.current.length;
-    const selectedValue = store.peek('selectedValue') as unknown;
+    const selectedValue = store.peek("selectedValue") as unknown;
     const [previousChipKey, nextChipKey] = getChipNavigationKeys(getDirection(event.currentTarget));
 
     if (highlightedChipIndex !== undefined) {
@@ -252,13 +217,10 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         } else {
           nextIndex = undefined;
         }
-      } else if (event.key === 'Backspace' || event.key === 'Delete') {
+      } else if (event.key === "Backspace" || event.key === "Delete") {
         event.preventDefault();
         // Move highlight appropriately after removal.
-        nextIndex = getIndexAfterChipRemoval(
-          highlightedChipIndex,
-          Array.isArray(selectedValue) ? selectedValue.length : 0,
-        );
+        nextIndex = getIndexAfterChipRemoval(highlightedChipIndex, Array.isArray(selectedValue) ? selectedValue.length : 0);
         clearHighlight();
       }
       return nextIndex;
@@ -279,34 +241,33 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
   }
 
   function setInputElement(element: HTMLInputElement | null) {
-    const nextIsInsidePopup =
-      hasPositionerParent || (store.peek('inline') as boolean) === true;
+    const nextIsInsidePopup = hasPositionerParent || (store.peek("inline") as boolean) === true;
 
-    if (nextIsInsidePopup && !(store.peek('hasInputValue') as boolean)) {
-      store.context.setInputValue('', createChangeEventDetails(REASONS.none));
+    if (nextIsInsidePopup && !(store.peek("hasInputValue") as boolean)) {
+      store.context.setInputValue("", createChangeEventDetails(REASONS.none));
     }
 
     store.update({
       inputElement: element,
       inputInsidePopup: nextIsInsidePopup,
-      inputOwnsFormValue: (store.peek('selectionMode') as string) === 'none' && !hasPositionerParent,
+      inputOwnsFormValue: (store.peek("selectionMode") as string) === "none" && !hasPositionerParent,
     });
   }
 
   const ownProps = () => {
-    const fromInput = store.select('inputProps') as Record<string, unknown>;
-    const fromTrigger = store.select('triggerProps') as Record<string, unknown>;
+    const fromInput = store.select("inputProps") as Record<string, unknown>;
+    const fromTrigger = store.select("triggerProps") as Record<string, unknown>;
 
-    const readOnly = store.select('readOnly') as boolean;
-    const required = store.select('required') as boolean;
-    const selectionMode = store.select('selectionMode') as string;
-    const mounted = store.select('mounted') as boolean;
-    const inline = store.select('inline') as boolean;
-    const autoHighlightMode = store.select('autoHighlight') as string | false;
-    const open = store.select('open') as boolean;
-    const name = store.select('name') as string | undefined;
-    const form = store.select('form') as string | undefined;
-    const inputOwnsFormValue = selectionMode === 'none' && !hasPositionerParent;
+    const readOnly = store.select("readOnly") as boolean;
+    const required = store.select("required") as boolean;
+    const selectionMode = store.select("selectionMode") as string;
+    const mounted = store.select("mounted") as boolean;
+    const inline = store.select("inline") as boolean;
+    const autoHighlightMode = store.select("autoHighlight") as string | false;
+    const open = store.select("open") as boolean;
+    const name = store.select("name") as string | undefined;
+    const form = store.select("form") as string | undefined;
+    const inputOwnsFormValue = selectionMode === "none" && !hasPositionerParent;
 
     return {
       ...fromInput,
@@ -314,13 +275,13 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
       get value() {
         return composingValue() ?? inputValue();
       },
-      get 'aria-readonly'() {
-        return readOnly ? 'true' : undefined;
+      get "aria-readonly"() {
+        return readOnly ? "true" : undefined;
       },
-      get 'aria-required'() {
-        return required ? 'true' : undefined;
+      get "aria-required"() {
+        return required ? "true" : undefined;
       },
-      get 'aria-labelledby'() {
+      get "aria-labelledby"() {
         return fieldLabelId();
       },
       get disabled() {
@@ -330,14 +291,14 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         return readOnly;
       },
       get required() {
-        return selectionMode === 'none' ? required : undefined;
+        return selectionMode === "none" ? required : undefined;
       },
       get form() {
         return form;
       },
       ...(inputOwnsFormValue && name ? { name } : null),
       get id() {
-        return idProp ?? (!isInsidePopup() ? (store.select('id') as string | undefined) : undefined) ?? generatedId;
+        return idProp ?? (!isInsidePopup() ? (store.select("id") as string | undefined) : undefined) ?? generatedId;
       },
       onFocus: (event: FocusEvent) => {
         callHandler(fromInput.onFocus as EventHandlerValue, event);
@@ -367,16 +328,15 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         field.setTouched(true);
         field.setFocused(false);
 
-        const activeIndex = store.peek('activeIndex') as number | null;
-        if (inline && activeIndex !== null && autoHighlightMode !== 'always') {
+        const activeIndex = store.peek("activeIndex") as number | null;
+        if (inline && activeIndex !== null && autoHighlightMode !== "always") {
           lastActiveIndex = activeIndex;
           shouldRestoreActiveIndex = true;
           store.context.setIndices({ activeIndex: null });
         }
 
-        if (field.validationMode === 'onBlur') {
-          const valueToValidate =
-            selectionMode === 'none' ? inputValue() : store.peek('selectedValue');
+        if (field.validationMode === "onBlur") {
+          const valueToValidate = selectionMode === "none" ? inputValue() : store.peek("selectedValue");
           void field.validation.commit(valueToValidate);
         }
         callHandler(userHandlers.onBlur as EventHandlerValue, event);
@@ -398,10 +358,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         isComposing = false;
         const next = (event.currentTarget as HTMLInputElement).value;
         setComposingValue(null);
-        store.context.setInputValue(
-          next,
-          createChangeEventDetails(REASONS.inputChange, event),
-        );
+        store.context.setInputValue(next, createChangeEventDetails(REASONS.inputChange, event));
         callHandler(userHandlers.onCompositionEnd as EventHandlerValue, event);
       },
       onInput: (event: Event & { currentTarget: HTMLInputElement }) => {
@@ -414,7 +371,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         // Autofill may not provide `inputType` (Chrome) or may report
         // `insertReplacementText` (Firefox).
         const inputType = nativeEvent.inputType;
-        const autofillLikeInput = !inputType || inputType === 'insertReplacementText';
+        const autofillLikeInput = !inputType || inputType === "insertReplacementText";
         // During composition the input is always considered typed into.
         const shouldOpenOnInput = isComposing || !autofillLikeInput;
 
@@ -439,20 +396,16 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           const nextVal = currentTarget.value;
           setComposingValue(nextVal);
 
-          if (
-            nextVal === '' &&
-            !(store.peek('openOnInputClick') as boolean) &&
-            !(store.peek('inputInsidePopup') as boolean)
-          ) {
+          if (nextVal === "" && !(store.peek("openOnInputClick") as boolean) && !(store.peek("inputInsidePopup") as boolean)) {
             store.context.setOpen(false, createChangeEventDetails(REASONS.inputClear, nativeEvent));
           }
 
           const trimmed = nextVal.trim();
-          const shouldMaintainHighlight = autoHighlightEnabled() && trimmed !== '';
+          const shouldMaintainHighlight = autoHighlightEnabled() && trimmed !== "";
 
           maybeOpenOnInput(trimmed);
 
-          if (open && (store.peek('activeIndex') as number | null) !== null && !shouldMaintainHighlight) {
+          if (open && (store.peek("activeIndex") as number | null) !== null && !shouldMaintainHighlight) {
             clearHighlight();
           }
 
@@ -468,15 +421,15 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           return;
         }
 
-        const empty = currentTarget.value === '';
+        const empty = currentTarget.value === "";
         const clearDetails = createChangeEventDetails(REASONS.inputClear, nativeEvent);
 
-        if (empty && !(store.peek('inputInsidePopup') as boolean)) {
-          if (selectionMode === 'single') {
+        if (empty && !(store.peek("inputInsidePopup") as boolean)) {
+          if (selectionMode === "single") {
             store.context.setSelectedValue(null, clearDetails);
           }
 
-          if (!(store.peek('openOnInputClick') as boolean)) {
+          if (!(store.peek("openOnInputClick") as boolean)) {
             store.context.setOpen(false, clearDetails);
           }
         }
@@ -486,7 +439,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         // When the user types, ensure the list resets its highlight so that
         // virtual focus returns to the input (aria-activedescendant is
         // cleared).
-        if (open && (store.peek('activeIndex') as number | null) !== null && !autoHighlightEnabled()) {
+        if (open && (store.peek("activeIndex") as number | null) !== null && !autoHighlightEnabled()) {
           clearHighlight();
         }
         callHandler(userHandlers.onInput as EventHandlerValue, event);
@@ -511,7 +464,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
 
         if (disabled() || readOnly) {
           // Browsing can highlight an item, and Enter there must not submit the form.
-          if (readOnly && event.key === 'Enter' && open && (store.peek('activeIndex') as number | null) !== null) {
+          if (readOnly && event.key === "Enter" && open && (store.peek("activeIndex") as number | null) !== null) {
             stopEvent(event);
           }
           callHandler(userHandlers.onKeyDown as EventHandlerValue, event);
@@ -520,9 +473,9 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
 
         const input = event.currentTarget;
         const scrollAmount = input.scrollWidth - input.clientWidth;
-        const isRTL = getDirection(input) === 'rtl';
+        const isRTL = getDirection(input) === "rtl";
 
-        if (event.key === 'Home') {
+        if (event.key === "Home") {
           stopEvent(event);
           const cursor = isGecko() && isRTL ? input.value.length : 0;
           input.setSelectionRange(cursor, cursor);
@@ -531,7 +484,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           return;
         }
 
-        if (event.key === 'End') {
+        if (event.key === "End") {
           stopEvent(event);
           const cursor = isGecko() && isRTL ? 0 : input.value.length;
           input.setSelectionRange(cursor, cursor);
@@ -540,16 +493,14 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           return;
         }
 
-        if (!mounted && event.key === 'Escape') {
-          const selectedValue = store.peek('selectedValue') as unknown;
+        if (!mounted && event.key === "Escape") {
+          const selectedValue = store.peek("selectedValue") as unknown;
           const isClear =
-            selectionMode === 'multiple' && Array.isArray(selectedValue)
-              ? selectedValue.length === 0
-              : selectedValue === null;
+            selectionMode === "multiple" && Array.isArray(selectedValue) ? selectedValue.length === 0 : selectedValue === null;
 
           const details = createChangeEventDetails(REASONS.escapeKey, event);
-          const value = selectionMode === 'multiple' ? [] : null;
-          store.context.setInputValue('', details);
+          const value = selectionMode === "multiple" ? [] : null;
+          store.context.setInputValue("", details);
           store.context.setSelectedValue(value, details);
 
           if (!isClear && !inline && !details.isPropagationAllowed) {
@@ -563,23 +514,19 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
         // Handle deletion when no chip is highlighted and the input is empty.
         if (
           chips &&
-          event.key === 'Backspace' &&
-          input.value === '' &&
+          event.key === "Backspace" &&
+          input.value === "" &&
           chips.highlightedChipIndex() === undefined &&
-          Array.isArray(store.peek('selectedValue'))
+          Array.isArray(store.peek("selectedValue"))
         ) {
-          const currentSelected = store.peek('selectedValue') as Array<unknown>;
+          const currentSelected = store.peek("selectedValue") as Array<unknown>;
           const renderedChipsCount = chips.chipsRef.current.length;
-          const removalIndex =
-            renderedChipsCount > 0 ? renderedChipsCount - 1 : currentSelected.length - 1;
+          const removalIndex = renderedChipsCount > 0 ? renderedChipsCount - 1 : currentSelected.length - 1;
 
           const newValue = currentSelected.filter((_, index) => index !== removalIndex);
           // If the removed item was also the active (highlighted) item, clear highlight
           clearHighlight();
-          store.context.setSelectedValue(
-            newValue,
-            createChangeEventDetails(REASONS.none, event),
-          );
+          store.context.setSelectedValue(newValue, createChangeEventDetails(REASONS.none, event));
           callHandler(userHandlers.onKeyDown as EventHandlerValue, event);
           return;
         }
@@ -601,8 +548,8 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           return;
         }
 
-        if (event.key === 'Enter' && open) {
-          const activeIndex = store.peek('activeIndex') as number | null;
+        if (event.key === "Enter" && open) {
+          const activeIndex = store.peek("activeIndex") as number | null;
 
           if (activeIndex === null) {
             if (inline) {
@@ -617,12 +564,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           }
 
           stopEvent(event);
-          clickHighlightedItem(
-            store.context.listRef,
-            store.context.selectionEventRef,
-            activeIndex,
-            event,
-          );
+          clickHighlightedItem(store.context.listRef, store.context.selectionEventRef, activeIndex, event);
         }
         callHandler(userHandlers.onKeyDown as EventHandlerValue, event);
       },
@@ -648,9 +590,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
   });
 
   const validationProps = (externalProps: Record<string, unknown>) =>
-    hasPositionerParent
-      ? externalProps
-      : field.validation.getValidationProps(disabled(), externalProps);
+    hasPositionerParent ? externalProps : field.validation.getValidationProps(disabled(), externalProps);
 
   const layers = [ownProps, elementProps, refProps, validationProps];
 
@@ -659,12 +599,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
   if (hasPositionerParent) {
     return (
       <>
-        <Show
-          when={
-            (store.select('open') as boolean) &&
-            (!isInsidePopup() || (store.select('modal') as boolean))
-          }
-        >
+        <Show when={(store.select("open") as boolean) && (!isInsidePopup() || (store.select("modal") as boolean))}>
           <InternalDismissButton
             ref={(element) => {
               store.context.startDismissRef.current = element;
@@ -672,12 +607,7 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
           />
         </Show>
         <FieldRootContext value={DEFAULT_FIELD_ROOT_CONTEXT}>
-          <RenderElement
-            as={as}
-            state={state}
-            props={layers}
-            stateAttributesMapping={comboboxInputStateMapping}
-          />
+          <RenderElement as={as} state={state} props={layers} stateAttributesMapping={comboboxInputStateMapping} />
         </FieldRootContext>
       </>
     );
@@ -685,30 +615,20 @@ export function ComboboxInput<T extends ValidComponent = 'input'>(props: Combobo
 
   return (
     <>
-      <Show
-        when={
-          (store.select('open') as boolean) &&
-          (!isInsidePopup() || (store.select('modal') as boolean))
-        }
-      >
+      <Show when={(store.select("open") as boolean) && (!isInsidePopup() || (store.select("modal") as boolean))}>
         <InternalDismissButton
           ref={(element) => {
             store.context.startDismissRef.current = element;
           }}
         />
       </Show>
-      <RenderElement
-        as={as}
-        state={state}
-        props={layers}
-        stateAttributesMapping={comboboxInputStateMapping}
-      />
+      <RenderElement as={as} state={state} props={layers} stateAttributesMapping={comboboxInputStateMapping} />
     </>
   );
 }
 
 const defaultProps = Object.freeze({
-  as: 'input',
+  as: "input",
   disabled: false,
 } satisfies Partial<ComboboxInput.Props>);
 
@@ -739,10 +659,9 @@ export interface ComboboxInputOwnProps {
   disabled?: boolean | undefined;
 }
 
-export type ComboboxInputProps<T extends ValidComponent = 'input'> = ComboboxInputOwnProps &
-  RebaseUIComponentProps<T, ComboboxInputState>;
+export type ComboboxInputProps<T extends ValidComponent = "input"> = ComboboxInputOwnProps & RebaseUIComponentProps<T, ComboboxInputState>;
 
 export namespace ComboboxInput {
   export type State = ComboboxInputState;
-  export type Props<T extends ValidComponent = 'input'> = ComboboxInputProps<T>;
+  export type Props<T extends ValidComponent = "input"> = ComboboxInputProps<T>;
 }

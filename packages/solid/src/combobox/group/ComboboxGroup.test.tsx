@@ -24,9 +24,7 @@ describe("<Combobox.Group />", () => {
     expect(() => {
       render(() => <Probe />);
       flush();
-    }).toThrow(
-      "Rebase UI: ComboboxGroupContext is missing. ComboboxGroup parts must be placed within <Combobox.Group>",
-    );
+    }).toThrow("Rebase UI: ComboboxGroupContext is missing. ComboboxGroup parts must be placed within <Combobox.Group>");
   });
 
   it("associates the label with its parent group", () => {
@@ -90,9 +88,7 @@ describe("<Combobox.Group />", () => {
               <ComboboxList>
                 <ComboboxGroup items={["a", "b"]}>
                   <ComboboxGroupLabel>Fruits</ComboboxGroupLabel>
-                  <ComboboxCollection>
-                    {(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}
-                  </ComboboxCollection>
+                  <ComboboxCollection>{(item: unknown) => <ComboboxItem value={item}>{String(item)}</ComboboxItem>}</ComboboxCollection>
                 </ComboboxGroup>
               </ComboboxList>
             </ComboboxPopup>

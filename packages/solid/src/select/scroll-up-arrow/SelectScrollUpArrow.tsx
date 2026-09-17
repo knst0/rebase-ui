@@ -1,8 +1,8 @@
 import type { ValidComponent } from "@solidjs/web";
 import { untrack } from "solid-js";
 
-import type { RebaseUIComponentProps } from "../../internals/types";
 import { split } from "../../internals/split";
+import type { RebaseUIComponentProps } from "../../internals/types";
 import { SelectScrollArrow } from "../scroll-arrow/SelectScrollArrow";
 
 /**
@@ -11,25 +11,12 @@ import { SelectScrollArrow } from "../scroll-arrow/SelectScrollArrow";
  *
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
-export function SelectScrollUpArrow<T extends ValidComponent = "div">(
-  props: SelectScrollUpArrow.Props<T>,
-) {
-  const [local, elementProps] = split(
-    props as SelectScrollUpArrow.Props,
-    { default: defaultProps },
-    ["as", "keepMounted"],
-  );
+export function SelectScrollUpArrow<T extends ValidComponent = "div">(props: SelectScrollUpArrow.Props<T>) {
+  const [local, elementProps] = split(props as SelectScrollUpArrow.Props, { default: defaultProps }, ["as", "keepMounted"]);
 
   const as = untrack(() => local.as);
 
-  return (
-    <SelectScrollArrow
-      {...elementProps}
-      as={as}
-      direction="up"
-      keepMounted={local.keepMounted}
-    />
-  );
+  return <SelectScrollArrow {...elementProps} as={as} direction="up" keepMounted={local.keepMounted} />;
 }
 
 const defaultProps = Object.freeze({
@@ -47,8 +34,8 @@ export interface SelectScrollUpArrowOwnProps {
   keepMounted?: boolean | undefined;
 }
 
-export type SelectScrollUpArrowProps<T extends ValidComponent = "div"> =
-  SelectScrollUpArrowOwnProps & RebaseUIComponentProps<T, SelectScrollUpArrowState>;
+export type SelectScrollUpArrowProps<T extends ValidComponent = "div"> = SelectScrollUpArrowOwnProps &
+  RebaseUIComponentProps<T, SelectScrollUpArrowState>;
 
 export namespace SelectScrollUpArrow {
   export type State = SelectScrollUpArrowState;

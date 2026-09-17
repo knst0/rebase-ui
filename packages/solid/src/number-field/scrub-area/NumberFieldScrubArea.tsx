@@ -6,8 +6,8 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { Orientation, RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
-import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
 import type { NumberFieldRootState } from "../root/NumberFieldRoot";
+import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
 import { getViewportRect } from "../utils/getViewportRect";
 import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 import { NumberFieldScrubAreaContext } from "./NumberFieldScrubAreaContext";
@@ -85,7 +85,10 @@ export function NumberFieldScrubArea<T extends ValidComponent = "span">(props: N
       return;
     }
 
-    const rect = getViewportRect(untrack(() => local.teleportDistance), scrubAreaEl);
+    const rect = getViewportRect(
+      untrack(() => local.teleportDistance),
+      scrubAreaEl,
+    );
 
     // Wrap the cursor to the opposite edge when its center crosses a viewport bound.
     const wrap = (coord: number, halfSize: number, low: number, high: number) => {
@@ -99,18 +102,8 @@ export function NumberFieldScrubArea<T extends ValidComponent = "span">(props: N
     };
 
     const newCoords = {
-      x: wrap(
-        Math.round(virtualCursorCoords.x + movementX),
-        virtualCursor.offsetWidth / 2,
-        rect.left,
-        rect.right,
-      ),
-      y: wrap(
-        Math.round(virtualCursorCoords.y + movementY),
-        virtualCursor.offsetHeight / 2,
-        rect.top,
-        rect.bottom,
-      ),
+      x: wrap(Math.round(virtualCursorCoords.x + movementX), virtualCursor.offsetWidth / 2, rect.left, rect.right),
+      y: wrap(Math.round(virtualCursorCoords.y + movementY), virtualCursor.offsetHeight / 2, rect.top, rect.bottom),
     };
 
     virtualCursorCoords.x = newCoords.x;

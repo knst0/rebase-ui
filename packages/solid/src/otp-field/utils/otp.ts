@@ -2,34 +2,34 @@ interface OTPValidationConfig {
   slotPattern: string;
   getRootPattern: (length: number) => string;
   regexp: RegExp;
-  inputMode: 'numeric' | 'text';
+  inputMode: "numeric" | "text";
 }
 
-export type OTPValidationType = 'numeric' | 'alpha' | 'alphanumeric' | 'none';
+export type OTPValidationType = "numeric" | "alpha" | "alphanumeric" | "none";
 
-const OTP_VALIDATION_CONFIG: Record<Exclude<OTPValidationType, 'none'>, OTPValidationConfig> = {
+const OTP_VALIDATION_CONFIG: Record<Exclude<OTPValidationType, "none">, OTPValidationConfig> = {
   numeric: {
-    slotPattern: '\\d{1}',
+    slotPattern: "\\d{1}",
     getRootPattern: (length) => `\\d{${length}}`,
     regexp: /[^\d]/g,
-    inputMode: 'numeric',
+    inputMode: "numeric",
   },
   alpha: {
-    slotPattern: '[a-zA-Z]{1}',
+    slotPattern: "[a-zA-Z]{1}",
     getRootPattern: (length) => `[a-zA-Z]{${length}}`,
     regexp: /[^a-zA-Z]/g,
-    inputMode: 'text',
+    inputMode: "text",
   },
   alphanumeric: {
-    slotPattern: '[a-zA-Z0-9]{1}',
+    slotPattern: "[a-zA-Z0-9]{1}",
     getRootPattern: (length) => `[a-zA-Z0-9]{${length}}`,
     regexp: /[^a-zA-Z0-9]/g,
-    inputMode: 'text',
+    inputMode: "text",
   },
 };
 
 export function getOTPValidationConfig(validationType: OTPValidationType) {
-  if (validationType === 'none') {
+  if (validationType === "none") {
     return null;
   }
 
@@ -37,11 +37,11 @@ export function getOTPValidationConfig(validationType: OTPValidationType) {
 }
 
 export function stripOTPWhitespace(value: string | null | undefined) {
-  return (value ?? '').replace(/\s/g, '');
+  return (value ?? "").replace(/\s/g, "");
 }
 
 function applyOTPValidation(value: string, validation: OTPValidationConfig | null) {
-  return validation ? value.replace(validation.regexp, '') : value;
+  return validation ? value.replace(validation.regexp, "") : value;
 }
 
 /**
@@ -70,10 +70,7 @@ export function normalizeOTPValueWithDetails(
   const maxLength = length < 0 ? 0 : length;
   const normalizedCharacters = Array.from(normalizedValue);
 
-  return [
-    normalizedCharacters.slice(0, maxLength).join(''),
-    didRejectCharacters || normalizedCharacters.length > maxLength,
-  ];
+  return [normalizedCharacters.slice(0, maxLength).join(""), didRejectCharacters || normalizedCharacters.length > maxLength];
 }
 
 export function normalizeOTPValue(
@@ -101,12 +98,7 @@ export function replaceOTPValue(
   const prefix = currentValue.slice(0, index);
   const suffix = currentValue.slice(index + normalizedValue.length);
 
-  return normalizeOTPValue(
-    `${prefix}${normalizedValue}${suffix}`,
-    length,
-    validationType,
-    normalizeValue,
-  );
+  return normalizeOTPValue(`${prefix}${normalizedValue}${suffix}`, length, validationType, normalizeValue);
 }
 
 export function removeOTPCharacter(currentValue: string, index: number) {

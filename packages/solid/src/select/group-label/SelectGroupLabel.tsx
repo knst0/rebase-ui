@@ -13,11 +13,7 @@ import { useSelectGroupContext } from "../group/SelectGroupContext";
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectGroupLabel<T extends ValidComponent = "div">(props: SelectGroupLabel.Props<T>) {
-  const [local, elementProps] = split(
-    props as SelectGroupLabel.Props,
-    { default: defaultProps },
-    ["as", "id"],
-  );
+  const [local, elementProps] = split(props as SelectGroupLabel.Props, { default: defaultProps }, ["as", "id"]);
 
   const as = untrack(() => local.as);
 
@@ -64,10 +60,7 @@ const defaultProps = Object.freeze({
 
 export interface SelectGroupLabelState {}
 
-export type SelectGroupLabelProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  SelectGroupLabelState
->;
+export type SelectGroupLabelProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, SelectGroupLabelState>;
 
 export namespace SelectGroupLabel {
   export type State = SelectGroupLabelState;

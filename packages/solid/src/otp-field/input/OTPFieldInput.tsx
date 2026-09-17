@@ -1,31 +1,23 @@
-import type { ValidComponent } from '@solidjs/web';
-import { createEffect, createMemo, untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { createEffect, createMemo, untrack } from "solid-js";
 
-import { useCompositeListItem } from '../../internals/composite/list/useCompositeListItem';
-import {
-  createChangeEventDetails,
-  createGenericEventDetails,
-  REASONS,
-} from '../../internals/event-details';
-import { stopEvent } from '../../internals/floating/utils/event';
-import { makeEventPreventable } from '../../internals/makeEventPreventable';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { RebaseUIComponentProps } from '../../internals/types';
-import { useOTPFieldRootContext } from '../root/OTPFieldRootContext';
-import type { OTPFieldRootState } from '../root/OTPFieldRoot';
-import {
-  normalizeOTPValueWithDetails,
-  removeOTPCharacter,
-  replaceOTPValue,
-} from '../utils/otp';
-import { inputStateAttributesMapping } from '../utils/stateAttributesMapping';
+import { useCompositeListItem } from "../../internals/composite/list/useCompositeListItem";
+import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
+import { stopEvent } from "../../internals/floating/utils/event";
+import { makeEventPreventable } from "../../internals/makeEventPreventable";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import type { OTPFieldRootState } from "../root/OTPFieldRoot";
+import { useOTPFieldRootContext } from "../root/OTPFieldRootContext";
+import { normalizeOTPValueWithDetails, removeOTPCharacter, replaceOTPValue } from "../utils/otp";
+import { inputStateAttributesMapping } from "../utils/stateAttributesMapping";
 
-function getDirection(input: HTMLInputElement): 'ltr' | 'rtl' {
+function getDirection(input: HTMLInputElement): "ltr" | "rtl" {
   const doc = input.ownerDocument;
-  const dirElement = input.closest('[dir]') ?? doc?.documentElement;
-  return dirElement?.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
+  const dirElement = input.closest("[dir]") ?? doc?.documentElement;
+  return dirElement?.getAttribute("dir") === "rtl" ? "rtl" : "ltr";
 }
 
 /**
@@ -34,12 +26,8 @@ function getDirection(input: HTMLInputElement): 'ltr' | 'rtl' {
  *
  * Documentation: [Rebase UI OTP Field](https://rebase-ui.knst.dev/components/otp-field)
  */
-export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFieldInput.Props<T>) {
-  const [local, elementProps] = split(props as OTPFieldInput.Props, { default: defaultProps }, [
-    'as',
-    'aria-label',
-    'aria-labelledby',
-  ]);
+export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFieldInput.Props<T>) {
+  const [local, elementProps] = split(props as OTPFieldInput.Props, { default: defaultProps }, ["as", "aria-label", "aria-labelledby"]);
 
   const as = untrack(() => local.as);
 
@@ -48,9 +36,9 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
   const { ref: listItemRef, index } = useCompositeListItem();
   let inputElement: HTMLInputElement | null = null;
 
-  const slotValue = createMemo(() => context.value()[index()] ?? '');
-  const slotAriaLabel = () => local['aria-label'];
-  const inheritedLabel = () => local['aria-labelledby'] ?? context.inputAriaLabelledBy();
+  const slotValue = createMemo(() => context.value()[index()] ?? "");
+  const slotAriaLabel = () => local["aria-label"];
+  const inheritedLabel = () => local["aria-labelledby"] ?? context.inputAriaLabelledBy();
   const ariaLabel = createMemo(() => (index() === 0 ? undefined : slotAriaLabel()));
 
   const state: OTPFieldInputState = {
@@ -62,14 +50,14 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       return index();
     },
     get filled() {
-      return slotValue() !== '';
+      return slotValue() !== "";
     },
   };
 
   createEffect(
     () => ({ slotIndex: index(), label: slotAriaLabel() }),
     ({ slotIndex, label }) => {
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV === "production") {
         return;
       }
 
@@ -78,7 +66,7 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       }
 
       console.error(
-        'Rebase UI: <OTPField.Input> ignores `aria-label` on the first input. Use a `<label>` or `<Field.Label>` to label the OTP field.',
+        "Rebase UI: <OTPField.Input> ignores `aria-label` on the first input. Use a `<label>` or `<Field.Label>` to label the OTP field.",
       );
     },
   );
@@ -103,25 +91,19 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
     );
 
     if (didRejectCharacters) {
-      context.reportValueInvalid(
-        rawValue,
-        createGenericEventDetails(REASONS.inputChange, event),
-      );
+      context.reportValueInvalid(rawValue, createGenericEventDetails(REASONS.inputChange, event));
     }
 
-    if (nextDigits === '') {
-      if (rawValue === '') {
-        context.setValue(
-          removeOTPCharacter(context.value(), slotIndex),
-          createChangeEventDetails(REASONS.inputClear, event),
-        );
+    if (nextDigits === "") {
+      if (rawValue === "") {
+        context.setValue(removeOTPCharacter(context.value(), slotIndex), createChangeEventDetails(REASONS.inputClear, event));
       } else {
         // Restore the controlled slot value explicitly (upstream relies on a
         // re-render for this).
         if (event.currentTarget.value !== slotValue()) {
           event.currentTarget.value = slotValue();
         }
-        if (slotValue() !== '') {
+        if (slotValue() !== "") {
           event.currentTarget.select();
         }
       }
@@ -137,10 +119,7 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       context.normalizeValue(),
     );
 
-    const committedValue = context.setValue(
-      nextValue,
-      createChangeEventDetails(REASONS.inputChange, event),
-    );
+    const committedValue = context.setValue(nextValue, createChangeEventDetails(REASONS.inputChange, event));
 
     if (committedValue != null) {
       const nextInput = Math.min(slotIndex + nextDigits.length, context.length() - 1);
@@ -148,15 +127,8 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
     }
   }
 
-  function setKeyboardValue(
-    event: KeyboardEvent,
-    nextValue: string,
-    targetIndex: number,
-  ) {
-    const committedValue = context.setValue(
-      nextValue,
-      createChangeEventDetails(REASONS.keyboard, event),
-    );
+  function setKeyboardValue(event: KeyboardEvent, nextValue: string, targetIndex: number) {
+    const committedValue = context.setValue(nextValue, createChangeEventDetails(REASONS.keyboard, event));
 
     if (committedValue != null) {
       context.queueFocusInput(targetIndex, committedValue);
@@ -174,9 +146,9 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
     const lastIndex = Math.max(length - 1, firstIndex);
     const endTargetIndex = Math.min(context.value().length, lastIndex);
     const hasBoundaryModifier = (event.ctrlKey || event.metaKey) && !event.altKey;
-    const isRtl = getDirection(event.currentTarget) === 'rtl';
-    const previousKey = isRtl ? 'ArrowRight' : 'ArrowLeft';
-    const nextKey = isRtl ? 'ArrowLeft' : 'ArrowRight';
+    const isRtl = getDirection(event.currentTarget) === "rtl";
+    const previousKey = isRtl ? "ArrowRight" : "ArrowLeft";
+    const nextKey = isRtl ? "ArrowLeft" : "ArrowRight";
 
     if (event.key === previousKey) {
       stopEvent(event);
@@ -190,13 +162,13 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       return;
     }
 
-    if (event.key === 'Home' || event.key === 'ArrowUp') {
+    if (event.key === "Home" || event.key === "ArrowUp") {
       stopEvent(event);
       context.focusInput(firstIndex);
       return;
     }
 
-    if (event.key === 'End' || event.key === 'ArrowDown') {
+    if (event.key === "End" || event.key === "ArrowDown") {
       stopEvent(event);
       context.focusInput(endTargetIndex);
       return;
@@ -206,22 +178,20 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       return;
     }
 
-    if (event.key === 'Backspace' && hasBoundaryModifier) {
+    if (event.key === "Backspace" && hasBoundaryModifier) {
       stopEvent(event);
-      setKeyboardValue(event, '', firstIndex);
+      setKeyboardValue(event, "", firstIndex);
       return;
     }
 
-    if (event.key === 'Delete') {
+    if (event.key === "Delete") {
       stopEvent(event);
       setKeyboardValue(event, removeOTPCharacter(context.value(), slotIndex), slotIndex);
       return;
     }
 
     const inputValue = event.currentTarget.value;
-    const fullSelection =
-      event.currentTarget.selectionStart === 0 &&
-      event.currentTarget.selectionEnd === inputValue.length;
+    const fullSelection = event.currentTarget.selectionStart === 0 && event.currentTarget.selectionEnd === inputValue.length;
 
     if (event.key.length === 1 && fullSelection && slotValue() === event.key) {
       stopEvent(event);
@@ -231,10 +201,10 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       return;
     }
 
-    if (event.key === 'Backspace') {
+    if (event.key === "Backspace") {
       stopEvent(event);
       const targetIndex = Math.max(firstIndex, slotIndex - 1);
-      const deleteIndex = slotValue() === '' ? targetIndex : slotIndex;
+      const deleteIndex = slotValue() === "" ? targetIndex : slotIndex;
       setKeyboardValue(event, removeOTPCharacter(context.value(), deleteIndex), targetIndex);
     }
   }
@@ -244,13 +214,13 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       return;
     }
 
-    let rawValue = '';
+    let rawValue = "";
 
     try {
-      rawValue = event.clipboardData?.getData('text/plain') ?? '';
+      rawValue = event.clipboardData?.getData("text/plain") ?? "";
     } catch {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('<OTPField.Input> could not read clipboard text during paste handling.');
+      if (process.env.NODE_ENV !== "production") {
+        console.error("<OTPField.Input> could not read clipboard text during paste handling.");
       }
 
       return;
@@ -267,25 +237,15 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
     );
 
     if (didRejectCharacters) {
-      context.reportValueInvalid(
-        rawValue,
-        createGenericEventDetails(REASONS.inputPaste, event),
-      );
+      context.reportValueInvalid(rawValue, createGenericEventDetails(REASONS.inputPaste, event));
     }
 
-    if (nextDigits === '') {
+    if (nextDigits === "") {
       return;
     }
 
     const committedValue = context.setValue(
-      replaceOTPValue(
-        context.value(),
-        slotIndex,
-        nextDigits,
-        context.length(),
-        context.validationType(),
-        context.normalizeValue(),
-      ),
+      replaceOTPValue(context.value(), slotIndex, nextDigits, context.length(), context.validationType(), context.normalizeValue()),
       createChangeEventDetails(REASONS.inputPaste, event),
     );
 
@@ -300,13 +260,13 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
 
     for (const key in externalProps) {
       if (
-        key === 'onMouseDown' ||
-        key === 'onFocus' ||
-        key === 'onBlur' ||
-        key === 'onInput' ||
-        key === 'onChange' ||
-        key === 'onKeyDown' ||
-        key === 'onPaste'
+        key === "onMouseDown" ||
+        key === "onFocus" ||
+        key === "onBlur" ||
+        key === "onInput" ||
+        key === "onChange" ||
+        key === "onKeyDown" ||
+        key === "onPaste"
       ) {
         continue;
       }
@@ -317,97 +277,97 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       });
     }
 
-    Object.defineProperty(target, 'id', {
+    Object.defineProperty(target, "id", {
       enumerable: true,
       configurable: true,
       get: () => context.getInputId(index()),
     });
     // `type` and `maxLength` stay overridable so a custom input type can be
     // passed directly to individual inputs.
-    if (!('type' in externalProps)) {
-      Object.defineProperty(target, 'type', {
+    if (!("type" in externalProps)) {
+      Object.defineProperty(target, "type", {
         enumerable: true,
         configurable: true,
-        get: () => (context.mask() ? 'password' : 'text'),
+        get: () => (context.mask() ? "password" : "text"),
       });
     }
-    Object.defineProperty(target, 'inputmode', {
+    Object.defineProperty(target, "inputmode", {
       enumerable: true,
       configurable: true,
       get: () => context.inputMode(),
     });
-    Object.defineProperty(target, 'autocomplete', {
+    Object.defineProperty(target, "autocomplete", {
       enumerable: true,
       configurable: true,
-      get: () => (index() === 0 ? context.autoComplete() : 'off'),
+      get: () => (index() === 0 ? context.autoComplete() : "off"),
     });
-    target.autocorrect = 'off';
-    target.spellcheck = 'false';
-    Object.defineProperty(target, 'enterkeyhint', {
+    target.autocorrect = "off";
+    target.spellcheck = "false";
+    Object.defineProperty(target, "enterkeyhint", {
       enumerable: true,
       configurable: true,
-      get: () => (index() === context.length() - 1 ? 'done' : 'next'),
+      get: () => (index() === context.length() - 1 ? "done" : "next"),
     });
     // Only the first slot has a max length to avoid password manager bubbles appearing after later inputs.
-    if (!('maxLength' in externalProps) && !('maxlength' in externalProps)) {
-      Object.defineProperty(target, 'maxlength', {
+    if (!("maxLength" in externalProps) && !("maxlength" in externalProps)) {
+      Object.defineProperty(target, "maxlength", {
         enumerable: true,
         configurable: true,
         get: () => (index() === 0 ? context.length() : undefined),
       });
     }
-    Object.defineProperty(target, 'tabindex', {
+    Object.defineProperty(target, "tabindex", {
       enumerable: true,
       configurable: true,
       get: () => (context.activeIndex() === index() ? 0 : -1),
     });
-    Object.defineProperty(target, 'disabled', {
+    Object.defineProperty(target, "disabled", {
       enumerable: true,
       configurable: true,
       get: () => context.disabled(),
     });
-    Object.defineProperty(target, 'form', {
+    Object.defineProperty(target, "form", {
       enumerable: true,
       configurable: true,
       get: () => context.form(),
     });
-    Object.defineProperty(target, 'pattern', {
+    Object.defineProperty(target, "pattern", {
       enumerable: true,
       configurable: true,
       get: () => context.pattern(),
     });
-    Object.defineProperty(target, 'readonly', {
+    Object.defineProperty(target, "readonly", {
       enumerable: true,
       configurable: true,
       get: () => context.readOnly(),
     });
-    Object.defineProperty(target, 'required', {
+    Object.defineProperty(target, "required", {
       enumerable: true,
       configurable: true,
       get: () => context.required(),
     });
-    Object.defineProperty(target, 'aria-labelledby', {
+    Object.defineProperty(target, "aria-labelledby", {
       enumerable: true,
       configurable: true,
       get: () => (ariaLabel() == null ? inheritedLabel() : undefined),
     });
-    Object.defineProperty(target, 'aria-invalid', {
+    Object.defineProperty(target, "aria-invalid", {
       enumerable: true,
       configurable: true,
       get: () => (!context.disabled() && context.invalid() ? true : undefined),
     });
-    Object.defineProperty(target, 'aria-label', {
+    Object.defineProperty(target, "aria-label", {
       enumerable: true,
       configurable: true,
       get: () => ariaLabel(),
     });
-    Object.defineProperty(target, 'value', {
+    Object.defineProperty(target, "value", {
       enumerable: true,
       configurable: true,
       get: () => slotValue(),
     });
 
-    chainHandler('onMouseDown', (event: MouseEvent) => {
+    chainHandler("onMouseDown", (event: MouseEvent) => {
       if (event.defaultPrevented || context.disabled()) {
         return;
       }
@@ -416,7 +376,7 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       context.focusInput(index());
     });
 
-    chainHandler('onFocus', (event: FocusEvent & { currentTarget: HTMLInputElement }) => {
+    chainHandler("onFocus", (event: FocusEvent & { currentTarget: HTMLInputElement }) => {
       if (event.defaultPrevented || context.disabled()) {
         return;
       }
@@ -424,7 +384,7 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       context.handleInputFocus(index(), event);
     });
 
-    chainHandler('onBlur', (event: FocusEvent) => {
+    chainHandler("onBlur", (event: FocusEvent) => {
       if (event.defaultPrevented) {
         return;
       }
@@ -432,21 +392,15 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
       context.handleInputBlur(event);
     });
 
-    chainHandler('onInput', handleTextInput);
+    chainHandler("onInput", handleTextInput);
 
     // Solid fires `onChange` on commit (blur/Enter) rather than per keystroke:
     // it only chains external handlers. Live value logic runs from `onInput` above.
-    chainHandler('onChange', () => {});
+    chainHandler("onChange", () => {});
 
-    chainHandler(
-      'onKeyDown',
-      handleKeyDown as (event: KeyboardEvent & { currentTarget: HTMLInputElement }) => void,
-    );
+    chainHandler("onKeyDown", handleKeyDown as (event: KeyboardEvent & { currentTarget: HTMLInputElement }) => void);
 
-    chainHandler(
-      'onPaste',
-      handlePaste as (event: ClipboardEvent & { currentTarget: HTMLInputElement }) => void,
-    );
+    chainHandler("onPaste", handlePaste as (event: ClipboardEvent & { currentTarget: HTMLInputElement }) => void);
 
     function chainHandler(key: string, internal: (event: any) => void) {
       const external = externalProps[key] as ((event: any) => void) | undefined;
@@ -478,10 +432,10 @@ export function OTPFieldInput<T extends ValidComponent = 'input'>(props: OTPFiel
 }
 
 const defaultProps = Object.freeze({
-  as: 'input',
+  as: "input",
 } satisfies Partial<OTPFieldInput.Props>);
 
-export interface OTPFieldInputState extends Omit<OTPFieldRootState, 'filled' | 'value'> {
+export interface OTPFieldInputState extends Omit<OTPFieldRootState, "filled" | "value"> {
   /**
    * Whether this input contains a character.
    */
@@ -496,12 +450,9 @@ export interface OTPFieldInputState extends Omit<OTPFieldRootState, 'filled' | '
   value: string;
 }
 
-export type OTPFieldInputProps<T extends ValidComponent = 'input'> = RebaseUIComponentProps<
-  T,
-  OTPFieldInputState
->;
+export type OTPFieldInputProps<T extends ValidComponent = "input"> = RebaseUIComponentProps<T, OTPFieldInputState>;
 
 export namespace OTPFieldInput {
   export type State = OTPFieldInputState;
-  export type Props<T extends ValidComponent = 'input'> = OTPFieldInputProps<T>;
+  export type Props<T extends ValidComponent = "input"> = OTPFieldInputProps<T>;
 }

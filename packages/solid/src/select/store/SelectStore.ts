@@ -1,10 +1,10 @@
 import { type Accessor, createEffect, createSignal, type Setter } from "solid-js";
 
-import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
-import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
-import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import { EMPTY_OBJECT } from "#utils/empty";
 
+import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
+import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import type { SelectRoot } from "../root/SelectRoot";
 import { compareItemEquality } from "../utils/itemEquality";
 import { defaultItemEquality } from "../utils/itemEquality";
@@ -125,10 +125,7 @@ export const selectors = {
     const storeValue = state.value;
 
     if (state.multiple) {
-      return (
-        Array.isArray(storeValue) &&
-        storeValue.some((selectedItem) => compareItemEquality(itemValue, selectedItem, comparer))
-      );
+      return Array.isArray(storeValue) && storeValue.some((selectedItem) => compareItemEquality(itemValue, selectedItem, comparer));
     }
 
     // The value is the source of truth: a stale `selectedIndex` (e.g. the controlled
@@ -269,10 +266,7 @@ export class SelectStore {
    * computation subscribes only to the raw fields the selector reads.
    */
   select = (key: keyof SelectStoreSelectors, arg?: any): any => {
-    return (selectors[key] as (state: SelectStoreState, arg?: any) => unknown)(
-      this.trackingSnapshot,
-      arg,
-    );
+    return (selectors[key] as (state: SelectStoreState, arg?: any) => unknown)(this.trackingSnapshot, arg);
   };
 
   /**
@@ -281,10 +275,7 @@ export class SelectStore {
    * effect apply callbacks — anywhere a one-shot read must not track.
    */
   peek = (key: keyof SelectStoreSelectors, arg?: any): any => {
-    return (selectors[key] as (state: SelectStoreState, arg?: any) => unknown)(
-      this.snapshot,
-      arg,
-    );
+    return (selectors[key] as (state: SelectStoreState, arg?: any) => unknown)(this.snapshot, arg);
   };
 
   /**
@@ -337,10 +328,7 @@ export class SelectStore {
    * through `getValue` so updates stay reactive; the state snapshot itself is
    * written synchronously. Mirrors `ReactStore.useSyncedValue` upstream.
    */
-  useSyncedValue = <Key extends keyof SelectStoreState>(
-    key: Key,
-    getValue: () => SelectStoreState[Key],
-  ) => {
+  useSyncedValue = <Key extends keyof SelectStoreState>(key: Key, getValue: () => SelectStoreState[Key]) => {
     createEffect(
       () => getValue(),
       (value) => {

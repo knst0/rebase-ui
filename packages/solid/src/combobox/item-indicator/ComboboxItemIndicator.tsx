@@ -5,11 +5,7 @@ import { RenderElement } from "../../internals/render-element";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
-import {
-  createTransitionStatus,
-  type TransitionStatus,
-  transitionStatusMapping,
-} from "../../internals/transition-status";
+import { createTransitionStatus, type TransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useComboboxItemContext } from "../item/ComboboxItemContext";
 
@@ -19,14 +15,8 @@ import { useComboboxItemContext } from "../item/ComboboxItemContext";
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxItemIndicator<T extends ValidComponent = "span">(
-  props: ComboboxItemIndicator.Props<T>,
-) {
-  const [local, elementProps] = split(
-    props as ComboboxItemIndicator.Props,
-    { default: defaultProps },
-    ["as", "keepMounted"],
-  );
+export function ComboboxItemIndicator<T extends ValidComponent = "span">(props: ComboboxItemIndicator.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxItemIndicator.Props, { default: defaultProps }, ["as", "keepMounted"]);
 
   const as = untrack(() => local.as);
 
@@ -105,8 +95,8 @@ export interface ComboboxItemIndicatorOwnProps {
   keepMounted?: boolean | undefined;
 }
 
-export type ComboboxItemIndicatorProps<T extends ValidComponent = "span"> =
-  ComboboxItemIndicatorOwnProps & RebaseUIComponentProps<T, ComboboxItemIndicatorState>;
+export type ComboboxItemIndicatorProps<T extends ValidComponent = "span"> = ComboboxItemIndicatorOwnProps &
+  RebaseUIComponentProps<T, ComboboxItemIndicatorState>;
 
 export namespace ComboboxItemIndicator {
   export type State = ComboboxItemIndicatorState;

@@ -8,11 +8,7 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useComboboxPositionerContext } from "../positioner/ComboboxPositionerContext";
-import {
-  useComboboxDerivedItemsContext,
-  useComboboxFloatingContext,
-  useComboboxRootContext,
-} from "../root/ComboboxRootContext";
+import { useComboboxDerivedItemsContext, useComboboxFloatingContext, useComboboxRootContext } from "../root/ComboboxRootContext";
 
 /**
  * A list container for the items.
@@ -20,11 +16,8 @@ import {
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxList.Props<T>) {
-  const [local, elementProps] = split(props as ComboboxList.Props, { default: defaultProps }, [
-    "as",
-    "children",
-  ]);
+export function ComboboxList<T extends ValidComponent = "div">(props: ComboboxList.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxList.Props, { default: defaultProps }, ["as", "children"]);
 
   const as = untrack(() => local.as);
   const childrenProp = untrack(() => local.children);
@@ -100,9 +93,7 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
               // `For` runs its mapper untracked, so reading `index()` here
               // would never subscribe. Resolve it inside a per-row memo (a
               // tracking scope) and read the memo from JSX instead.
-              const rendered = createMemo(() =>
-                (childrenProp as (item: unknown, index: number) => JSX.Element)(item, index()),
-              );
+              const rendered = createMemo(() => (childrenProp as (item: unknown, index: number) => JSX.Element)(item, index()));
               return <>{rendered()}</>;
             }}
           </For>
@@ -112,28 +103,26 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
     },
     tabindex: -1,
     get id() {
-      return floatingRootContext.select('floatingId') as string | undefined;
+      return floatingRootContext.select("floatingId") as string | undefined;
     },
-    get role(): 'grid' | 'listbox' {
-      return (store.select('grid') as boolean) ? 'grid' : 'listbox';
+    get role(): "grid" | "listbox" {
+      return (store.select("grid") as boolean) ? "grid" : "listbox";
     },
-    get 'aria-multiselectable'() {
-      return multiple() ? ('true' as const) : undefined;
+    get "aria-multiselectable"() {
+      return multiple() ? ("true" as const) : undefined;
     },
     // On a grid the attribute describes cell editability, not selection, so it's left to the
     // combobox element in that mode.
-    get 'aria-readonly'() {
-      return !(store.select('grid') as boolean) && (store.select('readOnly') as boolean)
-        ? ('true' as const)
-        : undefined;
+    get "aria-readonly"() {
+      return !(store.select("grid") as boolean) && (store.select("readOnly") as boolean) ? ("true" as const) : undefined;
     },
     onKeyDown(event: KeyboardEvent) {
-      if (store.peek('disabled') || store.peek('readOnly')) {
+      if (store.peek("disabled") || store.peek("readOnly")) {
         return;
       }
 
-      if (event.key === 'Enter') {
-        const activeIndex = store.peek('activeIndex') as number | null;
+      if (event.key === "Enter") {
+        const activeIndex = store.peek("activeIndex") as number | null;
 
         if (activeIndex == null) {
           // Allow form submission when no item is highlighted.
@@ -178,14 +167,11 @@ export function ComboboxList<T extends ValidComponent = 'div'>(props: ComboboxLi
     }),
   });
 
-
-  return (
-    <RenderElement as={as} state={state} props={[listProps, elementProps, refProps]} />
-  );
+  return <RenderElement as={as} state={state} props={[listProps, elementProps, refProps]} />;
 }
 
 const defaultProps = Object.freeze({
-  as: 'div',
+  as: "div",
 } satisfies Partial<ComboboxList.Props>);
 
 export interface ComboboxListState {
@@ -204,13 +190,10 @@ export interface ComboboxListOwnProps {
   children?: JSX.Element | ((item: any, index: number) => JSX.Element);
 }
 
-export type ComboboxListProps<T extends ValidComponent = 'div'> = Omit<
-  RebaseUIComponentProps<T, ComboboxListState>,
-  'children'
-> &
+export type ComboboxListProps<T extends ValidComponent = "div"> = Omit<RebaseUIComponentProps<T, ComboboxListState>, "children"> &
   ComboboxListOwnProps;
 
 export namespace ComboboxList {
   export type State = ComboboxListState;
-  export type Props<T extends ValidComponent = 'div'> = ComboboxListProps<T>;
+  export type Props<T extends ValidComponent = "div"> = ComboboxListProps<T>;
 }

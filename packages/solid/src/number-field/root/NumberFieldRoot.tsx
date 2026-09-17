@@ -30,19 +30,16 @@ import {
   PLUS_SIGNS_WITH_ASCII,
   SPACE_SEPARATOR_RE,
 } from "../utils/parse";
-import { toValidatedNumber } from "../utils/validate";
-import type { ChangeEventCustomProperties, EventWithOptionalKeyState, IncrementValueParameters } from "../utils/types";
 import { stateAttributesMapping } from "../utils/stateAttributesMapping";
+import type { ChangeEventCustomProperties, EventWithOptionalKeyState, IncrementValueParameters } from "../utils/types";
+import { toValidatedNumber } from "../utils/validate";
 import { NumberFieldRootContext, type InputMode } from "./NumberFieldRootContext";
 
 function isIOS(): boolean {
   if (typeof navigator === "undefined") {
     return false;
   }
-  return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
-  );
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
 /**
@@ -124,9 +121,7 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
   // locale. This causes a hydration mismatch, which is manually suppressed on the input. This is
   // preferable to rendering an empty input field and then updating it with the formatted value,
   // as the user can still see the value prior to hydration, even if it's not formatted correctly.
-  const [inputValueSignal, setInputValueSignal] = createSignal(
-    untrack(() => formatNumber(value(), local.locale, local.format)),
-  );
+  const [inputValueSignal, setInputValueSignal] = createSignal(untrack(() => formatNumber(value(), local.locale, local.format)));
   let inputValueSnapshot = untrack(inputValueSignal);
   const setInputValue = (next: string | ((prev: string) => string)) => {
     const resolved = typeof next === "function" ? (next as (prev: string) => string)(inputValueSnapshot) : next;
@@ -256,7 +251,13 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
     // to overwrite the user-provided text until blur, so we gate on
     // `allowInputSyncRef`.
     if (allowInputSyncRef.current) {
-      setInputValue(formatNumber(validatedValue, untrack(() => local.locale), untrack(() => local.format)));
+      setInputValue(
+        formatNumber(
+          validatedValue,
+          untrack(() => local.locale),
+          untrack(() => local.format),
+        ),
+      );
     }
 
     return shouldFireChange;
@@ -615,9 +616,7 @@ export interface NumberFieldRootOwnProps {
    *
    * **Warning**: This is a generic event not a change event.
    */
-  onValueCommitted?:
-    | ((value: number | null, eventDetails: NumberFieldRoot.CommitEventDetails) => void)
-    | undefined;
+  onValueCommitted?: ((value: number | null, eventDetails: NumberFieldRoot.CommitEventDetails) => void) | undefined;
   /**
    * The locale of the input element.
    * Defaults to the user's runtime locale.
@@ -643,10 +642,7 @@ export type NumberFieldRootChangeEventReason =
   | typeof REASONS.wheel
   | typeof REASONS.scrub
   | typeof REASONS.none;
-export type NumberFieldRootChangeEventDetails = RebaseUIChangeEventDetails<
-  NumberFieldRootChangeEventReason,
-  ChangeEventCustomProperties
->;
+export type NumberFieldRootChangeEventDetails = RebaseUIChangeEventDetails<NumberFieldRootChangeEventReason, ChangeEventCustomProperties>;
 
 // `none` is kept for consistency with other components even though the number field never
 // commits with it.

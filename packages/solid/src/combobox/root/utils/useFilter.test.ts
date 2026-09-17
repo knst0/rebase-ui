@@ -37,12 +37,8 @@ describe("getFilter", () => {
   it("projects object items through itemToString", () => {
     const filter = getFilter({ locale: "en" });
 
-    expect(filter.contains({ name: "Banana" }, "nan", (item: { name: string }) => item.name)).toBe(
-      true,
-    );
-    expect(filter.contains({ name: "Banana" }, "app", (item: { name: string }) => item.name)).toBe(
-      false,
-    );
+    expect(filter.contains({ name: "Banana" }, "nan", (item: { name: string }) => item.name)).toBe(true);
+    expect(filter.contains({ name: "Banana" }, "app", (item: { name: string }) => item.name)).toBe(false);
   });
 
   it("falls back to value and primitive labels without itemToString", () => {

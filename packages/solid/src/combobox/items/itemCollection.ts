@@ -1,9 +1,5 @@
+import { compareItemEquality, defaultItemEquality, type ItemEqualityComparer } from "../../select/utils/itemEquality";
 import type { Group } from "../../select/utils/resolveValueLabel";
-import {
-  compareItemEquality,
-  defaultItemEquality,
-  type ItemEqualityComparer,
-} from "../../select/utils/itemEquality";
 
 export function findCollectionItem<Item, Value>(
   valueToItem: Map<Value, Item>,
@@ -59,9 +55,5 @@ export interface ItemCollection<Item = any, Value = any> {
    * Resolves a selected value's label, including values outside the mounted items.
    * `fallback` labels the values the collection cannot resolve at all.
    */
-  label(
-    valueOrItem: Value,
-    isEqual: ItemEqualityComparer<Value>,
-    fallback?: ((valueOrItem: Value) => string) | undefined,
-  ): string;
+  label(valueOrItem: Value, isEqual: ItemEqualityComparer<Value>, fallback?: ((valueOrItem: Value) => string) | undefined): string;
 }

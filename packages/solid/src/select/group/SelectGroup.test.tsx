@@ -4,8 +4,8 @@ import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
 import { Root } from "../index.parts";
-import { SelectItem } from "../item/SelectItem";
 import { SelectItemText } from "../item-text/SelectItemText";
+import { SelectItem } from "../item/SelectItem";
 import { SelectList } from "../list/SelectList";
 import { SelectPositioner } from "../positioner/SelectPositioner";
 import { SelectGroup } from "./SelectGroup";

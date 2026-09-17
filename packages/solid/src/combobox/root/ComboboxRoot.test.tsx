@@ -4,13 +4,9 @@ import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
-import { ComboboxRoot } from "./ComboboxRoot";
-import {
-  useComboboxDerivedItemsContext,
-  useComboboxInputValueContext,
-  useComboboxRootContext,
-} from "./ComboboxRootContext";
 import type { ComboboxStore } from "../store/ComboboxStore";
+import { ComboboxRoot } from "./ComboboxRoot";
+import { useComboboxDerivedItemsContext, useComboboxInputValueContext, useComboboxRootContext } from "./ComboboxRootContext";
 
 function CaptureStore(props: { onStore: (store: ComboboxStore) => void }) {
   props.onStore(useComboboxRootContext());
@@ -27,11 +23,7 @@ function CaptureFiltered() {
   return <span data-testid="filtered">{derived.filteredItems.join(",")}</span>;
 }
 
-function renderCombobox(options?: {
-  rootProps?: Record<string, any>;
-  children?: any;
-  onStore?: (store: ComboboxStore) => void;
-}) {
+function renderCombobox(options?: { rootProps?: Record<string, any>; children?: any; onStore?: (store: ComboboxStore) => void }) {
   const { rootProps = {}, children = "content", onStore } = options ?? {};
   const result = render(() => (
     <ComboboxRoot {...rootProps}>

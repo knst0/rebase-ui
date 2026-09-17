@@ -1,24 +1,24 @@
-import type { ValidComponent } from '@solidjs/web';
-import { createEffect, createSignal, onCleanup, untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
 
-import { createButton } from '../../internals/create-button';
-import { createChangeEventDetails, REASONS } from '../../internals/event-details';
-import { fieldValidityMapping } from '../../internals/field-constants';
-import { useFieldRootContext } from '../../internals/field-root-context/FieldRootContext';
-import { contains, getFloatingFocusElement } from '../../internals/floating/utils/element';
-import type { Side } from '../../internals/floating/types';
-import { createLabelableId } from '../../internals/labelable-provider/createLabelableId';
-import { useLabelableContext } from '../../internals/labelable-provider/LabelableContext';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import type { FieldRootState } from '../../field/root/FieldRoot';
-import type { NativeButtonProps, RebaseUIComponentProps } from '../../internals/types';
-import { ownerDocument } from '../../internals/utils/owner';
-import { useSelectRootContext, useSelectRootPropsContext } from '../root/SelectRootContext';
-import type { SelectRoot } from '../root/SelectRoot';
-import * as SelectTriggerDataAttributes from './SelectTriggerDataAttributes';
+import type { FieldRootState } from "../../field/root/FieldRoot";
+import { createButton } from "../../internals/create-button";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { fieldValidityMapping } from "../../internals/field-constants";
+import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
+import type { Side } from "../../internals/floating/types";
+import { contains, getFloatingFocusElement } from "../../internals/floating/utils/element";
+import { createLabelableId } from "../../internals/labelable-provider/createLabelableId";
+import { useLabelableContext } from "../../internals/labelable-provider/LabelableContext";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { ownerDocument } from "../../internals/utils/owner";
+import type { SelectRoot } from "../root/SelectRoot";
+import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
+import * as SelectTriggerDataAttributes from "./SelectTriggerDataAttributes";
 
 const SELECTED_DELAY = 400;
 
@@ -28,16 +28,15 @@ const selectTriggerStateMapping: StateAttributesMapping<SelectTriggerState> = {
   ...fieldValidityMapping,
   open: {
     keys: [SelectTriggerDataAttributes.popupOpen],
-    map: (value) => (value ? { [SelectTriggerDataAttributes.popupOpen]: '' } : null),
+    map: (value) => (value ? { [SelectTriggerDataAttributes.popupOpen]: "" } : null),
   },
   pressed: {
     keys: [SelectTriggerDataAttributes.pressed],
-    map: (value) => (value ? { [SelectTriggerDataAttributes.pressed]: '' } : null),
+    map: (value) => (value ? { [SelectTriggerDataAttributes.pressed]: "" } : null),
   },
   popupSide: {
     keys: [SelectTriggerDataAttributes.popupSide],
-    map: (value: Side | null) =>
-      value ? { [SelectTriggerDataAttributes.popupSide]: value } : null,
+    map: (value: Side | null) => (value ? { [SelectTriggerDataAttributes.popupSide]: value } : null),
   },
   value: nullMapping,
 };
@@ -45,7 +44,7 @@ const selectTriggerStateMapping: StateAttributesMapping<SelectTriggerState> = {
 type EventHandlerValue = ((event: never) => void) | undefined;
 
 function callHandler(value: unknown, event: Event): void {
-  if (typeof value === 'function') {
+  if (typeof value === "function") {
     (value as (event: Event) => void)(event);
   }
 }
@@ -56,12 +55,12 @@ function callHandler(value: unknown, event: Event): void {
  *
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
-export function SelectTrigger<T extends ValidComponent = 'button'>(props: SelectTrigger.Props<T>) {
+export function SelectTrigger<T extends ValidComponent = "button">(props: SelectTrigger.Props<T>) {
   const [local, userHandlers, elementProps] = split(
     props as SelectTrigger.Props,
     { default: defaultProps },
-    ['as', 'disabled', 'id', 'nativeButton'],
-    ['onClick', 'onMouseDown', 'onPointerDown', 'onPointerUp', 'onFocus', 'onBlur', 'onKeyDown', 'onKeyUp'],
+    ["as", "disabled", "id", "nativeButton"],
+    ["onClick", "onMouseDown", "onPointerDown", "onPointerUp", "onFocus", "onBlur", "onKeyDown", "onKeyUp"],
   );
 
   const as = untrack(() => local.as);
@@ -96,7 +95,7 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
     tabIndex: () => (disabled() ? -1 : 0),
   });
   createEffect(
-    () => store.select('open'),
+    () => store.select("open"),
     (open) => {
       if (open) {
         // A mousedown on the trigger can open the popup under the cursor. Keep mouseup selection
@@ -122,14 +121,14 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
   function setTriggerRef(element: HTMLElement | null): void {
     // The trigger renders a button; keep a typed handle for the bounds check below.
     triggerElement = element as HTMLButtonElement | null;
-    store.set('triggerElement', element);
+    store.set("triggerElement", element);
   }
 
   function handleFocus(event: FocusEvent): void {
     field.setFocused(true);
 
     // The popup element shouldn't obscure the focused trigger.
-    if (store.peek('open') && store.context.alignItemWithTriggerActiveRef.current) {
+    if (store.peek("open") && store.context.alignItemWithTriggerActiveRef.current) {
       store.context.setOpen(false, createChangeEventDetails(REASONS.none, event));
     }
 
@@ -137,13 +136,13 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
     // the items before `open === true`.
     clearTimeout(focusTimeout);
     focusTimeout = setTimeout(() => {
-      store.set('forceMount', true);
+      store.set("forceMount", true);
     }, 0);
   }
 
   function handleBlur(event: FocusEvent): void {
     // If focus is moving into the popup, don't count it as a blur.
-    if (contains(store.peek('positionerElement'), event.relatedTarget as Element | null)) {
+    if (contains(store.peek("positionerElement"), event.relatedTarget as Element | null)) {
       return;
     }
 
@@ -151,13 +150,13 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
     field.setFocused(false);
     setPressed(false);
 
-    if (field.validationMode === 'onBlur') {
-      void field.validation.commit(store.peek('value'));
+    if (field.validationMode === "onBlur") {
+      void field.validation.commit(store.peek("value"));
     }
   }
 
   function handleMouseDown(event: MouseEvent): void {
-    if (store.peek('open')) {
+    if (store.peek("open")) {
       return;
     }
 
@@ -173,10 +172,7 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
 
       // Don't treat the release as an outside press when it lands on the trigger or inside
       // the popup positioner (or their children).
-      if (
-        contains(trigger, mouseUpTarget) ||
-        contains(store.peek('positionerElement'), mouseUpTarget)
-      ) {
+      if (contains(trigger, mouseUpTarget) || contains(store.peek("positionerElement"), mouseUpTarget)) {
         return;
       }
 
@@ -197,7 +193,7 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
     // Defer the subscription so the mousedown that opens the popup isn't
     // immediately followed by its own mouseup closing it again.
     mouseDownTimeout = setTimeout(() => {
-      doc.addEventListener('mouseup', handleMouseUp, { once: true });
+      doc.addEventListener("mouseup", handleMouseUp, { once: true });
     }, 0);
   }
 
@@ -214,7 +210,7 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
   const state: SelectTriggerState = {
     ...field.state,
     get open() {
-      return store.select('open') as boolean;
+      return store.select("open") as boolean;
     },
     get pressed() {
       return pressed();
@@ -229,16 +225,16 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
       return rootProps.required;
     },
     get value() {
-      return store.select('value');
+      return store.select("value");
     },
     get popupSide() {
-      const mounted = store.select('mounted') as boolean;
-      const positionerElement = store.select('positionerElement') as HTMLElement | null;
-      const popupSide = store.select('popupSide') as Side | null;
+      const mounted = store.select("mounted") as boolean;
+      const positionerElement = store.select("positionerElement") as HTMLElement | null;
+      const popupSide = store.select("popupSide") as Side | null;
       return mounted && positionerElement ? popupSide : null;
     },
     get placeholder() {
-      return !store.select('hasSelectedValue');
+      return !store.select("hasSelectedValue");
     },
   };
 
@@ -246,39 +242,35 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
   // props, the trigger's own handlers, and the user's handlers are chained
   // explicitly here instead of as separate layers.
   const ownProps = () => {
-    const fromStore = store.select('triggerProps') as Record<string, any>;
+    const fromStore = store.select("triggerProps") as Record<string, any>;
     return {
       ...fromStore,
       get id() {
-        return local.id ?? (store.select('id') as string | undefined);
+        return local.id ?? (store.select("id") as string | undefined);
       },
       // Ensure a composed button keeps the combobox role: `getButtonProps`
       // forwards this through for both native and non-native buttons.
-      role: 'combobox' as const,
-      'aria-haspopup': 'listbox' as const,
-      get 'aria-expanded'() {
-        return (store.select('open') as boolean) ? 'true' : 'false';
+      role: "combobox" as const,
+      "aria-haspopup": "listbox" as const,
+      get "aria-expanded"() {
+        return (store.select("open") as boolean) ? "true" : "false";
       },
-      get 'aria-controls'() {
-        if (!store.select('open')) {
+      get "aria-controls"() {
+        if (!store.select("open")) {
           return undefined;
         }
-        const listElement = store.select('listElement') as HTMLDivElement | null;
-        return (
-          listElement?.id ||
-          getFloatingFocusElement(store.peek('positionerElement') as HTMLElement | null)?.id ||
-          undefined
-        );
+        const listElement = store.select("listElement") as HTMLDivElement | null;
+        return listElement?.id || getFloatingFocusElement(store.peek("positionerElement") as HTMLElement | null)?.id || undefined;
       },
-      get 'aria-labelledby'() {
-        const ids = [fieldLabelId(), store.select('labelId')].filter(Boolean);
-        return ids.length > 0 ? ids.join(' ') : undefined;
+      get "aria-labelledby"() {
+        const ids = [fieldLabelId(), store.select("labelId")].filter(Boolean);
+        return ids.length > 0 ? ids.join(" ") : undefined;
       },
-      get 'aria-readonly'() {
-        return rootProps.readOnly ? 'true' : undefined;
+      get "aria-readonly"() {
+        return rootProps.readOnly ? "true" : undefined;
       },
-      get 'aria-required'() {
-        return rootProps.required ? 'true' : undefined;
+      get "aria-required"() {
+        return rootProps.required ? "true" : undefined;
       },
       onFocus: (event: FocusEvent) => {
         callHandler(fromStore.onFocus as EventHandlerValue, event);
@@ -321,18 +313,14 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
   };
 
   const refProps = (externalProps: Record<string, unknown>) => ({
-    ref: mergeRefs<HTMLElement>(
-      externalProps.ref as ((element: HTMLElement) => void) | undefined,
-      buttonRef,
-      setTriggerRef,
-    ),
+    ref: mergeRefs<HTMLElement>(externalProps.ref as ((element: HTMLElement) => void) | undefined, buttonRef, setTriggerRef),
   });
 
   const validationProps = (externalProps: Record<string, unknown>) => ({
     ...field.validation.getValidationProps(disabled(), externalProps),
     // Ensure a composed button keeps the combobox role even when the
     // validation props layer is applied last.
-    role: 'combobox' as const,
+    role: "combobox" as const,
   });
 
   return (
@@ -346,7 +334,7 @@ export function SelectTrigger<T extends ValidComponent = 'button'>(props: Select
 }
 
 const defaultProps = Object.freeze({
-  as: 'button',
+  as: "button",
   nativeButton: true,
 } satisfies Partial<SelectTrigger.Props>);
 
@@ -392,12 +380,11 @@ export interface SelectTriggerOwnProps extends NativeButtonProps {
   disabled?: boolean | undefined;
 }
 
-export type SelectTriggerProps<T extends ValidComponent = 'button'> = SelectTriggerOwnProps &
-  RebaseUIComponentProps<T, SelectTriggerState>;
+export type SelectTriggerProps<T extends ValidComponent = "button"> = SelectTriggerOwnProps & RebaseUIComponentProps<T, SelectTriggerState>;
 
 export namespace SelectTrigger {
   export type State = SelectTriggerState;
-  export type Props<T extends ValidComponent = 'button'> = SelectTriggerProps<T>;
+  export type Props<T extends ValidComponent = "button"> = SelectTriggerProps<T>;
   export type OwnProps = SelectTriggerOwnProps;
   export type ChangeEventReason = SelectRoot.ChangeEventReason;
   export type ChangeEventDetails = SelectRoot.ChangeEventDetails;

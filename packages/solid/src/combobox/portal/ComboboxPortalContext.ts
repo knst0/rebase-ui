@@ -1,4 +1,4 @@
-import { createContext, useContext } from '../../internals/context';
+import { createContext, useContext } from "../../internals/context";
 
 export const ComboboxPortalContext = createContext<boolean>();
 

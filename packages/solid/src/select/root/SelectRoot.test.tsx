@@ -7,19 +7,15 @@ import { nextFrames } from "#test-utils";
 
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import * as Select from "../index.parts";
-import { useSelectRootContext, useSelectRootPropsContext } from "./SelectRootContext";
 import type { SelectStore } from "../store/SelectStore";
+import { useSelectRootContext, useSelectRootPropsContext } from "./SelectRootContext";
 
 function CaptureStore(props: { onStore: (store: SelectStore) => void }) {
   props.onStore(useSelectRootContext());
   return null;
 }
 
-function renderSelect(options?: {
-  rootProps?: Record<string, any>;
-  children?: any;
-  onStore?: (store: SelectStore) => void;
-}) {
+function renderSelect(options?: { rootProps?: Record<string, any>; children?: any; onStore?: (store: SelectStore) => void }) {
   const { rootProps = {}, children = "content", onStore } = options ?? {};
   const result = render(() => (
     <Select.Root {...rootProps}>
@@ -221,10 +217,7 @@ describe("<Select.Root />", () => {
     });
 
     const inputs = Array.from(container.querySelectorAll('input[type="hidden"]'));
-    expect(inputs.map((input) => (input as HTMLInputElement).value).sort()).toEqual([
-      "sans",
-      "serif",
-    ]);
+    expect(inputs.map((input) => (input as HTMLInputElement).value).sort()).toEqual(["sans", "serif"]);
     expect(inputs.every((input) => (input as HTMLInputElement).name === "fonts")).toBe(true);
 
     // The shared input stays nameless so only per-value entries are submitted.

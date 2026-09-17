@@ -1,12 +1,12 @@
-import { fieldValidityMapping } from '../../internals/field-constants';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import type { Side } from '../../internals/anchor-positioning/createAnchorPositioning';
-import * as ComboboxInputDataAttributes from '../input/ComboboxInputDataAttributes';
+import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { fieldValidityMapping } from "../../internals/field-constants";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import * as ComboboxInputDataAttributes from "../input/ComboboxInputDataAttributes";
 
-const OPEN_HOOK = { [ComboboxInputDataAttributes.popupOpen]: '' };
-const LIST_EMPTY_HOOK = { [ComboboxInputDataAttributes.listEmpty]: '' };
-const PLACEHOLDER_ATTRIBUTE = 'data-placeholder';
-const PLACEHOLDER_HOOK = { [PLACEHOLDER_ATTRIBUTE]: '' };
+const OPEN_HOOK = { [ComboboxInputDataAttributes.popupOpen]: "" };
+const LIST_EMPTY_HOOK = { [ComboboxInputDataAttributes.listEmpty]: "" };
+const PLACEHOLDER_ATTRIBUTE = "data-placeholder";
+const PLACEHOLDER_HOOK = { [PLACEHOLDER_ATTRIBUTE]: "" };
 
 export const triggerStateAttributesMapping: StateAttributesMapping<{
   open: boolean;

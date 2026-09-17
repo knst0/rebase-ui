@@ -5,11 +5,11 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
-import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
 import type { NumberFieldRootState } from "../root/NumberFieldRoot";
-import { stateAttributesMapping } from "../utils/stateAttributesMapping";
+import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
 import { isWebKit } from "../scrub-area/NumberFieldScrubArea";
 import { useNumberFieldScrubAreaContext } from "../scrub-area/NumberFieldScrubAreaContext";
+import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 
 const CURSOR_STYLE = {
   position: "fixed",
@@ -27,16 +27,13 @@ const CURSOR_STYLE = {
  *
  * Documentation: [Rebase UI Number Field](https://rebase-ui.knst.dev/components/number-field)
  */
-export function NumberFieldScrubAreaCursor<T extends ValidComponent = "span">(
-  props: NumberFieldScrubAreaCursor.Props<T>,
-) {
+export function NumberFieldScrubAreaCursor<T extends ValidComponent = "span">(props: NumberFieldScrubAreaCursor.Props<T>) {
   const [local, elementProps] = split(props as NumberFieldScrubAreaCursor.Props, { default: defaultProps }, ["as"]);
 
   const as = untrack(() => local.as);
 
   const { state } = useNumberFieldRootContext();
-  const { isScrubbing, isTouchInput, isPointerLockDenied, setScrubAreaCursorElement } =
-    useNumberFieldScrubAreaContext();
+  const { isScrubbing, isTouchInput, isPointerLockDenied, setScrubAreaCursorElement } = useNumberFieldScrubAreaContext();
 
   const shouldRender = () => isScrubbing() && !isWebKit() && !isTouchInput() && !isPointerLockDenied();
 
@@ -72,10 +69,7 @@ const defaultProps = Object.freeze({
 
 export interface NumberFieldScrubAreaCursorState extends NumberFieldRootState {}
 
-export type NumberFieldScrubAreaCursorProps<T extends ValidComponent = "span"> = RebaseUIComponentProps<
-  T,
-  NumberFieldScrubAreaCursorState
->;
+export type NumberFieldScrubAreaCursorProps<T extends ValidComponent = "span"> = RebaseUIComponentProps<T, NumberFieldScrubAreaCursorState>;
 
 export namespace NumberFieldScrubAreaCursor {
   export type State = NumberFieldScrubAreaCursorState;

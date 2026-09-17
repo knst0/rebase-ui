@@ -1,17 +1,17 @@
-import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@solidjs/testing-library';
-import { flush } from 'solid-js';
-import { describe, expect, it } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
+import { describe, expect, it } from "vitest";
 
-import { nextFrames } from '#test-utils';
+import { nextFrames } from "#test-utils";
 
-import * as Combobox from '../index.parts';
-import { ComboboxList } from './ComboboxList';
+import * as Combobox from "../index.parts";
+import { ComboboxList } from "./ComboboxList";
 
-describe('<Combobox.List />', () => {
-  it('renders a listbox labelled by the floating id', async () => {
+describe("<Combobox.List />", () => {
+  it("renders a listbox labelled by the floating id", async () => {
     render(() => (
-      <Combobox.Root defaultOpen items={['Apple', 'Banana']}>
+      <Combobox.Root defaultOpen items={["Apple", "Banana"]}>
         <Combobox.Portal>
           <Combobox.Positioner>
             <Combobox.Popup>
@@ -32,23 +32,21 @@ describe('<Combobox.List />', () => {
     await nextFrames();
     await nextFrames();
 
-    const list = screen.getByTestId('list');
-    expect(list).toHaveAttribute('role', 'listbox');
-    expect(list).toHaveAttribute('tabindex', '-1');
-    expect(list.id).not.toBe('');
-    expect(screen.getByText('Apple')).toBeInTheDocument();
-    expect(screen.getByText('Banana')).toBeInTheDocument();
+    const list = screen.getByTestId("list");
+    expect(list).toHaveAttribute("role", "listbox");
+    expect(list).toHaveAttribute("tabindex", "-1");
+    expect(list.id).not.toBe("");
+    expect(screen.getByText("Apple")).toBeInTheDocument();
+    expect(screen.getByText("Banana")).toBeInTheDocument();
   });
 
-  it('maps function children over the filtered items without a collection', async () => {
+  it("maps function children over the filtered items without a collection", async () => {
     render(() => (
-      <Combobox.Root defaultOpen items={['Apple', 'Banana', 'Cherry']}>
+      <Combobox.Root defaultOpen items={["Apple", "Banana", "Cherry"]}>
         <Combobox.Portal>
           <Combobox.Positioner>
             <Combobox.Popup>
-              <ComboboxList data-testid="list">
-                {(item: unknown) => <div data-testid="row">{String(item)}</div>}
-              </ComboboxList>
+              <ComboboxList data-testid="list">{(item: unknown) => <div data-testid="row">{String(item)}</div>}</ComboboxList>
             </Combobox.Popup>
           </Combobox.Positioner>
         </Combobox.Portal>
@@ -58,14 +56,14 @@ describe('<Combobox.List />', () => {
     await nextFrames();
     await nextFrames();
 
-    const rows = screen.getAllByTestId('row');
+    const rows = screen.getAllByTestId("row");
     expect(rows).toHaveLength(3);
-    expect(rows[0]).toHaveTextContent('Apple');
+    expect(rows[0]).toHaveTextContent("Apple");
   });
 
-  it('uses the grid role when the combobox is in grid mode', async () => {
+  it("uses the grid role when the combobox is in grid mode", async () => {
     render(() => (
-      <Combobox.Root defaultOpen grid items={['Apple']}>
+      <Combobox.Root defaultOpen grid items={["Apple"]}>
         <Combobox.Portal>
           <Combobox.Positioner>
             <Combobox.Popup>
@@ -86,6 +84,6 @@ describe('<Combobox.List />', () => {
     await nextFrames();
     await nextFrames();
 
-    expect(screen.getByTestId('list')).toHaveAttribute('role', 'grid');
+    expect(screen.getByTestId("list")).toHaveAttribute("role", "grid");
   });
 });

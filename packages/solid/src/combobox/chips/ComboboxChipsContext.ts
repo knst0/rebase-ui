@@ -1,6 +1,6 @@
-import type { Accessor, Setter } from 'solid-js';
+import type { Accessor, Setter } from "solid-js";
 
-import { createContext, useContext } from '../../internals/context';
+import { createContext, useContext } from "../../internals/context";
 
 export interface ComboboxChipsContext {
   highlightedChipIndex: Accessor<number | undefined>;

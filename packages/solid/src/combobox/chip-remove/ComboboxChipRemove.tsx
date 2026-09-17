@@ -1,15 +1,15 @@
-import type { ValidComponent } from '@solidjs/web';
-import { untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { untrack } from "solid-js";
 
-import { createButton } from '../../internals/create-button';
-import { createChangeEventDetails, REASONS } from '../../internals/event-details';
-import { stopEvent } from '../../internals/floating/utils/event';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { NativeButtonProps, RebaseUIComponentProps } from '../../internals/types';
-import { findItemIndex } from '../../select/utils/itemEquality';
-import { useComboboxRootContext } from '../root/ComboboxRootContext';
-import { useComboboxChipContext } from '../chip/ComboboxChipContext';
+import { createButton } from "../../internals/create-button";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { stopEvent } from "../../internals/floating/utils/event";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { findItemIndex } from "../../select/utils/itemEquality";
+import { useComboboxChipContext } from "../chip/ComboboxChipContext";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
 
 /**
  * A button to remove a chip.
@@ -17,14 +17,12 @@ import { useComboboxChipContext } from '../chip/ComboboxChipContext';
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
-  props: ComboboxChipRemove.Props<T>,
-) {
+export function ComboboxChipRemove<T extends ValidComponent = "button">(props: ComboboxChipRemove.Props<T>) {
   const [local, userHandlers, elementProps] = split(
     props as ComboboxChipRemove.Props,
     { default: defaultProps },
-    ['as', 'disabled', 'nativeButton'],
-    ['onClick', 'onKeyDown'],
+    ["as", "disabled", "nativeButton"],
+    ["onClick", "onKeyDown"],
   );
 
   const as = untrack(() => local.as);
@@ -32,12 +30,11 @@ export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
   const store = useComboboxRootContext();
   const { index } = useComboboxChipContext();
 
-  const disabled = () =>
-    (store.select('disabled') as boolean) || local.disabled === true;
+  const disabled = () => (store.select("disabled") as boolean) || local.disabled === true;
 
   const { buttonRef, getButtonProps } = createButton({
     native: () => local.nativeButton ?? true,
-    disabled: () => disabled() || (store.select('readOnly') as boolean),
+    disabled: () => disabled() || (store.select("readOnly") as boolean),
     focusableWhenDisabled: true,
     tabIndex: () => -1,
   });
@@ -49,7 +46,7 @@ export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
   };
 
   function clearActiveIndexForRemovedItem(removedItem: unknown) {
-    const activeIndex = store.peek('activeIndex') as number | null;
+    const activeIndex = store.peek("activeIndex") as number | null;
 
     if (activeIndex == null) {
       return;
@@ -57,11 +54,7 @@ export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
 
     // Try current visible list first; if not found, it's filtered out.
     // No need to clear highlight in that case since it can't equal activeIndex.
-    const removedIndex = findItemIndex(
-      store.context.valuesRef.current,
-      removedItem,
-      store.peek('isItemEqualToValue'),
-    );
+    const removedIndex = findItemIndex(store.context.valuesRef.current, removedItem, store.peek("isItemEqualToValue"));
     if (removedIndex !== -1 && activeIndex === removedIndex) {
       store.context.setIndices({
         activeIndex: null,
@@ -72,7 +65,7 @@ export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
 
   function removeChip(event: MouseEvent | KeyboardEvent) {
     const eventDetails = createChangeEventDetails(REASONS.chipRemovePress, event);
-    const selectedValue = store.peek('selectedValue') as Array<unknown>;
+    const selectedValue = store.peek("selectedValue") as Array<unknown>;
     const currentIndex = index();
     const removedItem = selectedValue[currentIndex];
 
@@ -99,7 +92,7 @@ export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
       (userHandlers.onClick as ((event: MouseEvent) => void) | undefined)?.(event);
     },
     onKeyDown: (event: KeyboardEvent) => {
-      if (event.key === 'Enter' || event.key === ' ') {
+      if (event.key === "Enter" || event.key === " ") {
         const eventDetails = removeChip(event);
         if (!eventDetails.isPropagationAllowed) {
           stopEvent(event);
@@ -109,17 +102,11 @@ export function ComboboxChipRemove<T extends ValidComponent = 'button'>(
     },
   });
 
-  return (
-    <RenderElement
-      as={as}
-      state={state}
-      props={[ownProps, elementProps, getButtonProps, { ref: buttonRef }]}
-    />
-  );
+  return <RenderElement as={as} state={state} props={[ownProps, elementProps, getButtonProps, { ref: buttonRef }]} />;
 }
 
 const defaultProps = Object.freeze({
-  as: 'button',
+  as: "button",
   disabled: false,
   nativeButton: true,
 } satisfies Partial<ComboboxChipRemove.Props>);
@@ -138,11 +125,11 @@ export interface ComboboxChipRemoveOwnProps extends NativeButtonProps {
   disabled?: boolean | undefined;
 }
 
-export type ComboboxChipRemoveProps<T extends ValidComponent = 'button'> =
-  ComboboxChipRemoveOwnProps & RebaseUIComponentProps<T, ComboboxChipRemoveState>;
+export type ComboboxChipRemoveProps<T extends ValidComponent = "button"> = ComboboxChipRemoveOwnProps &
+  RebaseUIComponentProps<T, ComboboxChipRemoveState>;
 
 export namespace ComboboxChipRemove {
   export type State = ComboboxChipRemoveState;
-  export type Props<T extends ValidComponent = 'button'> = ComboboxChipRemoveProps<T>;
+  export type Props<T extends ValidComponent = "button"> = ComboboxChipRemoveProps<T>;
   export type OwnProps = ComboboxChipRemoveOwnProps;
 }

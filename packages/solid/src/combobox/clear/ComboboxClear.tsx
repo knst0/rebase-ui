@@ -1,35 +1,32 @@
-import type { ValidComponent } from '@solidjs/web';
-import { Show, untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { Show, untrack } from "solid-js";
 
-import { createButton } from '../../internals/create-button';
-import { createChangeEventDetails, REASONS } from '../../internals/event-details';
-import { useFieldRootContext } from '../../internals/field-root-context/FieldRootContext';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import { runOnOpenChangeComplete } from '../../internals/runOnOpenChangeComplete';
-import { createTransitionStatus, transitionStatusMapping } from '../../internals/transition-status';
-import type { TransitionStatus } from '../../internals/transition-status';
-import type { NativeButtonProps, RebaseUIComponentProps } from '../../internals/types';
-import {
-  useComboboxInputValueContext,
-  useComboboxRootContext,
-} from '../root/ComboboxRootContext';
-import * as ComboboxClearDataAttributes from './ComboboxClearDataAttributes';
+import { createButton } from "../../internals/create-button";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
+import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import { createTransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
+import type { TransitionStatus } from "../../internals/transition-status";
+import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { useComboboxInputValueContext, useComboboxRootContext } from "../root/ComboboxRootContext";
+import * as ComboboxClearDataAttributes from "./ComboboxClearDataAttributes";
 
 const comboboxClearStateMapping: StateAttributesMapping<ComboboxClearState> = {
   ...transitionStatusMapping,
   open: {
     keys: [ComboboxClearDataAttributes.popupOpen],
-    map: (value) => (value ? { [ComboboxClearDataAttributes.popupOpen]: '' } : null),
+    map: (value) => (value ? { [ComboboxClearDataAttributes.popupOpen]: "" } : null),
   },
 };
 
 type EventHandlerValue = ((event: never) => void) | undefined;
 
 function callHandler(value: unknown, event: Event): void {
-  if (typeof value === 'function') {
+  if (typeof value === "function") {
     (value as (event: Event) => void)(event);
   }
 }
@@ -40,12 +37,12 @@ function callHandler(value: unknown, event: Event): void {
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxClear<T extends ValidComponent = 'button'>(props: ComboboxClear.Props<T>) {
+export function ComboboxClear<T extends ValidComponent = "button">(props: ComboboxClear.Props<T>) {
   const [local, userHandlers, elementProps] = split(
     props as ComboboxClear.Props,
     { default: defaultProps },
-    ['as', 'disabled', 'nativeButton', 'keepMounted'],
-    ['onClick', 'onMouseDown'],
+    ["as", "disabled", "nativeButton", "keepMounted"],
+    ["onClick", "onMouseDown"],
   );
 
   const as = untrack(() => local.as);
@@ -54,20 +51,17 @@ export function ComboboxClear<T extends ValidComponent = 'button'>(props: Combob
   const store = useComboboxRootContext();
   const inputValue = useComboboxInputValueContext();
 
-  const disabled = () =>
-    field.disabled() === true ||
-    (store.select('disabled') as boolean) === true ||
-    local.disabled === true;
+  const disabled = () => field.disabled() === true || (store.select("disabled") as boolean) === true || local.disabled === true;
 
   const visible = () => {
-    const selectionMode = store.select('selectionMode') as string;
-    if (selectionMode === 'none') {
-      return inputValue() !== '';
+    const selectionMode = store.select("selectionMode") as string;
+    if (selectionMode === "none") {
+      return inputValue() !== "";
     }
-    if (selectionMode === 'single') {
-      return (store.select('selectedValue') as unknown) != null;
+    if (selectionMode === "single") {
+      return (store.select("selectedValue") as unknown) != null;
     }
-    return (store.select('hasSelectionChips') as boolean) === true;
+    return (store.select("hasSelectionChips") as boolean) === true;
   };
 
   const { getButtonProps, buttonRef } = createButton({
@@ -89,22 +83,19 @@ export function ComboboxClear<T extends ValidComponent = 'button'>(props: Combob
   });
 
   function handleClick(event: MouseEvent) {
-    if (disabled() || (store.select('readOnly') as boolean)) {
+    if (disabled() || (store.select("readOnly") as boolean)) {
       return;
     }
 
     const keyboardActive = store.context.keyboardActiveRef.current;
     const type = keyboardActive ? REASONS.keyboard : REASONS.pointer;
 
-    store.context.setInputValue('', createChangeEventDetails(REASONS.clearPress, event));
+    store.context.setInputValue("", createChangeEventDetails(REASONS.clearPress, event));
 
-    const selectionMode = store.select('selectionMode') as string;
-    if (selectionMode !== 'none') {
-      const selectedValue = store.peek('selectedValue') as unknown;
-      store.context.setSelectedValue(
-        Array.isArray(selectedValue) ? [] : null,
-        createChangeEventDetails(REASONS.clearPress, event),
-      );
+    const selectionMode = store.select("selectionMode") as string;
+    if (selectionMode !== "none") {
+      const selectedValue = store.peek("selectedValue") as unknown;
+      store.context.setSelectedValue(Array.isArray(selectedValue) ? [] : null, createChangeEventDetails(REASONS.clearPress, event));
       // A distinct object shape: `update` iterates own keys, so passing an explicit
       // `selectedIndex: undefined` would overwrite the state instead of leaving it alone.
       store.context.setIndices({ activeIndex: null, selectedIndex: null, type });
@@ -123,7 +114,7 @@ export function ComboboxClear<T extends ValidComponent = 'button'>(props: Combob
       return visible();
     },
     get open() {
-      return store.select('open') as boolean;
+      return store.select("open") as boolean;
     },
     get transitionStatus() {
       return transitionStatus();
@@ -132,7 +123,7 @@ export function ComboboxClear<T extends ValidComponent = 'button'>(props: Combob
 
   const ownProps = () => ({
     tabIndex: -1,
-    children: 'x',
+    children: "x",
     // Avoid stealing focus from the input.
     onMouseDown: (event: MouseEvent) => {
       event.preventDefault();
@@ -145,14 +136,10 @@ export function ComboboxClear<T extends ValidComponent = 'button'>(props: Combob
   });
 
   const refProps = (externalProps: Record<string, unknown>) => ({
-    ref: mergeRefs<HTMLButtonElement>(
-      externalProps.ref as ((element: HTMLButtonElement) => void) | undefined,
-      buttonRef,
-      (element) => {
-        clearElement = element;
-        store.context.clearRef.current = element;
-      },
-    ),
+    ref: mergeRefs<HTMLButtonElement>(externalProps.ref as ((element: HTMLButtonElement) => void) | undefined, buttonRef, (element) => {
+      clearElement = element;
+      store.context.clearRef.current = element;
+    }),
   });
 
   const shouldRender = () => (untrack(() => local.keepMounted) ? true : mounted());
@@ -170,7 +157,7 @@ export function ComboboxClear<T extends ValidComponent = 'button'>(props: Combob
 }
 
 const defaultProps = Object.freeze({
-  as: 'button',
+  as: "button",
   disabled: false,
   nativeButton: true,
   keepMounted: false,
@@ -208,10 +195,9 @@ export interface ComboboxClearOwnProps extends NativeButtonProps {
   keepMounted?: boolean | undefined;
 }
 
-export type ComboboxClearProps<T extends ValidComponent = 'button'> = ComboboxClearOwnProps &
-  RebaseUIComponentProps<T, ComboboxClearState>;
+export type ComboboxClearProps<T extends ValidComponent = "button"> = ComboboxClearOwnProps & RebaseUIComponentProps<T, ComboboxClearState>;
 
 export namespace ComboboxClear {
   export type State = ComboboxClearState;
-  export type Props<T extends ValidComponent = 'button'> = ComboboxClearProps<T>;
+  export type Props<T extends ValidComponent = "button"> = ComboboxClearProps<T>;
 }

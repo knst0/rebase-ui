@@ -41,9 +41,7 @@ function Single() {
       <Combobox.Portal>
         <Combobox.Positioner>
           <Combobox.Popup>
-            <Combobox.List>
-              {(item: string) => <Combobox.Item value={item}>{item}</Combobox.Item>}
-            </Combobox.List>
+            <Combobox.List>{(item: string) => <Combobox.Item value={item}>{item}</Combobox.Item>}</Combobox.List>
           </Combobox.Popup>
         </Combobox.Positioner>
       </Combobox.Portal>
@@ -67,9 +65,7 @@ function Multiple() {
       <Combobox.Portal>
         <Combobox.Positioner>
           <Combobox.Popup>
-            <Combobox.List>
-              {(item: string) => <Combobox.Item value={item}>{item}</Combobox.Item>}
-            </Combobox.List>
+            <Combobox.List>{(item: string) => <Combobox.Item value={item}>{item}</Combobox.Item>}</Combobox.List>
           </Combobox.Popup>
         </Combobox.Positioner>
       </Combobox.Portal>
@@ -88,9 +84,7 @@ function Grouped() {
               {(group: ProduceGroup) => (
                 <Combobox.Group items={group.items}>
                   <Combobox.GroupLabel>{group.value}</Combobox.GroupLabel>
-                  <Combobox.Collection>
-                    {(item: Produce) => <Combobox.Item value={item}>{item.label}</Combobox.Item>}
-                  </Combobox.Collection>
+                  <Combobox.Collection>{(item: Produce) => <Combobox.Item value={item}>{item.label}</Combobox.Item>}</Combobox.Collection>
                 </Combobox.Group>
               )}
             </Combobox.List>

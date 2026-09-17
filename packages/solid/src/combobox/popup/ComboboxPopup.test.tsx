@@ -1,16 +1,16 @@
-import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@solidjs/testing-library';
-import { flush } from 'solid-js';
-import { describe, expect, it } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
+import { describe, expect, it } from "vitest";
 
-import { nextFrames } from '#test-utils';
+import { nextFrames } from "#test-utils";
 
-import * as Combobox from '../index.parts';
-import { ComboboxPopup } from './ComboboxPopup';
+import * as Combobox from "../index.parts";
+import { ComboboxPopup } from "./ComboboxPopup";
 
 function renderOpenPopup() {
-  const anchor = document.createElement('div');
-  anchor.textContent = 'anchor';
+  const anchor = document.createElement("div");
+  anchor.textContent = "anchor";
   document.body.appendChild(anchor);
   const cleanup = () => {
     anchor.remove();
@@ -27,29 +27,27 @@ function renderOpenPopup() {
   return cleanup;
 }
 
-describe('<Combobox.Popup />', () => {
-  it('renders a presentation container with open state when open', async () => {
+describe("<Combobox.Popup />", () => {
+  it("renders a presentation container with open state when open", async () => {
     const cleanup = renderOpenPopup();
     try {
       flush();
       await nextFrames();
       await nextFrames();
 
-      const popup = screen.getByTestId('popup');
-      expect(popup).toHaveTextContent('Content');
-      expect(popup).toHaveAttribute('role', 'presentation');
-      expect(popup).toHaveAttribute('data-open');
-      expect(popup.getAttribute('data-side')).toMatch(
-        /^(top|bottom|left|right|inline-start|inline-end)$/,
-      );
+      const popup = screen.getByTestId("popup");
+      expect(popup).toHaveTextContent("Content");
+      expect(popup).toHaveAttribute("role", "presentation");
+      expect(popup).toHaveAttribute("data-open");
+      expect(popup.getAttribute("data-side")).toMatch(/^(top|bottom|left|right|inline-start|inline-end)$/);
     } finally {
       cleanup();
     }
   });
 
-  it('matches the positioner side', async () => {
-    const anchor = document.createElement('div');
-    anchor.textContent = 'anchor';
+  it("matches the positioner side", async () => {
+    const anchor = document.createElement("div");
+    anchor.textContent = "anchor";
     document.body.appendChild(anchor);
     try {
       render(() => (
@@ -65,15 +63,13 @@ describe('<Combobox.Popup />', () => {
       await nextFrames();
       await nextFrames();
 
-      expect(screen.getByTestId('popup').getAttribute('data-side')).toBe(
-        screen.getByTestId('positioner').getAttribute('data-side'),
-      );
+      expect(screen.getByTestId("popup").getAttribute("data-side")).toBe(screen.getByTestId("positioner").getAttribute("data-side"));
     } finally {
       anchor.remove();
     }
   });
 
-  it('renders nothing when the combobox is closed', () => {
+  it("renders nothing when the combobox is closed", () => {
     render(() => (
       <Combobox.Root>
         <Combobox.Portal>
@@ -85,10 +81,10 @@ describe('<Combobox.Popup />', () => {
     ));
     flush();
 
-    expect(screen.queryByTestId('popup')).toBeNull();
+    expect(screen.queryByTestId("popup")).toBeNull();
   });
 
-  it('throws a descriptive error when rendered outside <Combobox.Positioner>', () => {
+  it("throws a descriptive error when rendered outside <Combobox.Positioner>", () => {
     expect(() => {
       render(() => (
         <Combobox.Root defaultOpen>

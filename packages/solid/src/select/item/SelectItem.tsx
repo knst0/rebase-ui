@@ -49,9 +49,7 @@ function resyncItemRegistry(store: SelectStore) {
     if (a.element === b.element) {
       return 0;
     }
-    return a.element.compareDocumentPosition(b.element) & Node.DOCUMENT_POSITION_FOLLOWING
-      ? -1
-      : 1;
+    return a.element.compareDocumentPosition(b.element) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
   });
 
   store.context.listRef.current = ordered.map((entry) => entry.element);
@@ -69,11 +67,13 @@ function resyncItemRegistry(store: SelectStore) {
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.Props<T>) {
-  const [local, elementProps] = split(
-    props as SelectItem.Props,
-    { default: defaultProps },
-    ["as", "value", "label", "disabled", "nativeButton"],
-  );
+  const [local, elementProps] = split(props as SelectItem.Props, { default: defaultProps }, [
+    "as",
+    "value",
+    "label",
+    "disabled",
+    "nativeButton",
+  ]);
 
   const as = untrack(() => local.as);
 
@@ -146,21 +146,13 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
       let claims: boolean;
       if (multiple && Array.isArray(selectedValue)) {
         // The claiming item also owns the text ref that aligns the popup.
-        nextIndex = resolveSelectedIndex(
-          itemIndex,
-          value,
-          store.context.valuesRef.current,
-          selectedValue,
-          comparer,
-          currentIndex,
-        );
+        nextIndex = resolveSelectedIndex(itemIndex, value, store.context.valuesRef.current, selectedValue, comparer, currentIndex);
         claims = nextIndex === itemIndex;
         if (itemIndex === currentIndex && !claims) {
           store.context.selectedItemTextRef.current = null;
         }
       } else {
-        claims =
-          selectedValue !== undefined && compareItemEquality(value, selectedValue, comparer);
+        claims = selectedValue !== undefined && compareItemEquality(value, selectedValue, comparer);
         if (claims) {
           nextIndex = itemIndex;
         }
@@ -203,18 +195,10 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
     if (rootProps.multiple) {
       const currentArray = Array.isArray(currentValue) ? currentValue : [];
       const isSelected = store.peek("isSelected", value) as boolean;
-      const nextValue = isSelected
-        ? removeItem(currentArray, value, comparer)
-        : [...currentArray, value];
-      store.context.setValue(
-        nextValue,
-        createChangeEventDetails(REASONS.itemPress, event as MouseEvent),
-      );
+      const nextValue = isSelected ? removeItem(currentArray, value, comparer) : [...currentArray, value];
+      store.context.setValue(nextValue, createChangeEventDetails(REASONS.itemPress, event as MouseEvent));
     } else {
-      store.context.setValue(
-        value,
-        createChangeEventDetails(REASONS.itemPress, event as MouseEvent),
-      );
+      store.context.setValue(value, createChangeEventDetails(REASONS.itemPress, event as MouseEvent));
       store.context.setOpen(false, createChangeEventDetails(REASONS.itemPress, event as MouseEvent));
     }
   }
@@ -251,8 +235,7 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
       // With alignItemWithTrigger, opening can place an item under the cursor. Real mouse
       // clicks must start on the item, while virtual clicks represent explicit keyboard or
       // assistive technology activation.
-      const isInvalidMouseClick =
-        isMouseClick && !isVirtualMouseClick && !allowMouseSelection;
+      const isInvalidMouseClick = isMouseClick && !isVirtualMouseClick && !allowMouseSelection;
 
       allowMouseSelection = false;
 

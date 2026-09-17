@@ -4,9 +4,9 @@ import { untrack } from "solid-js";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 import type { NumberFieldRootState } from "../root/NumberFieldRoot";
 import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
+import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 
 /**
  * Groups the input with the increment and decrement buttons.
@@ -21,14 +21,7 @@ export function NumberFieldGroup<T extends ValidComponent = "div">(props: Number
 
   const { state } = useNumberFieldRootContext();
 
-  return (
-    <RenderElement
-      as={as}
-      state={state}
-      props={[{ role: "group" }, elementProps]}
-      stateAttributesMapping={stateAttributesMapping}
-    />
-  );
+  return <RenderElement as={as} state={state} props={[{ role: "group" }, elementProps]} stateAttributesMapping={stateAttributesMapping} />;
 }
 
 const defaultProps = Object.freeze({

@@ -42,13 +42,7 @@ export function getFilter(options: UseFilterOptions = {}): Filter {
 
   const collator = new Intl.Collator(locale, {
     usage: "search",
-    sensitivity: ignoreCase
-      ? ignoreAccents
-        ? "base"
-        : "accent"
-      : ignoreAccents
-        ? "case"
-        : "variant",
+    sensitivity: ignoreCase ? (ignoreAccents ? "base" : "accent") : ignoreAccents ? "case" : "variant",
   });
 
   function normalize(value: string): string {
@@ -70,30 +64,20 @@ export function getFilter(options: UseFilterOptions = {}): Filter {
     const normalizedLabel = normalize(label);
     if (fromStart) {
       const prefix = normalizedLabel.slice(0, normalizedQuery.length);
-      return (
-        prefix.length === normalizedQuery.length && collator.compare(prefix, normalizedQuery) === 0
-      );
+      return prefix.length === normalizedQuery.length && collator.compare(prefix, normalizedQuery) === 0;
     }
     if (normalizedQuery.length > normalizedLabel.length) {
       return false;
     }
     for (let index = 0; index + normalizedQuery.length <= normalizedLabel.length; index += 1) {
-      if (
-        collator.compare(normalizedLabel.slice(index, index + normalizedQuery.length), normalizedQuery) ===
-        0
-      ) {
+      if (collator.compare(normalizedLabel.slice(index, index + normalizedQuery.length), normalizedQuery) === 0) {
         return true;
       }
     }
     return false;
   }
 
-  function match(
-    item: any,
-    query: string,
-    itemToString: ((item: any) => string) | undefined,
-    fromStart: boolean,
-  ): boolean {
+  function match(item: any, query: string, itemToString: ((item: any) => string) | undefined, fromStart: boolean): boolean {
     if (item == null) {
       return false;
     }
@@ -132,11 +116,7 @@ export function useComboboxFilter(options: UseComboboxFilterOptions = {}): Filte
 
   const coreFilter = getFilter(collatorOptions);
 
-  const contains: Filter["contains"] = (
-    item: any,
-    query: string,
-    itemToString?: (item: any) => string,
-  ) => {
+  const contains: Filter["contains"] = (item: any, query: string, itemToString?: (item: any) => string) => {
     if (multiple) {
       return createCollatorItemFilter(coreFilter, itemToString)(item, query);
     }

@@ -1,15 +1,13 @@
-import { createButton } from '../../internals/create-button';
-import { createChangeEventDetails, REASONS } from '../../internals/event-details';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { visuallyHiddenInput } from '../../internals/utils/visuallyHidden';
-import { useComboboxRootContext } from '../root/ComboboxRootContext';
+import { createButton } from "../../internals/create-button";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
 
 /**
  * @internal
  */
-export function ComboboxInternalDismissButton(props: {
-  ref?: ((element: HTMLSpanElement | null) => void) | undefined;
-}) {
+export function ComboboxInternalDismissButton(props: { ref?: ((element: HTMLSpanElement | null) => void) | undefined }) {
   const store = useComboboxRootContext();
 
   const { buttonRef, getButtonProps } = createButton({
@@ -17,10 +15,7 @@ export function ComboboxInternalDismissButton(props: {
   });
 
   function handleDismiss(event: MouseEvent) {
-    store.context.setOpen(
-      false,
-      createChangeEventDetails(REASONS.closePress, event, event.currentTarget as Element),
-    );
+    store.context.setOpen(false, createChangeEventDetails(REASONS.closePress, event, event.currentTarget as Element));
   }
 
   const dismissProps = getButtonProps({
@@ -28,12 +23,6 @@ export function ComboboxInternalDismissButton(props: {
   });
 
   return (
-    <span
-      ref={mergeRefs(props.ref, buttonRef)}
-      {...dismissProps}
-      aria-label="Dismiss"
-      tabindex={undefined}
-      style={visuallyHiddenInput}
-    />
+    <span ref={mergeRefs(props.ref, buttonRef)} {...dismissProps} aria-label="Dismiss" tabindex={undefined} style={visuallyHiddenInput} />
   );
 }

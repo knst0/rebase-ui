@@ -1,13 +1,13 @@
 import { type Accessor, createEffect, createSignal, type Setter } from "solid-js";
 
-import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
-import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
-import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import { EMPTY_OBJECT } from "#utils/empty";
 
-import type { AriaCombobox } from "../root/AriaCombobox";
+import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
+import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import { compareItemEquality } from "../../select/utils/itemEquality";
 import { hasNullItemLabel } from "../../select/utils/resolveValueLabel";
+import type { AriaCombobox } from "../root/AriaCombobox";
 
 export type ComboboxInteractionType = "keyboard" | "mouse" | "touch" | "pen" | "";
 
@@ -165,9 +165,7 @@ export const selectors = {
     const comparer = state.isItemEqualToValue;
     const selectedValue = state.selectedValue;
     if (Array.isArray(selectedValue)) {
-      return selectedValue.some((selectedItem) =>
-        compareItemEquality(itemValue, selectedItem, comparer),
-      );
+      return selectedValue.some((selectedItem) => compareItemEquality(itemValue, selectedItem, comparer));
     }
     return compareItemEquality(itemValue, selectedValue, comparer);
   },
@@ -328,10 +326,7 @@ export class ComboboxStore {
    * computation subscribes only to the raw fields the selector reads.
    */
   select = (key: keyof ComboboxStoreSelectors, arg?: any): any => {
-    return (selectors[key] as (state: ComboboxStoreState, arg?: any) => unknown)(
-      this.trackingSnapshot,
-      arg,
-    );
+    return (selectors[key] as (state: ComboboxStoreState, arg?: any) => unknown)(this.trackingSnapshot, arg);
   };
 
   /**
@@ -340,10 +335,7 @@ export class ComboboxStore {
    * effect apply callbacks — anywhere a one-shot read must not track.
    */
   peek = (key: keyof ComboboxStoreSelectors, arg?: any): any => {
-    return (selectors[key] as (state: ComboboxStoreState, arg?: any) => unknown)(
-      this.snapshot,
-      arg,
-    );
+    return (selectors[key] as (state: ComboboxStoreState, arg?: any) => unknown)(this.snapshot, arg);
   };
 
   /**
@@ -396,10 +388,7 @@ export class ComboboxStore {
    * through `getValue` so updates stay reactive; the state snapshot itself is
    * written synchronously. Mirrors `ReactStore.useSyncedValue` upstream.
    */
-  useSyncedValue = <Key extends keyof ComboboxStoreState>(
-    key: Key,
-    getValue: () => ComboboxStoreState[Key],
-  ) => {
+  useSyncedValue = <Key extends keyof ComboboxStoreState>(key: Key, getValue: () => ComboboxStoreState[Key]) => {
     createEffect(
       () => getValue(),
       (value) => {

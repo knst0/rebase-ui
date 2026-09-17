@@ -5,16 +5,16 @@ import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { ComboboxInput } from "../input/ComboboxInput";
+import { ComboboxItemIndicator } from "../item-indicator/ComboboxItemIndicator";
 import { ComboboxList } from "../list/ComboboxList";
 import { ComboboxPopup } from "../popup/ComboboxPopup";
 import { ComboboxPortal } from "../portal/ComboboxPortal";
 import { ComboboxPositioner } from "../positioner/ComboboxPositioner";
-import { ComboboxRoot } from "../root/ComboboxRoot";
 import { AriaCombobox } from "../root/AriaCombobox";
+import { ComboboxRoot } from "../root/ComboboxRoot";
 import { useComboboxRootContext } from "../root/ComboboxRootContext";
-import type { ComboboxStore } from "../store/ComboboxStore";
-import { ComboboxItemIndicator } from "../item-indicator/ComboboxItemIndicator";
 import { ComboboxRow } from "../row/ComboboxRow";
+import type { ComboboxStore } from "../store/ComboboxStore";
 import { ComboboxItem } from "./ComboboxItem";
 
 function CaptureStore(props: { onStore: (store: ComboboxStore) => void }) {
@@ -42,12 +42,8 @@ function renderItems(options?: {
         <ComboboxPositioner>
           <ComboboxPopup>
             <ComboboxList>
-              <ComboboxItem value="a">
-                a{indicatorTestIds ? <ComboboxItemIndicator data-testid="indicator-a" /> : null}
-              </ComboboxItem>
-              <ComboboxItem value="b">
-                b{indicatorTestIds ? <ComboboxItemIndicator data-testid="indicator-b" /> : null}
-              </ComboboxItem>
+              <ComboboxItem value="a">a{indicatorTestIds ? <ComboboxItemIndicator data-testid="indicator-a" /> : null}</ComboboxItem>
+              <ComboboxItem value="b">b{indicatorTestIds ? <ComboboxItemIndicator data-testid="indicator-b" /> : null}</ComboboxItem>
             </ComboboxList>
           </ComboboxPopup>
         </ComboboxPositioner>
@@ -189,9 +185,7 @@ describe("<Combobox.Item />", () => {
       <ComboboxRoot
         defaultOpen
         defaultValue={{ id: 1 }}
-        isItemEqualToValue={(itemValue: { id: number }, selectedValue: { id: number }) =>
-          itemValue?.id === selectedValue?.id
-        }
+        isItemEqualToValue={(itemValue: { id: number }, selectedValue: { id: number }) => itemValue?.id === selectedValue?.id}
       >
         <ComboboxInput />
         <ComboboxPortal>

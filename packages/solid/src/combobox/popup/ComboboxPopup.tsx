@@ -1,30 +1,26 @@
-import type { JSX, ValidComponent } from '@solidjs/web';
-import { createEffect, untrack } from 'solid-js';
+import type { JSX, ValidComponent } from "@solidjs/web";
+import { createEffect, untrack } from "solid-js";
 
-import { FloatingFocusManager } from '../../internals/floating';
-import type { FloatingFocusManagerInteractionType } from '../../internals/floating/components/FloatingFocusManager';
-import { contains, getTarget } from '../../internals/floating/utils/element';
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { runOnOpenChangeComplete } from '../../internals/runOnOpenChangeComplete';
-import { split } from '../../internals/split';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import { transitionStatusMapping } from '../../internals/transition-status';
-import type { TransitionStatus } from '../../internals/transition-status';
-import type { RebaseUIComponentProps } from '../../internals/types';
-import type { Align, Side } from '../../internals/anchor-positioning/createAnchorPositioning';
-import {
-  useComboboxDerivedItemsContext,
-  useComboboxFloatingContext,
-  useComboboxRootContext,
-} from '../root/ComboboxRootContext';
-import { useComboboxPositionerContext } from '../positioner/ComboboxPositionerContext';
-import * as ComboboxPopupDataAttributes from './ComboboxPopupDataAttributes';
+import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { FloatingFocusManager } from "../../internals/floating";
+import type { FloatingFocusManagerInteractionType } from "../../internals/floating/components/FloatingFocusManager";
+import { contains, getTarget } from "../../internals/floating/utils/element";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
+import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import { transitionStatusMapping } from "../../internals/transition-status";
+import type { TransitionStatus } from "../../internals/transition-status";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import { useComboboxPositionerContext } from "../positioner/ComboboxPositionerContext";
+import { useComboboxDerivedItemsContext, useComboboxFloatingContext, useComboboxRootContext } from "../root/ComboboxRootContext";
+import * as ComboboxPopupDataAttributes from "./ComboboxPopupDataAttributes";
 
-const POPUP_OPEN_HOOK = { [ComboboxPopupDataAttributes.open]: '' };
-const POPUP_CLOSED_HOOK = { [ComboboxPopupDataAttributes.closed]: '' };
-const POPUP_ANCHOR_HIDDEN_HOOK = { [ComboboxPopupDataAttributes.anchorHidden]: '' };
-const POPUP_EMPTY_HOOK = { [ComboboxPopupDataAttributes.empty]: '' };
+const POPUP_OPEN_HOOK = { [ComboboxPopupDataAttributes.open]: "" };
+const POPUP_CLOSED_HOOK = { [ComboboxPopupDataAttributes.closed]: "" };
+const POPUP_ANCHOR_HIDDEN_HOOK = { [ComboboxPopupDataAttributes.anchorHidden]: "" };
+const POPUP_EMPTY_HOOK = { [ComboboxPopupDataAttributes.empty]: "" };
 
 const comboboxPopupStateMapping: StateAttributesMapping<ComboboxPopupState> = {
   open: {
@@ -60,12 +56,8 @@ function getComboboxPopupId(rootId: string | null | undefined) {
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxPopup.Props<T>) {
-  const [local, elementProps] = split(props as ComboboxPopup.Props, { default: defaultProps }, [
-    'as',
-    'initialFocus',
-    'finalFocus',
-  ]);
+export function ComboboxPopup<T extends ValidComponent = "div">(props: ComboboxPopup.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxPopup.Props, { default: defaultProps }, ["as", "initialFocus", "finalFocus"]);
 
   const as = untrack(() => local.as);
 
@@ -78,31 +70,31 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
 
   const empty = () => {
     const filteredItems = derivedItems.filteredItems;
-    const items = typeof filteredItems === 'function' ? filteredItems() : filteredItems;
+    const items = typeof filteredItems === "function" ? filteredItems() : filteredItems;
     return items.length === 0;
   };
-  const mounted = () => store.select('mounted') as boolean;
-  const inputInsidePopup = () => store.select('inputInsidePopup') as boolean;
-  const modal = () => store.select('modal') as boolean;
+  const mounted = () => store.select("mounted") as boolean;
+  const inputInsidePopup = () => store.select("inputInsidePopup") as boolean;
+  const modal = () => store.select("modal") as boolean;
 
   // Prefer the rendered DOM id, which a `render` prop element or function may override.
   createEffect(
     () => {
-      const rootId = store.select('id') as string | undefined;
+      const rootId = store.select("id") as string | undefined;
       const explicitId = (elementProps as Record<string, unknown>).id as string | undefined;
       return explicitId ?? (inputInsidePopup() ? getComboboxPopupId(rootId) : undefined);
     },
     (popupId) => {
-      store.set('popupId', store.context.popupRef.current?.id || popupId);
+      store.set("popupId", store.context.popupRef.current?.id || popupId);
       return undefined;
     },
   );
 
   runOnOpenChangeComplete({
-    open: () => store.select('open') as boolean,
+    open: () => store.select("open") as boolean,
     ref: () => store.context.popupRef.current,
     onComplete() {
-      if (store.peek('open')) {
+      if (store.peek("open")) {
         store.context.onOpenChangeComplete(true);
       }
     },
@@ -110,10 +102,10 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
 
   const state: ComboboxPopupState = {
     get open() {
-      return store.select('open') as boolean;
+      return store.select("open") as boolean;
     },
     get side() {
-      return mounted() ? (store.select('popupSide') as Side | null) : null;
+      return mounted() ? (store.select("popupSide") as Side | null) : null;
     },
     get align() {
       return positioning.align();
@@ -122,30 +114,29 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
       return positioning.anchorHidden();
     },
     get transitionStatus() {
-      return store.select('transitionStatus') as TransitionStatus;
+      return store.select("transitionStatus") as TransitionStatus;
     },
     get empty() {
       return empty();
     },
   };
 
-  const storePopupProps = () => store.select('popupProps') as Record<string, unknown>;
+  const storePopupProps = () => store.select("popupProps") as Record<string, unknown>;
 
   const defaultPopupProps = {
     get id(): string | undefined {
       const explicitId = (elementProps as Record<string, unknown>).id as string | undefined;
-      const rootId = store.select('id') as string | undefined;
+      const rootId = store.select("id") as string | undefined;
       return explicitId ?? (inputInsidePopup() ? getComboboxPopupId(rootId) : undefined);
     },
-    get role(): 'dialog' | 'presentation' {
-      return inputInsidePopup() ? 'dialog' : 'presentation';
+    get role(): "dialog" | "presentation" {
+      return inputInsidePopup() ? "dialog" : "presentation";
     },
     onFocus(event: FocusEvent) {
       const target = getTarget(event) as Element | null;
       if (
-        (store.peek('openMethod') as string | null) !== 'touch' &&
-        (contains(store.peek('listElement') as Element | null, target) ||
-          target === event.currentTarget)
+        (store.peek("openMethod") as string | null) !== "touch" &&
+        (contains(store.peek("listElement") as Element | null, target) || target === event.currentTarget)
       ) {
         store.context.inputRef.current?.focus();
       }
@@ -154,8 +145,8 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
 
   const disabledMountTransitionStyles = {
     get style(): JSX.CSSProperties | undefined {
-      return (store.select('transitionStatus') as string | undefined) === 'starting'
-        ? ({ transition: 'none' } as JSX.CSSProperties)
+      return (store.select("transitionStatus") as string | undefined) === "starting"
+        ? ({ transition: "none" } as JSX.CSSProperties)
         : undefined;
     },
   };
@@ -177,7 +168,7 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
       return false;
     }
     return (interactionType: FloatingFocusManagerInteractionType) =>
-      interactionType === 'touch' ? store.context.popupRef.current : store.peek('inputElement');
+      interactionType === "touch" ? store.context.popupRef.current : store.peek("inputElement");
   }
 
   function resolveFinalFocus() {
@@ -189,17 +180,14 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
 
   const focusManagerModal = () => !inputInsidePopup() || modal();
 
-  const getInsideElements = () => [
-    store.context.startDismissRef.current,
-    store.context.endDismissRef.current,
-  ];
+  const getInsideElements = () => [store.context.startDismissRef.current, store.context.endDismissRef.current];
 
   return (
     <FloatingFocusManager
       context={floatingRootContext}
       disabled={!mounted()}
       modal={focusManagerModal()}
-      openInteractionType={store.peek('openMethod') as FloatingFocusManagerInteractionType | null}
+      openInteractionType={store.peek("openMethod") as FloatingFocusManagerInteractionType | null}
       initialFocus={resolveInitialFocus() as never}
       returnFocus={resolveFinalFocus() as never}
       getInsideElements={getInsideElements}
@@ -221,7 +209,7 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
             }}
             tabindex={0}
             aria-hidden="true"
-            style={{ position: 'fixed', top: '0', left: '0', width: '1px', height: '0', opacity: '0' }}
+            style={{ position: "fixed", top: "0", left: "0", width: "1px", height: "0", opacity: "0" }}
             onFocus={(event: FocusEvent) => {
               store.context.inputRef.current?.focus();
               (event.currentTarget as HTMLElement).blur();
@@ -234,7 +222,7 @@ export function ComboboxPopup<T extends ValidComponent = 'div'>(props: ComboboxP
 }
 
 const defaultProps = Object.freeze({
-  as: 'div',
+  as: "div",
 } satisfies Partial<ComboboxPopup.Props>);
 
 export interface ComboboxPopupState {
@@ -264,7 +252,7 @@ export interface ComboboxPopupState {
   empty: boolean;
 }
 
-export interface ComboboxPopupProps extends RebaseUIComponentProps<'div', ComboboxPopupState> {
+export interface ComboboxPopupProps extends RebaseUIComponentProps<"div", ComboboxPopupState> {
   /**
    * Determines the element to focus when the popup is opened.
    *
@@ -295,18 +283,13 @@ export interface ComboboxPopupProps extends RebaseUIComponentProps<'div', Combob
     | undefined;
 }
 
-export type ComboboxPopupPropsWithGenerics<T extends ValidComponent = 'div'> = Omit<
-  ComboboxPopupProps,
-  'as'
-> &
+export type ComboboxPopupPropsWithGenerics<T extends ValidComponent = "div"> = Omit<ComboboxPopupProps, "as"> &
   RebaseUIComponentProps<T, ComboboxPopupState> & {
-    initialFocus?: ComboboxPopupProps['initialFocus'];
-    finalFocus?: ComboboxPopupProps['finalFocus'];
+    initialFocus?: ComboboxPopupProps["initialFocus"];
+    finalFocus?: ComboboxPopupProps["finalFocus"];
   };
 
 export namespace ComboboxPopup {
   export type State = ComboboxPopupState;
-  export type Props<T extends ValidComponent = 'div'> = T extends 'div'
-    ? ComboboxPopupProps
-    : ComboboxPopupPropsWithGenerics<T>;
+  export type Props<T extends ValidComponent = "div"> = T extends "div" ? ComboboxPopupProps : ComboboxPopupPropsWithGenerics<T>;
 }

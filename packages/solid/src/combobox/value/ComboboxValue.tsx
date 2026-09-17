@@ -1,17 +1,15 @@
-import type { JSX } from '@solidjs/web';
-import { createMemo, untrack, type Accessor } from 'solid-js';
+import type { JSX } from "@solidjs/web";
+import { createMemo, untrack, type Accessor } from "solid-js";
 
-import { useComboboxRootContext } from '../root/ComboboxRootContext';
-import { resolveSelectedLabel, type SelectItemsInput } from '../../select/utils/resolveValueLabel';
+import { resolveSelectedLabel, type SelectItemsInput } from "../../select/utils/resolveValueLabel";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
 
 function resolveMultipleLabels(
   value: ReadonlyArray<unknown>,
   items: SelectItemsInput,
   itemToStringLabel: ((item: unknown) => string) | undefined,
 ): string {
-  return value
-    .map((item) => String(resolveSelectedLabel(item, items, itemToStringLabel) ?? ''))
-    .join(', ');
+  return value.map((item) => String(resolveSelectedLabel(item, items, itemToStringLabel) ?? "")).join(", ");
 }
 
 /**
@@ -25,15 +23,13 @@ export function ComboboxValue(props: ComboboxValue.Props): JSX.Element {
   const childrenProp = untrack(() => props.children);
   const placeholder = untrack(() => props.placeholder);
 
-  if (typeof childrenProp === 'function') {
+  if (typeof childrenProp === "function") {
     // The render function runs once: re-invoking it on every selection change
     // would recreate the rendered subtree (chips, the input), losing DOM state
     // and focus. The selection is handed over as an accessor so reads inside
     // the returned JSX stay reactive.
-    const selectedValue: Accessor<unknown> = () => store.select('selectedValue');
-    return untrack(() =>
-      (childrenProp as (value: Accessor<unknown>) => JSX.Element)(selectedValue),
-    );
+    const selectedValue: Accessor<unknown> = () => store.select("selectedValue");
+    return untrack(() => (childrenProp as (value: Accessor<unknown>) => JSX.Element)(selectedValue));
   }
 
   if (childrenProp != null) {
@@ -41,21 +37,19 @@ export function ComboboxValue(props: ComboboxValue.Props): JSX.Element {
   }
 
   const resolved = createMemo(() => {
-    const selectedValue: unknown = store.select('selectedValue');
-    const multiple = (store.select('selectionMode') as string) === 'multiple';
-    const hasSelectedValue = store.select('hasSelectedValue') as boolean;
+    const selectedValue: unknown = store.select("selectedValue");
+    const multiple = (store.select("selectionMode") as string) === "multiple";
+    const hasSelectedValue = store.select("hasSelectedValue") as boolean;
 
     if (!hasSelectedValue && placeholder != null) {
-      const hasNullLabel = store.select('hasNullItemLabel', true) as boolean;
+      const hasNullLabel = store.select("hasNullItemLabel", true) as boolean;
       if (!hasNullLabel) {
         return placeholder;
       }
     }
 
-    const items = store.select('items') as SelectItemsInput;
-    const itemToStringLabel = store.select('itemToStringLabel') as
-      | ((item: unknown) => string)
-      | undefined;
+    const items = store.select("items") as SelectItemsInput;
+    const itemToStringLabel = store.select("itemToStringLabel") as ((item: unknown) => string) | undefined;
 
     if (multiple && Array.isArray(selectedValue)) {
       return resolveMultipleLabels(selectedValue, items, itemToStringLabel);

@@ -5,8 +5,8 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { GroupCollectionContext } from "../collection/GroupCollectionContext";
-import type { ComboboxStore } from "../store/ComboboxStore";
 import { useComboboxRootContext } from "../root/ComboboxRootContext";
+import type { ComboboxStore } from "../store/ComboboxStore";
 import { ComboboxGroupContext } from "./ComboboxGroupContext";
 
 /**
@@ -16,11 +16,7 @@ import { ComboboxGroupContext } from "./ComboboxGroupContext";
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
 export function ComboboxGroup<T extends ValidComponent = "div">(props: ComboboxGroup.Props<T>) {
-  const [local, elementProps] = split(
-    props as ComboboxGroup.Props,
-    { default: defaultProps },
-    ["as", "items"],
-  );
+  const [local, elementProps] = split(props as ComboboxGroup.Props, { default: defaultProps }, ["as", "items"]);
 
   const as = untrack(() => local.as);
   const items = untrack(() => local.items);
@@ -88,8 +84,7 @@ export interface ComboboxGroupOwnProps {
   items?: readonly unknown[] | undefined;
 }
 
-export type ComboboxGroupProps<T extends ValidComponent = "div"> = ComboboxGroupOwnProps &
-  RebaseUIComponentProps<T, ComboboxGroupState>;
+export type ComboboxGroupProps<T extends ValidComponent = "div"> = ComboboxGroupOwnProps & RebaseUIComponentProps<T, ComboboxGroupState>;
 
 export namespace ComboboxGroup {
   export type State = ComboboxGroupState;

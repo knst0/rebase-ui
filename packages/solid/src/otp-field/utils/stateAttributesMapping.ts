@@ -1,7 +1,7 @@
-import { fieldValidityMapping } from '../../internals/field-constants';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import type { OTPFieldRootState } from '../root/OTPFieldRoot';
-import type { OTPFieldInputState } from '../input/OTPFieldInput';
+import { fieldValidityMapping } from "../../internals/field-constants";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import type { OTPFieldInputState } from "../input/OTPFieldInput";
+import type { OTPFieldRootState } from "../root/OTPFieldRoot";
 
 const nullMapping = { keys: [], map: () => null };
 

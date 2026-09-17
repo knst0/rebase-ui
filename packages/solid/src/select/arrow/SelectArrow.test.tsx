@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
 import { nextFrames } from "#test-utils";
 
 import * as Select from "../index.parts";
-import { SelectPortal } from "../portal/SelectPortal";
 import { SelectPopup } from "../popup/SelectPopup";
+import { SelectPortal } from "../portal/SelectPortal";
 import { SelectPositioner } from "../positioner/SelectPositioner";
 import { SelectArrow } from "./SelectArrow";
 

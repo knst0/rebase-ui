@@ -30,11 +30,7 @@ export type SelectSeparatorProps<T extends ValidComponent = "div"> = SelectSepar
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectSeparator<T extends ValidComponent = "div">(props: SelectSeparator.Props<T>) {
-  const [local, elementProps] = split(
-    props as SelectSeparator.Props,
-    { default: defaultProps },
-    ["as", "orientation"],
-  );
+  const [local, elementProps] = split(props as SelectSeparator.Props, { default: defaultProps }, ["as", "orientation"]);
 
   const as = untrack(() => local.as);
 

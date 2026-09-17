@@ -14,9 +14,7 @@ import { useSelectRootContext } from "../root/SelectRootContext";
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectItemText<T extends ValidComponent = "div">(props: SelectItemText.Props<T>) {
-  const [local, elementProps] = split(props as SelectItemText.Props, { default: defaultProps }, [
-    "as",
-  ]);
+  const [local, elementProps] = split(props as SelectItemText.Props, { default: defaultProps }, ["as"]);
 
   const as = untrack(() => local.as);
 
@@ -71,10 +69,7 @@ const defaultProps = Object.freeze({
 
 export interface SelectItemTextState {}
 
-export type SelectItemTextProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  SelectItemTextState
->;
+export type SelectItemTextProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, SelectItemTextState>;
 
 export namespace SelectItemText {
   export type State = SelectItemTextState;

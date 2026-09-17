@@ -12,9 +12,7 @@ export const SelectGroupContext = createContext<SelectGroupContext>();
 export function useSelectGroupContext(): SelectGroupContext {
   const context = useContext(SelectGroupContext);
   if (context === undefined) {
-    throw new Error(
-      "Rebase UI: SelectGroupContext is missing. SelectGroup parts must be placed within <Select.Group>.",
-    );
+    throw new Error("Rebase UI: SelectGroupContext is missing. SelectGroup parts must be placed within <Select.Group>.");
   }
   return context;
 }

@@ -1,38 +1,29 @@
-import type { ValidComponent } from '@solidjs/web';
-import { createEffect, createMemo, createSignal, onCleanup, Show, untrack } from 'solid-js';
+import type { ValidComponent } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, onCleanup, Show, untrack } from "solid-js";
 
-import type { FieldRootState } from '../../field/root/FieldRoot';
-import { CompositeListContext } from '../../internals/composite/list/CompositeListContext';
-import { createCompositeList } from '../../internals/composite/list/createCompositeList';
-import { createControllableSignal } from '../../internals/createControllableSignal';
+import type { FieldRootState } from "../../field/root/FieldRoot";
+import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
+import { createCompositeList } from "../../internals/composite/list/createCompositeList";
+import { createControllableSignal } from "../../internals/createControllableSignal";
 import {
   createChangeEventDetails,
   createGenericEventDetails,
   REASONS,
   type RebaseUIChangeEventDetails,
   type RebaseUIGenericEventDetails,
-} from '../../internals/event-details';
-import { useFieldRootContext } from '../../internals/field-root-context';
-import { createRegisterFieldControl } from '../../internals/field-register-control';
-import { useFormContext } from '../../internals/form-context';
-import {
-  createAriaLabelledBy,
-  createLabelableId,
-  useLabelableContext,
-} from '../../internals/labelable-provider';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { RebaseUIComponentProps } from '../../internals/types';
-import { ownerDocument } from '../../internals/utils/owner';
-import { visuallyHidden, visuallyHiddenInput } from '../../internals/utils/visuallyHidden';
-import {
-  getOTPValidationConfig,
-  normalizeOTPValue,
-  normalizeOTPValueWithDetails,
-  type OTPValidationType,
-} from '../utils/otp';
-import { rootStateAttributesMapping } from '../utils/stateAttributesMapping';
-import { OTPFieldRootContext } from './OTPFieldRootContext';
+} from "../../internals/event-details";
+import { createRegisterFieldControl } from "../../internals/field-register-control";
+import { useFieldRootContext } from "../../internals/field-root-context";
+import { useFormContext } from "../../internals/form-context";
+import { createAriaLabelledBy, createLabelableId, useLabelableContext } from "../../internals/labelable-provider";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import { ownerDocument } from "../../internals/utils/owner";
+import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
+import { getOTPValidationConfig, normalizeOTPValue, normalizeOTPValueWithDetails, type OTPValidationType } from "../utils/otp";
+import { rootStateAttributesMapping } from "../utils/stateAttributesMapping";
+import { OTPFieldRootContext } from "./OTPFieldRootContext";
 
 /**
  * Groups all OTP field parts and manages their state.
@@ -40,29 +31,29 @@ import { OTPFieldRootContext } from './OTPFieldRootContext';
  *
  * Documentation: [Rebase UI OTP Field](https://rebase-ui.knst.dev/components/otp-field)
  */
-export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRoot.Props<T>) {
+export function OTPFieldRoot<T extends ValidComponent = "div">(props: OTPFieldRoot.Props<T>) {
   const [local, elementProps] = split(props as OTPFieldRoot.Props, { default: defaultProps }, [
-    'as',
-    'aria-describedby',
-    'aria-labelledby',
-    'id',
-    'autoComplete',
-    'defaultValue',
-    'value',
-    'onValueChange',
-    'onValueComplete',
-    'form',
-    'length',
-    'autoSubmit',
-    'mask',
-    'inputMode',
-    'validationType',
-    'normalizeValue',
-    'disabled',
-    'readOnly',
-    'required',
-    'name',
-    'onValueInvalid',
+    "as",
+    "aria-describedby",
+    "aria-labelledby",
+    "id",
+    "autoComplete",
+    "defaultValue",
+    "value",
+    "onValueChange",
+    "onValueComplete",
+    "form",
+    "length",
+    "autoSubmit",
+    "mask",
+    "inputMode",
+    "validationType",
+    "normalizeValue",
+    "disabled",
+    "readOnly",
+    "required",
+    "name",
+    "onValueInvalid",
   ]);
 
   const as = untrack(() => local.as);
@@ -93,20 +84,15 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
   const id = createLabelableId({ id: () => local.id });
   const firstInput = () => inputElements()[0] ?? null;
   const ariaLabelledBy = createAriaLabelledBy({
-    ariaLabelledBy: () => local['aria-labelledby'] as string | undefined,
+    ariaLabelledBy: () => local["aria-labelledby"] as string | undefined,
     labelId,
     labelSource: firstInput,
     enableFallback: () => true,
     labelSourceId: id,
   });
-  const inputAriaLabelledBy = createMemo(() =>
-    local['aria-labelledby'] == null ? ariaLabelledBy() : undefined,
-  );
+  const inputAriaLabelledBy = createMemo(() => (local["aria-labelledby"] == null ? ariaLabelledBy() : undefined));
   const ariaDescribedBy = createMemo(() =>
-    mergeAriaIds(
-      local['aria-describedby'] as string | undefined,
-      getDescriptionProps({})['aria-describedby'],
-    ),
+    mergeAriaIds(local["aria-describedby"] as string | undefined, getDescriptionProps({})["aria-describedby"]),
   );
 
   const validationConfig = createMemo(() => getOTPValidationConfig(local.validationType));
@@ -115,18 +101,14 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
   const inputMode = createMemo(() => local.inputMode ?? validationConfig()?.inputMode);
   const hasValidLength = createMemo(() => Number.isInteger(local.length) && local.length > 0);
 
-  const value = createMemo(() =>
-    normalizeOTPValue(valueUnwrapped(), local.length, local.validationType, local.normalizeValue),
-  );
+  const value = createMemo(() => normalizeOTPValue(valueUnwrapped(), local.length, local.validationType, local.normalizeValue));
   // The controllable signal flushes asynchronously, so event handlers and the
   // value-change effect below read this synchronous snapshot instead, mirroring
   // upstream's `valueRef`.
   let valueSnapshot: string = untrack(() => value());
-  const filled = createMemo(() => value() !== '');
+  const filled = createMemo(() => value() !== "");
 
-  const [focusedIndex, setFocusedIndex] = createSignal(
-    untrack(() => Math.min(value().length, local.length - 1)),
-  );
+  const [focusedIndex, setFocusedIndex] = createSignal(untrack(() => Math.min(value().length, local.length - 1)));
   const [focused, setFocusedState] = createSignal(false);
 
   const activeIndex = createMemo(() => {
@@ -147,20 +129,18 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
   createEffect(
     () => ({ count: compositeList.map().size, otpLength: local.length }),
     ({ count, otpLength }) => {
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.NODE_ENV === "production") {
         return;
       }
 
       if (!Number.isInteger(otpLength) || otpLength <= 0) {
-        console.error(
-          `Rebase UI: <OTPField.Root> \`length\` must be a positive integer. Received \`length={${String(otpLength)}}\`.`,
-        );
+        console.error(`Rebase UI: <OTPField.Root> \`length\` must be a positive integer. Received \`length={${String(otpLength)}}\`.`);
         return;
       }
 
       if (count !== 0 && count !== otpLength) {
         console.error(
-          `<OTPField.Root> \`length\` must match the number of rendered \`OTPField.Input\` parts. Received \`length={${otpLength}}\` but rendered ${count} input${count === 1 ? '' : 's'}.`,
+          `<OTPField.Root> \`length\` must match the number of rendered \`OTPField.Input\` parts. Received \`length={${otpLength}}\` but rendered ${count} input${count === 1 ? "" : "s"}.`,
         );
       }
     },
@@ -177,13 +157,11 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
   function focusInput(index: number) {
     // Plain DOM query: this also runs from the value-change effect's apply
     // callback, where reactive reads would warn.
-    const inputs = rootElement?.querySelectorAll('input');
+    const inputs = rootElement?.querySelectorAll("input");
     if (!inputs || inputs.length === 0) {
       return;
     }
-    const target = inputs[Math.min(Math.max(index, 0), inputs.length - 1)] as
-      | HTMLInputElement
-      | undefined;
+    const target = inputs[Math.min(Math.max(index, 0), inputs.length - 1)] as HTMLInputElement | undefined;
     target?.focus();
     target?.select();
   }
@@ -196,18 +174,18 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
     // The hidden validation input only renders for a valid `length`, but the slots always do,
     // so fall back to the owning form of the first slot. Plain DOM query: this
     // also runs from the value-change effect's apply callback.
-    const firstSlot = rootElement?.querySelector('input');
+    const firstSlot = rootElement?.querySelector("input");
     let formElement = field.validation.inputElement?.form ?? firstSlot?.form ?? null;
 
     const formId = untrack(() => local.form);
     if (formId) {
       const associatedElement = ownerDocument(rootElement).getElementById(formId);
-      if (associatedElement?.tagName === 'FORM') {
+      if (associatedElement?.tagName === "FORM") {
         formElement = associatedElement as HTMLFormElement;
       }
     }
 
-    if (formElement && typeof formElement.requestSubmit === 'function') {
+    if (formElement && typeof formElement.requestSubmit === "function") {
       formElement.requestSubmit();
     }
   }
@@ -280,18 +258,10 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
 
   function setValue(nextValue: string, details: OTPFieldRoot.ChangeEventDetails): string | null {
     const length = local.length;
-    const normalizedValue = normalizeOTPValue(
-      nextValue,
-      length,
-      local.validationType,
-      local.normalizeValue,
-    );
-    const canComplete =
-      details.reason === REASONS.inputChange || details.reason === REASONS.inputPaste;
+    const normalizedValue = normalizeOTPValue(nextValue, length, local.validationType, local.normalizeValue);
+    const canComplete = details.reason === REASONS.inputChange || details.reason === REASONS.inputPaste;
     const completeEventDetails =
-      canComplete &&
-      normalizedValue.length === length &&
-      (valueSnapshot.length !== length || details.reason === REASONS.inputPaste)
+      canComplete && normalizedValue.length === length && (valueSnapshot.length !== length || details.reason === REASONS.inputPaste)
         ? createGenericEventDetails(details.reason, details.event)
         : null;
 
@@ -349,7 +319,7 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
     setFocusedState(false);
     field.setFocused(false);
 
-    if (field.validationMode === 'onBlur') {
+    if (field.validationMode === "onBlur") {
       void field.validation.commit(valueSnapshot);
     }
   }
@@ -402,11 +372,11 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
   };
 
   const rootProps = {
-    role: 'group' as const,
-    get 'aria-describedby'() {
+    role: "group" as const,
+    get "aria-describedby"() {
       return ariaDescribedBy();
     },
-    get 'aria-labelledby'() {
+    get "aria-labelledby"() {
       return ariaLabelledBy();
     },
   };
@@ -440,12 +410,9 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
       reportValueInvalid(rawValue, createGenericEventDetails(REASONS.inputChange, event));
     }
 
-    const committedValue = setValue(
-      normalizedValue,
-      createChangeEventDetails(REASONS.inputChange, event),
-    );
+    const committedValue = setValue(normalizedValue, createChangeEventDetails(REASONS.inputChange, event));
 
-    if (committedValue != null && committedValue !== '') {
+    if (committedValue != null && committedValue !== "") {
       queueFocusInput(committedValue.length - 1, committedValue);
     }
   }
@@ -454,7 +421,7 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
     ref: (element: HTMLInputElement | null) => {
       field.validation.inputElement = element;
     },
-    type: 'text' as const,
+    type: "text" as const,
     get id() {
       return id() && name() == null ? `${id()}-hidden-input` : undefined;
     },
@@ -491,7 +458,7 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
     get required() {
       return local.required;
     },
-    'aria-hidden': 'true' as const,
+    "aria-hidden": "true" as const,
     tabindex: -1,
     get style() {
       return name() ? visuallyHiddenInput : visuallyHidden;
@@ -500,8 +467,7 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
     onInput: onHiddenInput,
   };
 
-  const hiddenInputValidationProps = (externalProps: Record<string, any>) =>
-    field.validation.getValidationProps(disabled(), externalProps);
+  const hiddenInputValidationProps = (externalProps: Record<string, any>) => field.validation.getValidationProps(disabled(), externalProps);
 
   return (
     <CompositeListContext value={compositeList.contextValue}>
@@ -513,10 +479,7 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
           stateAttributesMapping={rootStateAttributesMapping}
         />
         <Show when={hasValidLength()}>
-          <RenderElement
-            as="input"
-            props={[hiddenInputProps, hiddenInputValidationProps]}
-          />
+          <RenderElement as="input" props={[hiddenInputProps, hiddenInputValidationProps]} />
         </Show>
       </OTPFieldRootContext>
     </CompositeListContext>
@@ -524,14 +487,14 @@ export function OTPFieldRoot<T extends ValidComponent = 'div'>(props: OTPFieldRo
 }
 
 const defaultProps = Object.freeze({
-  as: 'div',
-  autoComplete: 'one-time-code',
+  as: "div",
+  autoComplete: "one-time-code",
   autoSubmit: false,
   disabled: false,
   mask: false,
   readOnly: false,
   required: false,
-  validationType: 'numeric',
+  validationType: "numeric",
 } satisfies Partial<OTPFieldRoot.Props>);
 
 export interface OTPFieldRootState extends FieldRootState {
@@ -654,18 +617,14 @@ export interface OTPFieldRootOwnProps {
    * - `'input-paste'` for paste interactions
    * - `'keyboard'` for keyboard interactions that change the value
    */
-  onValueChange?:
-    | ((value: string, eventDetails: OTPFieldRoot.ChangeEventDetails) => void)
-    | undefined;
+  onValueChange?: ((value: string, eventDetails: OTPFieldRoot.ChangeEventDetails) => void) | undefined;
   /**
    * Callback fired when entered text contains characters that are rejected by validation or
    * normalization before the OTP value updates.
    *
    * The `value` argument is the attempted user-entered string before normalization.
    */
-  onValueInvalid?:
-    | ((value: string, eventDetails: OTPFieldRoot.InvalidEventDetails) => void)
-    | undefined;
+  onValueInvalid?: ((value: string, eventDetails: OTPFieldRoot.InvalidEventDetails) => void) | undefined;
   /**
    * Callback function that is fired when the OTP value becomes complete, or when a complete value
    * is pasted while the OTP is already complete.
@@ -675,45 +634,30 @@ export interface OTPFieldRootOwnProps {
    *
    * If `autoSubmit` is enabled, it runs immediately before the owning form is submitted.
    */
-  onValueComplete?:
-    | ((value: string, eventDetails: OTPFieldRoot.CompleteEventDetails) => void)
-    | undefined;
+  onValueComplete?: ((value: string, eventDetails: OTPFieldRoot.CompleteEventDetails) => void) | undefined;
 }
 
-export type OTPFieldRootProps<T extends ValidComponent = 'div'> = OTPFieldRootOwnProps &
-  Omit<RebaseUIComponentProps<T, OTPFieldRootState>, 'onChange'>;
+export type OTPFieldRootProps<T extends ValidComponent = "div"> = OTPFieldRootOwnProps &
+  Omit<RebaseUIComponentProps<T, OTPFieldRootState>, "onChange">;
 
-export type OTPFieldInputMode =
-  | 'none'
-  | 'text'
-  | 'tel'
-  | 'url'
-  | 'email'
-  | 'numeric'
-  | 'decimal'
-  | 'search';
+export type OTPFieldInputMode = "none" | "text" | "tel" | "url" | "email" | "numeric" | "decimal" | "search";
 
 export type OTPFieldRootChangeEventReason =
   | typeof REASONS.inputChange
   | typeof REASONS.inputClear
   | typeof REASONS.inputPaste
   | typeof REASONS.keyboard;
-export type OTPFieldRootChangeEventDetails =
-  RebaseUIChangeEventDetails<OTPFieldRoot.ChangeEventReason>;
+export type OTPFieldRootChangeEventDetails = RebaseUIChangeEventDetails<OTPFieldRoot.ChangeEventReason>;
 
 export type OTPFieldRootInvalidEventReason = typeof REASONS.inputChange | typeof REASONS.inputPaste;
-export type OTPFieldRootInvalidEventDetails =
-  RebaseUIGenericEventDetails<OTPFieldRoot.InvalidEventReason>;
+export type OTPFieldRootInvalidEventDetails = RebaseUIGenericEventDetails<OTPFieldRoot.InvalidEventReason>;
 
-export type OTPFieldRootCompleteEventReason =
-  | typeof REASONS.inputChange
-  | typeof REASONS.inputPaste;
-export type OTPFieldRootCompleteEventDetails =
-  RebaseUIGenericEventDetails<OTPFieldRoot.CompleteEventReason>;
+export type OTPFieldRootCompleteEventReason = typeof REASONS.inputChange | typeof REASONS.inputPaste;
+export type OTPFieldRootCompleteEventDetails = RebaseUIGenericEventDetails<OTPFieldRoot.CompleteEventReason>;
 
 export namespace OTPFieldRoot {
   export type State = OTPFieldRootState;
-  export type Props<T extends ValidComponent = 'div'> = OTPFieldRootProps<T>;
+  export type Props<T extends ValidComponent = "div"> = OTPFieldRootProps<T>;
   export type OwnProps = OTPFieldRootOwnProps;
   export type InputMode = OTPFieldInputMode;
   export type ValidationType = OTPValidationType;
@@ -727,5 +671,5 @@ export namespace OTPFieldRoot {
 
 function mergeAriaIds(...values: Array<string | undefined>) {
   const ids = values.flatMap((value) => value?.split(/\s+/).filter(Boolean) ?? []);
-  return ids.length > 0 ? Array.from(new Set(ids)).join(' ') : undefined;
+  return ids.length > 0 ? Array.from(new Set(ids)).join(" ") : undefined;
 }

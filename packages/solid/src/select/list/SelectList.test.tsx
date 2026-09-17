@@ -4,11 +4,11 @@ import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { Root } from "../index.parts";
-import { SelectItem } from "../item/SelectItem";
 import { SelectItemText } from "../item-text/SelectItemText";
+import { SelectItem } from "../item/SelectItem";
+import { SelectPositioner } from "../positioner/SelectPositioner";
 import { useSelectRootContext } from "../root/SelectRootContext";
 import type { SelectStore } from "../store/SelectStore";
-import { SelectPositioner } from "../positioner/SelectPositioner";
 import { SelectList } from "./SelectList";
 
 function CaptureStore(props: { onStore: (store: SelectStore) => void }) {

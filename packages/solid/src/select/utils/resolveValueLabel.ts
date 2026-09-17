@@ -22,20 +22,14 @@ function isGroup(item: any): item is Group<any> {
   return typeof item === "object" && item != null && Array.isArray(item.items);
 }
 
-export function isGroupedItems(
-  items: ReadonlyArray<any | Group<any>> | undefined,
-): items is ReadonlyArray<Group<any>> {
+export function isGroupedItems(items: ReadonlyArray<any | Group<any>> | undefined): items is ReadonlyArray<Group<any>> {
   // A group must carry an actual `items` array: key presence alone would misclassify an item
   // with an unrelated or optional `items` field.
   return isGroup(items?.[0]);
 }
 
-export function flattenLeafItems<Item>(
-  items: readonly Item[] | readonly Group<Item>[],
-): readonly Item[] {
-  return isGroupedItems(items)
-    ? (items as readonly Group<Item>[]).flatMap((group) => group.items)
-    : (items as readonly Item[]);
+export function flattenLeafItems<Item>(items: readonly Item[] | readonly Group<Item>[]): readonly Item[] {
+  return isGroupedItems(items) ? (items as readonly Group<Item>[]).flatMap((group) => group.items) : (items as readonly Item[]);
 }
 
 /**
@@ -93,11 +87,7 @@ export function stringifyAsValue(item: any, itemToStringValue?: (item: any) => s
   return serializeValue(item);
 }
 
-export function resolveSelectedLabel(
-  value: any,
-  items: SelectItemsInput,
-  itemToStringLabel?: (item: any) => string,
-): JSX.Element {
+export function resolveSelectedLabel(value: any, items: SelectItemsInput, itemToStringLabel?: (item: any) => string): JSX.Element {
   function fallback() {
     return stringifyAsLabel(value, itemToStringLabel);
   }

@@ -1,7 +1,7 @@
 import type { ComponentProps, ValidComponent } from "@solidjs/web";
 
-import type { RebaseUIComponentProps } from "../internals/types";
 import { FieldControl, type FieldControlState } from "../field/control/FieldControl";
+import type { RebaseUIComponentProps } from "../internals/types";
 
 /**
  * A native input element that automatically works with [Field](https://rebase-ui.knst.dev/components/field).

@@ -1,5 +1,5 @@
-import { rectToClientRect } from "@floating-ui/utils";
 import type { ClientRectObject } from "@floating-ui/dom";
+import { rectToClientRect } from "@floating-ui/utils";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createEffect, untrack } from "solid-js";
 
@@ -15,10 +15,10 @@ import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
 import { useSelectPositionerContext } from "../positioner/SelectPositionerContext";
+import { transformOrigin as transformOriginVar } from "../positioner/SelectPositionerCssVars";
 import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
 import { clamp, getMaxScrollOffset } from "../utils/scrollEdges";
 import { selectPopupStateMapping } from "../utils/stateAttributesMapping";
-import { transformOrigin as transformOriginVar } from "../positioner/SelectPositionerCssVars";
 import { clearStyles, LIST_FUNCTIONAL_STYLES } from "./utils";
 
 const SCROLL_EDGE_TOLERANCE_PX = 1;
@@ -66,10 +66,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
     const marginTop = parseFloat(positionerStyles.marginTop);
     const marginBottom = parseFloat(positionerStyles.marginBottom);
     const maxPopupHeight = getMaxPopupHeight(win.getComputedStyle(popupElement));
-    const maxAvailableHeight = Math.min(
-      doc.documentElement.clientHeight - marginTop - marginBottom,
-      maxPopupHeight,
-    );
+    const maxAvailableHeight = Math.min(doc.documentElement.clientHeight - marginTop - marginBottom, maxPopupHeight);
 
     const scrollTop = scroller.scrollTop;
     const maxScrollTop = getMaxScrollTop(scroller);
@@ -158,11 +155,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
   createEffect(
     () => store.select("positionerElement") as HTMLElement | null,
     (positionerElement) => {
-      if (
-        !positionerElement ||
-        !store.context.popupRef.current ||
-        Object.keys(originalPositionerStyles).length > 0
-      ) {
+      if (!positionerElement || !store.context.popupRef.current || Object.keys(originalPositionerStyles).length > 0) {
         return undefined;
       }
 
@@ -236,9 +229,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
         // The wrapper supplies the scroller: the list owns scrolling once it has mounted, and
         // this effect re-runs (cancelling the stale frame) when that happens.
         const scroller = listElement ?? popupElement;
-        const frame = requestAnimationFrame(() =>
-          store.context.handleScrollArrowVisibility(scroller),
-        );
+        const frame = requestAnimationFrame(() => store.context.handleScrollArrowVisibility(scroller));
         return () => cancelAnimationFrame(frame);
       }
 
@@ -256,9 +247,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
         if (!textElement) {
           const hasSelectedValue = store.peek("hasSelectedValue") as boolean;
           textElement =
-            !hasSelectedValue && store.context.firstItemTextRef.current?.isConnected
-              ? store.context.firstItemTextRef.current
-              : null;
+            !hasSelectedValue && store.context.firstItemTextRef.current?.isConnected ? store.context.firstItemTextRef.current : null;
         }
 
         const valueElement = store.context.valueRef.current;
@@ -295,17 +284,14 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
         const availableSpaceBeneathTrigger = viewportHeight - triggerRect.bottom + triggerHeight;
 
         let textRect: ClientRectObject | undefined;
-        let alignedLeft =
-          direction === "rtl" ? triggerRect.right - positionerRect.width : triggerRect.left;
+        let alignedLeft = direction === "rtl" ? triggerRect.right - positionerRect.width : triggerRect.left;
         let offsetY = 0;
 
         if (textElement && valueElement) {
           const valueRect = normalizeRect(valueElement.getBoundingClientRect(), scale);
           textRect = normalizeRect(textElement.getBoundingClientRect(), scale);
 
-          alignedLeft =
-            positionerRect.left +
-            (direction === "rtl" ? valueRect.right - textRect.right : valueRect.left - textRect.left);
+          alignedLeft = positionerRect.left + (direction === "rtl" ? valueRect.right - textRect.right : valueRect.left - textRect.left);
           const valueCenterFromTriggerTop = valueRect.top - triggerRect.top + valueRect.height / 2;
           const textCenterFromPositionerTop = textRect.top - positionerRect.top + textRect.height / 2;
 
@@ -319,11 +305,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
 
         const maxRight = viewportWidth - paddingRight;
 
-        positionerElement.style.left = `${clamp(
-          alignedLeft,
-          paddingLeft,
-          maxRight - positionerRect.width,
-        )}px`;
+        positionerElement.style.left = `${clamp(alignedLeft, paddingLeft, maxRight - positionerRect.width)}px`;
         positionerElement.style.height = `${height}px`;
         // `none` (not the invalid `auto`) so the explicit height governs in align mode and isn't
         // clamped by a `max-height` from user CSS.
@@ -373,11 +355,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
           const popupHeight = positionerRect.height;
           const textCenterY = textRect.top + textRect.height / 2;
 
-          const clampedY = clamp(
-            popupHeight > 0 ? ((textCenterY - popupTop) / popupHeight) * 100 : 50,
-            0,
-            100,
-          );
+          const clampedY = clamp(popupHeight > 0 ? ((textCenterY - popupTop) / popupHeight) * 100 : 50, 0, 100);
 
           popupElement.style.setProperty(transformOriginVar, `50% ${clampedY}%`);
         }
@@ -508,7 +486,7 @@ export interface SelectPopupState {
    * The transition status of the component.
    */
   transitionStatus: TransitionStatus;
-};
+}
 
 export type SelectPopupProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, SelectPopupState> & {
   /**
@@ -554,10 +532,7 @@ function normalizeSize(size: number, axis: "x" | "y", scale: { x: number; y: num
   return size / scale[axis];
 }
 
-function normalizeRect(
-  rect: DOMRect | DOMRectReadOnly,
-  scale: { x: number; y: number },
-): ClientRectObject {
+function normalizeRect(rect: DOMRect | DOMRectReadOnly, scale: { x: number; y: number }): ClientRectObject {
   return rectToClientRect({
     x: normalizeSize(rect.x, "x", scale),
     y: normalizeSize(rect.y, "y", scale),
@@ -567,11 +542,7 @@ function normalizeRect(
 }
 
 function isWebKit() {
-  return (
-    typeof navigator !== "undefined" &&
-    /AppleWebKit/.test(navigator.userAgent) &&
-    !/Chrome/.test(navigator.userAgent)
-  );
+  return typeof navigator !== "undefined" && /AppleWebKit/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
 }
 
 const TRANSFORM_STYLE_RESETS = [

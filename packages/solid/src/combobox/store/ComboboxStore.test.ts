@@ -1,8 +1,8 @@
 import { createEffect, createRoot, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
-import { PopupTriggerMap } from "../../internals/floating/triggerMap";
 import { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
+import { PopupTriggerMap } from "../../internals/floating/triggerMap";
 import {
   createInitialComboboxStoreContext,
   createInitialComboboxStoreState,
@@ -23,20 +23,17 @@ function createTestStore(overrides: Partial<ComboboxStoreState> = {}): ComboboxS
     onOpenChange: undefined,
   });
 
-  return new ComboboxStore(
-    createInitialComboboxStoreState({ floatingRootContext, ...overrides }),
-    {
-      ...createInitialComboboxStoreContext(),
-      setOpen: () => {},
-      setInputValue: () => {},
-      setSelectedValue: () => {},
-      setIndices: () => {},
-      forceMount: () => {},
-      handleSelection: () => {},
-      requestSubmit: () => {},
-      onOpenChangeComplete: () => {},
-    },
-  );
+  return new ComboboxStore(createInitialComboboxStoreState({ floatingRootContext, ...overrides }), {
+    ...createInitialComboboxStoreContext(),
+    setOpen: () => {},
+    setInputValue: () => {},
+    setSelectedValue: () => {},
+    setIndices: () => {},
+    forceMount: () => {},
+    handleSelection: () => {},
+    requestSubmit: () => {},
+    onOpenChangeComplete: () => {},
+  });
 }
 
 describe("ComboboxStore", () => {
@@ -170,14 +167,8 @@ describe("ComboboxStore", () => {
 
       expect(createTestStore({ selectedValue: "a" }).peek("hasSelectedValue")).toBe(true);
 
-      expect(
-        createTestStore({ selectionMode: "multiple", selectedValue: [] }).peek("hasSelectedValue"),
-      ).toBe(false);
-      expect(
-        createTestStore({ selectionMode: "multiple", selectedValue: ["a"] }).peek(
-          "hasSelectedValue",
-        ),
-      ).toBe(true);
+      expect(createTestStore({ selectionMode: "multiple", selectedValue: [] }).peek("hasSelectedValue")).toBe(false);
+      expect(createTestStore({ selectionMode: "multiple", selectedValue: ["a"] }).peek("hasSelectedValue")).toBe(true);
 
       dispose();
     }));

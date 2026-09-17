@@ -19,8 +19,7 @@ export function ComboboxCollection(props: ComboboxCollection.Props): JSX.Element
   // A nested group scopes the collection to its own `items`; otherwise the
   // root-level filtered items render. `For` reconciles by item identity so
   // filtering keeps mounted items (and their highlight state) stable.
-  const itemsToRender = () =>
-    (groupContext?.items ?? derived.filteredItems) as readonly unknown[];
+  const itemsToRender = () => (groupContext?.items ?? derived.filteredItems) as readonly unknown[];
 
   return (
     <For each={itemsToRender()}>

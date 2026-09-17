@@ -1,12 +1,8 @@
-import type { Accessor } from 'solid-js';
+import type { Accessor } from "solid-js";
 
-import { createContext, useContext } from '../../internals/context';
-import type {
-  OTPFieldInputMode,
-  OTPFieldRoot,
-  OTPFieldRootState,
-} from './OTPFieldRoot';
-import type { OTPFieldInputState } from '../input/OTPFieldInput';
+import { createContext, useContext } from "../../internals/context";
+import type { OTPFieldInputState } from "../input/OTPFieldInput";
+import type { OTPFieldInputMode, OTPFieldRoot, OTPFieldRootState } from "./OTPFieldRoot";
 
 export interface OTPFieldRootContext {
   activeIndex: Accessor<number>;
@@ -40,23 +36,17 @@ export function useOTPFieldRootContext() {
   const context = useContext(OTPFieldRootContext);
 
   if (context === undefined) {
-    throw new Error(
-      'Rebase UI: OTPFieldRootContext is missing. OTPField parts must be placed within <OTPField.Root>.',
-    );
+    throw new Error("Rebase UI: OTPFieldRootContext is missing. OTPField parts must be placed within <OTPField.Root>.");
   }
 
   return context;
 }
 
-export function getOTPFieldInputState(
-  state: OTPFieldRootState,
-  value: string,
-  index: number,
-): OTPFieldInputState {
+export function getOTPFieldInputState(state: OTPFieldRootState, value: string, index: number): OTPFieldInputState {
   return {
     ...state,
     value,
     index,
-    filled: value !== '',
+    filled: value !== "",
   };
 }

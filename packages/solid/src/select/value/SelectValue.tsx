@@ -1,13 +1,13 @@
-import type { JSX, ValidComponent } from '@solidjs/web';
-import { untrack } from 'solid-js';
+import type { JSX, ValidComponent } from "@solidjs/web";
+import { untrack } from "solid-js";
 
-import { mergeRefs } from '../../internals/mergeRefs';
-import { RenderElement } from '../../internals/render-element';
-import { split } from '../../internals/split';
-import type { StateAttributesMapping } from '../../internals/stateToAttributes';
-import type { RebaseUIComponentProps } from '../../internals/types';
-import { useSelectRootContext } from '../root/SelectRootContext';
-import { resolveSelectedLabel, type SelectItemsInput } from '../utils/resolveValueLabel';
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import { useSelectRootContext } from "../root/SelectRootContext";
+import { resolveSelectedLabel, type SelectItemsInput } from "../utils/resolveValueLabel";
 
 const nullMapping = { keys: [], map: () => null };
 
@@ -21,12 +21,8 @@ const selectValueStateMapping: StateAttributesMapping<SelectValueState> = {
  *
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
-export function SelectValue<T extends ValidComponent = 'span'>(props: SelectValue.Props<T>) {
-  const [local, elementProps] = split(props as SelectValue.Props, { default: defaultProps }, [
-    'as',
-    'children',
-    'placeholder',
-  ]);
+export function SelectValue<T extends ValidComponent = "span">(props: SelectValue.Props<T>) {
+  const [local, elementProps] = split(props as SelectValue.Props, { default: defaultProps }, ["as", "children", "placeholder"]);
 
   const as = untrack(() => local.as);
 
@@ -34,21 +30,18 @@ export function SelectValue<T extends ValidComponent = 'span'>(props: SelectValu
 
   const state: SelectValueState = {
     get value() {
-      return store.select('value');
+      return store.select("value");
     },
     get placeholder() {
-      return !store.select('hasSelectedValue');
+      return !store.select("hasSelectedValue");
     },
   };
 
   function resolveChildren(): JSX.Element {
-    const value = store.select('value');
-    const childrenProp = untrack(() => local.children) as
-      | JSX.Element
-      | ((value: unknown) => JSX.Element)
-      | undefined;
+    const value = store.select("value");
+    const childrenProp = untrack(() => local.children) as JSX.Element | ((value: unknown) => JSX.Element) | undefined;
 
-    if (typeof childrenProp === 'function') {
+    if (typeof childrenProp === "function") {
       return (childrenProp as (value: unknown) => JSX.Element)(value);
     }
 
@@ -57,18 +50,16 @@ export function SelectValue<T extends ValidComponent = 'span'>(props: SelectValu
     }
 
     const placeholder = untrack(() => local.placeholder) as JSX.Element | undefined;
-    const hasSelectedValue = store.select('hasSelectedValue') as boolean;
+    const hasSelectedValue = store.select("hasSelectedValue") as boolean;
     const shouldCheckNullItemLabel = !hasSelectedValue && placeholder != null;
-    const hasNullLabel = store.select('hasNullItemLabel', shouldCheckNullItemLabel) as boolean;
+    const hasNullLabel = store.select("hasNullItemLabel", shouldCheckNullItemLabel) as boolean;
 
     if (shouldCheckNullItemLabel && !hasNullLabel) {
       return placeholder as JSX.Element;
     }
 
-    const items = store.select('items') as SelectItemsInput;
-    const itemToStringLabel = store.select('itemToStringLabel') as
-      | ((item: unknown) => string)
-      | undefined;
+    const items = store.select("items") as SelectItemsInput;
+    const itemToStringLabel = store.select("itemToStringLabel") as ((item: unknown) => string) | undefined;
 
     if (Array.isArray(value)) {
       return resolveMultipleLabels(value, items, itemToStringLabel);
@@ -84,21 +75,13 @@ export function SelectValue<T extends ValidComponent = 'span'>(props: SelectValu
   };
 
   const refProps = (externalProps: Record<string, unknown>) => ({
-    ref: mergeRefs<HTMLElement>(
-      externalProps.ref as ((element: HTMLElement) => void) | undefined,
-      (element) => {
-        store.context.valueRef.current = element;
-      },
-    ),
+    ref: mergeRefs<HTMLElement>(externalProps.ref as ((element: HTMLElement) => void) | undefined, (element) => {
+      store.context.valueRef.current = element;
+    }),
   });
 
   return (
-    <RenderElement
-      as={as}
-      state={state}
-      props={[childrenProp, elementProps, refProps]}
-      stateAttributesMapping={selectValueStateMapping}
-    />
+    <RenderElement as={as} state={state} props={[childrenProp, elementProps, refProps]} stateAttributesMapping={selectValueStateMapping} />
   );
 }
 
@@ -107,11 +90,11 @@ function resolveMultipleLabels(
   items: SelectItemsInput,
   itemToStringLabel: ((item: unknown) => string) | undefined,
 ): string {
-  return value.map((item) => String(resolveSelectedLabel(item, items, itemToStringLabel) ?? '')).join(', ');
+  return value.map((item) => String(resolveSelectedLabel(item, items, itemToStringLabel) ?? "")).join(", ");
 }
 
 const defaultProps = Object.freeze({
-  as: 'span',
+  as: "span",
 } satisfies Partial<SelectValue.Props>);
 
 export interface SelectValueState {
@@ -145,11 +128,11 @@ export interface SelectValueOwnProps {
   placeholder?: JSX.Element;
 }
 
-export type SelectValueProps<T extends ValidComponent = 'span'> = SelectValueOwnProps &
-  Omit<RebaseUIComponentProps<T, SelectValueState>, 'children'>;
+export type SelectValueProps<T extends ValidComponent = "span"> = SelectValueOwnProps &
+  Omit<RebaseUIComponentProps<T, SelectValueState>, "children">;
 
 export namespace SelectValue {
   export type State = SelectValueState;
-  export type Props<T extends ValidComponent = 'span'> = SelectValueProps<T>;
+  export type Props<T extends ValidComponent = "span"> = SelectValueProps<T>;
   export type OwnProps = SelectValueOwnProps;
 }

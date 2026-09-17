@@ -104,9 +104,7 @@ describe("<Menu.SubmenuRoot />", () => {
       const clientX = startX + ((endX - startX) * step) / steps;
       const clientY = startY + ((endY - startY) * step) / steps;
       const target = clientX < popupRect.left ? document.body : item;
-      target.dispatchEvent(
-        new MouseEvent("mousemove", { bubbles: true, cancelable: true, clientX, clientY }),
-      );
+      target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, cancelable: true, clientX, clientY }));
       flush();
     }
     await nextFrames();

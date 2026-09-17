@@ -34,14 +34,7 @@ export function isNumeralChar(char: string) {
   return ANY_NUMERAL_DETECT_RE.test(char);
 }
 
-export const BASE_NON_NUMERIC_SYMBOLS = [
-  ".",
-  ",",
-  FULLWIDTH_DECIMAL,
-  FULLWIDTH_GROUP,
-  "٫",
-  "٬",
-] as const;
+export const BASE_NON_NUMERIC_SYMBOLS = [".", ",", FULLWIDTH_DECIMAL, FULLWIDTH_GROUP, "٫", "٬"] as const;
 export const SPACE_SEPARATOR_RE = /\p{Zs}/u;
 // Format/bidi control characters (e.g. the LRM/ALM marks RTL locales insert around exponent and
 // currency signs). `parseNumber` strips these, so input validation must treat them as ignorable
@@ -101,11 +94,7 @@ export function getNumberLocaleDetails(locale?: Intl.LocalesArgument, options?: 
   return { ...result, decimal };
 }
 
-export function parseNumber(
-  formattedNumber: string,
-  locale?: Intl.LocalesArgument,
-  options?: Intl.NumberFormatOptions,
-) {
+export function parseNumber(formattedNumber: string, locale?: Intl.LocalesArgument, options?: Intl.NumberFormatOptions) {
   // Normalize control characters and whitespace; remove bidi/format controls
   let input = formattedNumber.replace(FORMAT_CONTROL_GLOBAL_RE, "").trim();
 

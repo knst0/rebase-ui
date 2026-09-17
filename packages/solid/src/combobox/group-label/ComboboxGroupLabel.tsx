@@ -12,14 +12,8 @@ import { useComboboxGroupContext } from "../group/ComboboxGroupContext";
  *
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
-export function ComboboxGroupLabel<T extends ValidComponent = "div">(
-  props: ComboboxGroupLabel.Props<T>,
-) {
-  const [local, elementProps] = split(
-    props as ComboboxGroupLabel.Props,
-    { default: defaultProps },
-    ["as", "id"],
-  );
+export function ComboboxGroupLabel<T extends ValidComponent = "div">(props: ComboboxGroupLabel.Props<T>) {
+  const [local, elementProps] = split(props as ComboboxGroupLabel.Props, { default: defaultProps }, ["as", "id"]);
 
   const as = untrack(() => local.as);
 
@@ -66,10 +60,7 @@ const defaultProps = Object.freeze({
 
 export interface ComboboxGroupLabelState {}
 
-export type ComboboxGroupLabelProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  ComboboxGroupLabelState
->;
+export type ComboboxGroupLabelProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, ComboboxGroupLabelState>;
 
 export namespace ComboboxGroupLabel {
   export type State = ComboboxGroupLabelState;

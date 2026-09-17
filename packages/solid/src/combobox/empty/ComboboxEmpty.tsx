@@ -5,10 +5,7 @@ import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import {
-  useComboboxDerivedItemsContext,
-  useComboboxRootContext,
-} from "../root/ComboboxRootContext";
+import { useComboboxDerivedItemsContext, useComboboxRootContext } from "../root/ComboboxRootContext";
 import type { ComboboxStore } from "../store/ComboboxStore";
 
 // Word Joiner is invisible and zero-width, so it forces a text mutation without shifting layout.
@@ -34,10 +31,7 @@ function isIOSDevice(): boolean {
   if (typeof navigator === "undefined") {
     return false;
   }
-  return (
-    /iPad|iPhone|iPod/.test(navigator.platform) ||
-    (navigator.userAgent.includes("Mac") && "ontouchend" in document)
-  );
+  return /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
 }
 
 /**
@@ -53,10 +47,7 @@ function isIOSDevice(): boolean {
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
 export function ComboboxEmpty<T extends ValidComponent = "div">(props: ComboboxEmpty.Props<T>) {
-  const [local, elementProps] = split(props as ComboboxEmpty.Props, { default: defaultProps }, [
-    "as",
-    "children",
-  ]);
+  const [local, elementProps] = split(props as ComboboxEmpty.Props, { default: defaultProps }, ["as", "children"]);
 
   const as = untrack(() => local.as);
 
@@ -113,7 +104,7 @@ export function ComboboxEmpty<T extends ValidComponent = "div">(props: ComboboxE
         },
         elementProps,
         {
-          ref: mergeRefs<(HTMLDivElement | null)>(
+          ref: mergeRefs<HTMLDivElement | null>(
             (element) => {
               store.context.emptyRef.current = element;
             },
@@ -133,10 +124,7 @@ const defaultProps = Object.freeze({
 
 export interface ComboboxEmptyState {}
 
-export type ComboboxEmptyProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<
-  T,
-  ComboboxEmptyState
->;
+export type ComboboxEmptyProps<T extends ValidComponent = "div"> = RebaseUIComponentProps<T, ComboboxEmptyState>;
 
 export namespace ComboboxEmpty {
   export type State = ComboboxEmptyState;

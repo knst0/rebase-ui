@@ -5,13 +5,13 @@ import { EMPTY_ARRAY, NOOP } from "#utils/empty";
 import { isElementDisabled } from "../../internals/composite/composite";
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
-import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import { createRegisterFieldControl } from "../../internals/field-register-control/createRegisterFieldControl";
-import { useFloatingRootContext } from "../../internals/floating/useFloatingRootContext";
+import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import { createClick } from "../../internals/floating/interactions/createClick";
 import { createDismiss } from "../../internals/floating/interactions/createDismiss";
 import { createListNavigation } from "../../internals/floating/interactions/createListNavigation";
 import { createTypeahead } from "../../internals/floating/interactions/createTypeahead";
+import { useFloatingRootContext } from "../../internals/floating/useFloatingRootContext";
 import { useFormContext } from "../../internals/form-context/FormContext";
 import { createLabelableId } from "../../internals/labelable-provider/createLabelableId";
 import { FOCUSABLE_POPUP_PROPS, getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
@@ -110,10 +110,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
 
     setOpenUnwrapped(nextOpen);
 
-    if (
-      !nextOpen &&
-      (eventDetails.reason === REASONS.focusOut || eventDetails.reason === REASONS.outsidePress)
-    ) {
+    if (!nextOpen && (eventDetails.reason === REASONS.focusOut || eventDetails.reason === REASONS.outsidePress)) {
       field.setTouched(true);
       field.setFocused(false);
 
@@ -130,8 +127,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
   const floatingRootContext = untrack(() =>
     useFloatingRootContext({
       open,
-      onOpenChange: (nextOpen, eventDetails) =>
-        setOpen(nextOpen, eventDetails as SelectRoot.ChangeEventDetails),
+      onOpenChange: (nextOpen, eventDetails) => setOpen(nextOpen, eventDetails as SelectRoot.ChangeEventDetails),
     }),
   );
 
@@ -152,17 +148,14 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     floatingRootContext,
   }));
 
-  const store = new SelectStore(
-    createInitialSelectStoreState(initialState),
-    {
-      ...createInitialSelectStoreContext(),
-      initialValueRef: { current: initialState.value },
-      setValue,
-      setOpen,
-      handleScrollArrowVisibility: NOOP as SelectStore["context"]["handleScrollArrowVisibility"],
-      onOpenChangeComplete: NOOP as SelectStore["context"]["onOpenChangeComplete"],
-    },
-  );
+  const store = new SelectStore(createInitialSelectStoreState(initialState), {
+    ...createInitialSelectStoreContext(),
+    initialValueRef: { current: initialState.value },
+    setValue,
+    setOpen,
+    handleScrollArrowVisibility: NOOP as SelectStore["context"]["handleScrollArrowVisibility"],
+    onOpenChangeComplete: NOOP as SelectStore["context"]["onOpenChangeComplete"],
+  });
 
   const [openMethod, setOpenMethod] = createSignal<SelectInteractionType | null>(null);
 
@@ -225,10 +218,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
       } else if (!parameters.readOnly() && !parameters.multiple()) {
         // Typeahead on an open popup only moves the highlight, so it stays available while
         // `readOnly`. The closed-trigger variant commits a value instead, so it doesn't.
-        setValue(
-          store.context.valuesRef.current[index],
-          createChangeEventDetails(REASONS.none),
-        );
+        setValue(store.context.valuesRef.current[index], createChangeEventDetails(REASONS.none));
       }
     },
     onTyping(typing) {
@@ -354,9 +344,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
   const fieldStringValue = (): string | string[] => {
     const currentValue = value();
     if (parameters.multiple() && Array.isArray(currentValue)) {
-      return currentValue.map((currentItem) =>
-        stringifyAsValue(currentItem, parameters.itemToStringValue()),
-      );
+      return currentValue.map((currentItem) => stringifyAsValue(currentItem, parameters.itemToStringValue()));
     }
     return stringifyAsValue(currentValue, parameters.itemToStringValue());
   };
@@ -395,12 +383,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
       isMultiple: parameters.multiple(),
     }),
     ({ currentValue, isCurrentlyOpen, comparer, isMultiple }) => {
-      const nextIndex = findSelectionIndex(
-        store.context.valuesRef.current,
-        currentValue,
-        comparer,
-        isMultiple,
-      );
+      const nextIndex = findSelectionIndex(store.context.valuesRef.current, currentValue, comparer, isMultiple);
 
       if (nextIndex === null) {
         store.context.selectedItemTextRef.current = null;
@@ -421,13 +404,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
         // One-shot reads from an apply callback: the field/form state is consumed, never tracked.
         untrack(() => {
           form.clearErrors(name());
-          field.setDirty(
-            isSelectedValueDirty(
-              currentValue,
-              field.validityData.initialValue,
-              parameters.isItemEqualToValue(),
-            ),
-          );
+          field.setDirty(isSelectedValueDirty(currentValue, field.validityData.initialValue, parameters.isItemEqualToValue()));
           field.validation.change(currentValue);
         });
       }
@@ -490,9 +467,7 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
 /**
  * Merges interaction prop objects, chaining event handlers in order.
  */
-function mergeInteractionProps(
-  ...sources: Array<Record<string, unknown> | undefined>
-): Record<string, unknown> {
+function mergeInteractionProps(...sources: Array<Record<string, unknown> | undefined>): Record<string, unknown> {
   const merged: Record<string, unknown> = {};
   for (const source of sources) {
     if (!source) {

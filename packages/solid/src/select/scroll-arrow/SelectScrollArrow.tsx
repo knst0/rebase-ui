@@ -6,11 +6,7 @@ import { RenderElement } from "../../internals/render-element";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
-import {
-  createTransitionStatus,
-  type TransitionStatus,
-  transitionStatusMapping,
-} from "../../internals/transition-status";
+import { createTransitionStatus, type TransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useSelectRootContext } from "../root/SelectRootContext";
 import type { SelectInteractionType } from "../store/SelectStore";
@@ -19,22 +15,15 @@ import { getMaxScrollOffset, normalizeScrollOffset, SCROLL_EDGE_TOLERANCE_PX } f
  * Shared implementation for the select scroll arrows.
  * @internal
  */
-export function SelectScrollArrow<T extends ValidComponent = "div">(
-  props: SelectScrollArrow.Props<T>,
-) {
-  const [local, elementProps] = split(
-    props as SelectScrollArrow.Props,
-    { default: defaultProps },
-    ["as", "direction", "keepMounted"],
-  );
+export function SelectScrollArrow<T extends ValidComponent = "div">(props: SelectScrollArrow.Props<T>) {
+  const [local, elementProps] = split(props as SelectScrollArrow.Props, { default: defaultProps }, ["as", "direction", "keepMounted"]);
 
   const as = untrack(() => local.as);
   const isUp = untrack(() => local.direction) === "up";
 
   const store = useSelectRootContext();
 
-  const stateVisible = () =>
-    store.select(isUp ? "scrollUpArrowVisible" : "scrollDownArrowVisible") as boolean;
+  const stateVisible = () => store.select(isUp ? "scrollUpArrowVisible" : "scrollDownArrowVisible") as boolean;
   const openMethod = () => store.select("openMethod") as SelectInteractionType | null;
 
   // Scroll arrows are disabled for touch modality as they are a hover-only element.
@@ -69,10 +58,7 @@ export function SelectScrollArrow<T extends ValidComponent = "div">(
   store.set("hasScrollArrows", true);
 
   onCleanup(() => {
-    store.context.scrollArrowsMountedCountRef.current = Math.max(
-      0,
-      store.context.scrollArrowsMountedCountRef.current - 1,
-    );
+    store.context.scrollArrowsMountedCountRef.current = Math.max(0, store.context.scrollArrowsMountedCountRef.current - 1);
     if (store.context.scrollArrowsMountedCountRef.current === 0) {
       store.set("hasScrollArrows", false);
     }
@@ -89,8 +75,7 @@ export function SelectScrollArrow<T extends ValidComponent = "div">(
   });
 
   function scrollNextItem() {
-    const scroller =
-      (store.peek("listElement") as HTMLDivElement | null) ?? store.context.popupRef.current;
+    const scroller = (store.peek("listElement") as HTMLDivElement | null) ?? store.context.popupRef.current;
     if (!scroller) {
       return;
     }
@@ -114,14 +99,7 @@ export function SelectScrollArrow<T extends ValidComponent = "div">(
 
     if (items.length > 0) {
       const scrollArrowHeight = arrowElement?.offsetHeight || 0;
-      scroller.scrollTop = getTargetScrollTop(
-        items,
-        isUp,
-        scrollTop,
-        scroller.clientHeight,
-        scrollArrowHeight,
-        maxScrollTop,
-      );
+      scroller.scrollTop = getTargetScrollTop(items, isUp, scrollTop, scroller.clientHeight, scrollArrowHeight, maxScrollTop);
     }
 
     timeout.start(40, scrollNextItem);
@@ -130,7 +108,7 @@ export function SelectScrollArrow<T extends ValidComponent = "div">(
   const state: SelectScrollArrowState = {
     direction: untrack(() => local.direction),
     visible,
-    side: () => ((store.select("popupSide") as Side | null) ?? "none"),
+    side: () => (store.select("popupSide") as Side | null) ?? "none",
     transitionStatus,
   };
 
@@ -221,8 +199,8 @@ export interface SelectScrollArrowOwnProps {
   keepMounted?: boolean | undefined;
 }
 
-export type SelectScrollArrowProps<T extends ValidComponent = "div"> =
-  SelectScrollArrowOwnProps & RebaseUIComponentProps<T, SelectScrollArrowState>;
+export type SelectScrollArrowProps<T extends ValidComponent = "div"> = SelectScrollArrowOwnProps &
+  RebaseUIComponentProps<T, SelectScrollArrowState>;
 
 export namespace SelectScrollArrow {
   export type State = SelectScrollArrowState;
@@ -271,9 +249,6 @@ function getTargetScrollTop(
   const targetIndex = Math.min(items.length - 1, lastVisibleIndex + 1);
   const targetItem = items[targetIndex];
   return targetIndex > lastVisibleIndex && targetItem
-    ? normalizeScrollOffset(
-        targetItem.offsetTop + targetItem.offsetHeight - clientHeight + scrollArrowHeight,
-        maxScrollTop,
-      )
+    ? normalizeScrollOffset(targetItem.offsetTop + targetItem.offsetHeight - clientHeight + scrollArrowHeight, maxScrollTop)
     : maxScrollTop;
 }

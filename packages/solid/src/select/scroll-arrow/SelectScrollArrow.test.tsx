@@ -22,11 +22,7 @@ function renderArrow(direction: "up" | "down", options?: { keepMounted?: boolean
           captured = store;
         }}
       />
-      <SelectScrollArrow
-        direction={direction}
-        keepMounted={options?.keepMounted}
-        data-testid="arrow"
-      />
+      <SelectScrollArrow direction={direction} keepMounted={options?.keepMounted} data-testid="arrow" />
     </Root>
   ));
   flush();

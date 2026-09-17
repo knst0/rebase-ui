@@ -18,10 +18,10 @@ import { RenderElement } from "../../internals/render-element";
 import { createScrollLock } from "../../internals/scroll-lock";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { clearStyles } from "../popup/utils";
 import { useSelectRootContext } from "../root/SelectRootContext";
 import { findItemIndex } from "../utils/itemEquality";
 import { selectPositionerStateMapping } from "../utils/stateAttributesMapping";
-import { clearStyles } from "../popup/utils";
 import { InternalBackdrop } from "./InternalBackdrop";
 import { SelectPositionerContext } from "./SelectPositionerContext";
 
@@ -80,9 +80,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
   );
 
   const alignItemWithTriggerActive = () =>
-    (store.select("mounted") as boolean) &&
-    controlledAlignItemWithTrigger() &&
-    (store.select("openMethod") as string | null) !== "touch";
+    (store.select("mounted") as boolean) && controlledAlignItemWithTrigger() && (store.select("openMethod") as string | null) !== "touch";
 
   createEffect(
     () => alignItemWithTriggerActive(),
@@ -95,9 +93,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
   const [touchOpenShouldLockScroll, setTouchOpenShouldLockScroll] = createSignal(false);
   createEffect(
     () => ({
-      enabled:
-        (store.select("open") as boolean) &&
-        (alignItemWithTriggerActive() || (store.select("modal") as boolean)),
+      enabled: (store.select("open") as boolean) && (alignItemWithTriggerActive() || (store.select("modal") as boolean)),
       touchOpen: (store.select("openMethod") as string | null) === "touch",
       positionerElement: store.select("positionerElement") as HTMLElement | null,
     }),
@@ -108,9 +104,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
       }
       const viewportWidth = positionerElement.ownerDocument.documentElement.clientWidth;
       const popupWidth = positionerElement.offsetWidth;
-      setTouchOpenShouldLockScroll(
-        viewportWidth > 0 && popupWidth > 0 && popupWidth >= viewportWidth - VIEWPORT_WIDTH_TOLERANCE_PX,
-      );
+      setTouchOpenShouldLockScroll(viewportWidth > 0 && popupWidth > 0 && popupWidth >= viewportWidth - VIEWPORT_WIDTH_TOLERANCE_PX);
       return undefined;
     },
   );
@@ -144,8 +138,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
     collisionPadding: untrack(() => local.collisionPadding),
     sticky: untrack(() => local.sticky),
     arrowPadding: untrack(() => local.arrowPadding),
-    disableAnchorTracking:
-      untrack(() => local.disableAnchorTracking) ?? (untrack(() => local.alignItemWithTrigger) ?? true),
+    disableAnchorTracking: untrack(() => local.disableAnchorTracking) ?? untrack(() => local.alignItemWithTrigger) ?? true,
     keepMounted: true,
     floatingRootContext: store.peek("floatingRootContext"),
     mounted: () => store.select("mounted"),
@@ -194,8 +187,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
         if (selectedValueIndex === -1) {
           const initialSelectedValue = store.context.initialValueRef.current;
           const hasInitial =
-            initialSelectedValue != null &&
-            findItemIndex(valuesRef.current, initialSelectedValue, isItemEqualToValue) !== -1;
+            initialSelectedValue != null && findItemIndex(valuesRef.current, initialSelectedValue, isItemEqualToValue) !== -1;
           const nextValue = hasInitial ? initialSelectedValue : null;
           store.context.setValue(nextValue, eventDetails as never);
 
@@ -208,8 +200,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
 
       if (prevSize !== 0 && multiple && Array.isArray(value)) {
         const nextValue = value.filter(
-          (selectedItemValue) =>
-            findItemIndex(valuesRef.current, selectedItemValue, isItemEqualToValue) !== -1,
+          (selectedItemValue) => findItemIndex(valuesRef.current, selectedItemValue, isItemEqualToValue) !== -1,
         );
         if (nextValue.length !== value.length) {
           store.context.setValue(nextValue, eventDetails as never);
@@ -221,10 +212,7 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
         }
       }
 
-      const alignActive =
-        store.peek("mounted") &&
-        untrack(controlledAlignItemWithTrigger) &&
-        store.peek("openMethod") !== "touch";
+      const alignActive = store.peek("mounted") && untrack(controlledAlignItemWithTrigger) && store.peek("openMethod") !== "touch";
       if (store.peek("open") && alignActive) {
         store.update({
           scrollUpArrowVisible: false,
@@ -357,12 +345,4 @@ export namespace SelectPositioner {
   export type OwnProps = SelectPositionerOwnProps;
 }
 
-export type {
-  Align,
-  Boundary,
-  CollisionAvoidance,
-  OffsetFunction,
-  Side,
-  VirtualElement,
-  Padding,
-};
+export type { Align, Boundary, CollisionAvoidance, OffsetFunction, Side, VirtualElement, Padding };
