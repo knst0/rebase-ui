@@ -34,7 +34,7 @@ export function MenuPortal<T extends ValidComponent = "div">(props: MenuPortal.P
     <Show when={shouldRender()}>
       <MenuPortalContext value={keepMounted}>
         <Portal mount={container as Element | undefined}>
-          <RenderElement as={as} props={[elementProps, refProps]} />
+          <RenderElement as={as} props={[elementProps, refProps]} untrackChildren />
         </Portal>
       </MenuPortalContext>
     </Show>

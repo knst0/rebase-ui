@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
 import { nextFrames } from "#test-utils";
@@ -48,6 +48,49 @@ describe("<Popover.Positioner />", () => {
     await nextFrames();
 
     expect(screen.getByTestId("positioner")).toHaveAttribute("hidden");
+  });
+
+  it("repositions a retained popup after closing and reopening", async () => {
+    const [open, setOpen] = createSignal(true);
+    render(() => (
+      <Popover.Root open={open()} onOpenChange={setOpen}>
+        <Popover.Trigger>Open popover</Popover.Trigger>
+        <Popover.Portal keepMounted>
+          <Popover.Positioner data-testid="positioner">
+            <Popover.Popup>Content</Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ));
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    const positioner = screen.getByTestId("positioner");
+    expect(positioner).toBeVisible();
+    expect(positioner.style.opacity).not.toBe("0");
+
+    setOpen(false);
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    expect(screen.getByTestId("positioner")).toBe(positioner);
+    expect(positioner).toHaveAttribute("hidden");
+
+    setOpen(true);
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    expect(screen.getByTestId("positioner")).toBe(positioner);
+    expect(positioner).not.toHaveAttribute("hidden");
+    expect(positioner).toHaveAttribute("data-open");
+    expect(positioner).toBeVisible();
+    expect(positioner.style.opacity).not.toBe("0");
+    expect(positioner.style.getPropertyValue("position")).toBe("absolute");
+    expect(positioner.style.getPropertyValue("top")).toMatch(/px$/);
+    expect(positioner.style.getPropertyValue("left")).toMatch(/px$/);
   });
 
   it("renders an arrow with positioning styles", async () => {

@@ -1,20 +1,11 @@
 import { getOverflowAncestors } from "@floating-ui/utils/dom";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  untrack,
-  type Accessor,
-} from "solid-js";
+import { createEffect, createMemo, createSignal, untrack, type Accessor } from "solid-js";
 
 import { EMPTY_ARRAY, EMPTY_OBJECT, NOOP } from "#utils/empty";
 
 import { createControllableSignal } from "../../internals/createControllableSignal";
-import {
-  createChangeEventDetails,
-  createGenericEventDetails,
-  REASONS,
-} from "../../internals/event-details";
+import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
+import { createRegisterFieldControl } from "../../internals/field-register-control/createRegisterFieldControl";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import { createClick } from "../../internals/floating/interactions/createClick";
 import { createDismiss } from "../../internals/floating/interactions/createDismiss";
@@ -24,11 +15,7 @@ import { useFloatingRootContext } from "../../internals/floating/useFloatingRoot
 import { contains, getTarget } from "../../internals/floating/utils/element";
 import { useFormContext } from "../../internals/form-context/FormContext";
 import { createLabelableId } from "../../internals/labelable-provider/createLabelableId";
-import { createRegisterFieldControl } from "../../internals/field-register-control/createRegisterFieldControl";
-import {
-  FOCUSABLE_POPUP_PROPS,
-  getRootFloatingContext,
-} from "../../internals/popups/popupStoreUtils";
+import { FOCUSABLE_POPUP_PROPS, getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import { stableCallback } from "../../internals/stableCallback";
 import { createTransitionStatus } from "../../internals/transition-status/createTransitionStatus";
@@ -42,13 +29,9 @@ import {
   removeItem,
   selectedValueIncludes,
 } from "../../select/utils/itemEquality";
-import {
-  flattenLeafItems,
-  isGroupedItems,
-  stringifyAsLabel,
-  stringifyAsValue,
-  type Group,
-} from "../../select/utils/resolveValueLabel";
+import { flattenLeafItems, isGroupedItems, stringifyAsLabel, stringifyAsValue, type Group } from "../../select/utils/resolveValueLabel";
+import type { ItemCollection } from "../items/itemCollection";
+import { findCollectionItem } from "../items/itemCollection";
 import {
   createInitialComboboxStoreContext,
   createInitialComboboxStoreState,
@@ -56,13 +39,11 @@ import {
   type ComboboxInteractionType,
   type ComboboxStoreState,
 } from "../store/ComboboxStore";
-import type { ComboboxDerivedItemsContextValue } from "./ComboboxRootContext";
 import type { AriaCombobox } from "./AriaCombobox";
-import { INITIAL_LAST_HIGHLIGHT, NO_ACTIVE_VALUE } from "./utils/constants";
+import type { ComboboxDerivedItemsContextValue } from "./ComboboxRootContext";
 import { createCollatorItemFilter, type FilterItemToString } from "./utils";
+import { INITIAL_LAST_HIGHLIGHT, NO_ACTIVE_VALUE } from "./utils/constants";
 import { useCoreFilter } from "./utils/useFilter";
-import type { ItemCollection } from "../items/itemCollection";
-import { findCollectionItem } from "../items/itemCollection";
 
 export interface CreateComboboxRootParameters {
   id: () => string | undefined;
@@ -77,9 +58,7 @@ export interface CreateComboboxRootParameters {
   defaultOpen: () => boolean;
   onOpenChange: (open: boolean, eventDetails: AriaCombobox.ChangeEventDetails) => void;
   onOpenChangeComplete: (open: boolean) => void;
-  onItemHighlighted:
-    | ((value: any, eventDetails: AriaCombobox.HighlightEventDetails) => void)
-    | undefined;
+  onItemHighlighted: ((value: any, eventDetails: AriaCombobox.HighlightEventDetails) => void) | undefined;
   name: () => string | undefined;
   form: () => string | undefined;
   disabled: () => boolean;
@@ -88,8 +67,7 @@ export interface CreateComboboxRootParameters {
   grid: () => boolean;
   items: () => readonly any[] | readonly Group<any>[] | ItemCollection | undefined;
   filteredItems: () => readonly any[] | readonly Group<any>[] | undefined;
-  filter:
-    | (() => ((item: any, query: string, itemToString?: (item: any) => string) => boolean) | null | undefined);
+  filter: () => ((item: any, query: string, itemToString?: (item: any) => string) => boolean) | null | undefined;
   filterQuery: () => string | undefined;
   itemToStringLabel: () => ((itemValue: any) => string) | undefined;
   itemToStringValue: () => ((itemValue: any) => string) | undefined;
@@ -155,9 +133,7 @@ function trackValueChange(get: () => unknown, handler: () => void): void {
   );
 }
 
-export function createComboboxRoot(
-  parameters: CreateComboboxRootParameters,
-): CreateComboboxRootReturnValue {
+export function createComboboxRoot(parameters: CreateComboboxRootParameters): CreateComboboxRootReturnValue {
   const field = useFieldRootContext();
   const form = useFormContext();
 
@@ -172,9 +148,7 @@ export function createComboboxRoot(
 
   const comparer = () => parameters.isItemEqualToValue() ?? defaultItemEquality;
 
-  const hasInputValueProp = untrack(
-    () => parameters.inputValue() !== undefined || parameters.defaultInputValue() !== undefined,
-  );
+  const hasInputValueProp = untrack(() => parameters.inputValue() !== undefined || parameters.defaultInputValue() !== undefined);
 
   const [selectedValue, setSelectedValueUnwrapped] = createControllableSignal({
     value: () => parameters.selectedValue(),
@@ -217,9 +191,7 @@ export function createComboboxRoot(
   const items = createMemo(() => {
     const activeCollection = collection();
     const itemsProp = parameters.items();
-    return (
-      activeCollection ? activeCollection.data : itemsProp
-    ) as readonly any[] | readonly Group<any>[] | undefined;
+    return (activeCollection ? activeCollection.data : itemsProp) as readonly any[] | readonly Group<any>[] | undefined;
   });
   const itemToValue = createMemo(() => collection()?.value);
   const hasItems = () => items() !== undefined;
@@ -260,9 +232,7 @@ export function createComboboxRoot(
     if (!activeCollection) {
       return parameters.itemToStringLabel();
     }
-    const resolve: ((itemValue: any) => string) & { selected?: (value: any) => string } = (
-      itemValue: any,
-    ) =>
+    const resolve: ((itemValue: any) => string) & { selected?: (value: any) => string } = (itemValue: any) =>
       activeCollection.label(itemValue, comparer(), (unresolvedValue: any) => {
         const externalItem = externalWindow()?.findItem(unresolvedValue, comparer());
         if (externalItem != null) {
@@ -313,12 +283,9 @@ export function createComboboxRoot(
   const open = () => openProp() ?? false;
 
   const isGrouped = createMemo(() => isGroupedItems(items()));
-  const query = () =>
-    !open() && closeQuery() !== null ? (closeQuery() as string) : String(inputValue()).trim();
+  const query = () => (!open() && closeQuery() !== null ? (closeQuery() as string) : String(inputValue()).trim());
 
-  const selectedLabelString = createMemo(() =>
-    single() ? stringifyValueLabel(selectedValue()) : "",
-  );
+  const selectedLabelString = createMemo(() => (single() ? stringifyValueLabel(selectedValue()) : ""));
 
   const shouldBypassFiltering = () =>
     single() &&
@@ -334,9 +301,7 @@ export function createComboboxRoot(
     shouldBypassFiltering() &&
     (!collection() || collection()!.hasValue(selectedValue(), comparer()));
 
-  const flatItems = createMemo(() =>
-    items() ? flattenLeafItems<any>(items()!) : (EMPTY_ARRAY as readonly any[]),
-  );
+  const flatItems = createMemo(() => (items() ? flattenLeafItems<any>(items()!) : (EMPTY_ARRAY as readonly any[])));
 
   const filter = createMemo(() => {
     const filterProp = parameters.filter();
@@ -431,8 +396,7 @@ export function createComboboxRoot(
   const floatingRootContext = untrack(() =>
     useFloatingRootContext({
       open: () => (parameters.inline() ? true : open()),
-      onOpenChange: (nextOpen, eventDetails) =>
-        setOpen(nextOpen, eventDetails as AriaCombobox.ChangeEventDetails),
+      onOpenChange: (nextOpen, eventDetails) => setOpen(nextOpen, eventDetails as AriaCombobox.ChangeEventDetails),
     }),
   );
 
@@ -447,12 +411,7 @@ export function createComboboxRoot(
     // doesn't move an existing highlight or scroll the list away.
     let initialSelectedIndex: number | null = null;
     if (parameters.inline() && open() && hasItems() && selectionMode() !== "none") {
-      initialSelectedIndex = findSelectionIndex(
-        flatFilteredValues(),
-        selectedValue(),
-        comparer(),
-        multiple(),
-      );
+      initialSelectedIndex = findSelectionIndex(flatFilteredValues(), selectedValue(), comparer(), multiple());
     }
     return {
       floatingRootContext,
@@ -512,8 +471,7 @@ export function createComboboxRoot(
   // props) read these keys through `store.select` directly.
   const inline = () => store.peek("inline") as boolean;
   const inputInsidePopup = () => store.peek("inputInsidePopup") as boolean;
-  const inputMatchesSelectedValue = () =>
-    single() && !inputInsidePopup() && inputValue() === selectedLabelString();
+  const inputMatchesSelectedValue = () => single() && !inputInsidePopup() && inputValue() === selectedLabelString();
 
   const { mounted, setMounted, transitionStatus } = createTransitionStatus(open);
   const [openMethod, setOpenMethod] = createSignal<ComboboxInteractionType | null>(null);
@@ -532,10 +490,7 @@ export function createComboboxRoot(
   const getStringifiedValueForForm = () => fieldStringValue();
 
   createRegisterFieldControl({
-    controlElement: () =>
-      (inputInsidePopup()
-        ? store.peek("triggerElement")
-        : store.peek("inputElement")) as HTMLElement | null,
+    controlElement: () => (inputInsidePopup() ? store.peek("triggerElement") : store.peek("inputElement")) as HTMLElement | null,
     id: generatedId,
     value: fieldRawValue,
     getFormValue: getStringifiedValueForForm,
@@ -612,8 +567,7 @@ export function createComboboxRoot(
       // Treat composition commits as typed input; autofill may omit `inputType` or
       // report `insertReplacementText`.
       const isTypedInput =
-        event.type === "compositionend" ||
-        (inputType != null && inputType !== "" && inputType !== "insertReplacementText");
+        event.type === "compositionend" || (inputType != null && inputType !== "" && inputType !== "insertReplacementText");
       if (isTypedInput) {
         const hasQuery = next.trim() !== "";
         if (hasQuery) {
@@ -629,10 +583,7 @@ export function createComboboxRoot(
         if (!store.peekState().virtualized && list) {
           const popup = store.context.popupRef.current;
           for (const ancestor of getOverflowAncestors(list.firstElementChild ?? list)) {
-            if (
-              !(ancestor instanceof HTMLElement) ||
-              (popup ? !contains(popup, ancestor) : ancestor.getAttribute("role") === "dialog")
-            ) {
+            if (!(ancestor instanceof HTMLElement) || (popup ? !contains(popup, ancestor) : ancestor.getAttribute("role") === "dialog")) {
               break;
             }
             if (isScrollableY(ancestor)) {
@@ -645,11 +596,7 @@ export function createComboboxRoot(
           store.set("activeIndex", 0);
         }
       }
-    } else if (
-      eventDetails.reason === REASONS.inputClear &&
-      next === "" &&
-      store.peekState().inputInsidePopup
-    ) {
+    } else if (eventDetails.reason === REASONS.inputClear && next === "" && store.peekState().inputInsidePopup) {
       // A programmatic clear of an active query (e.g. after selecting an item with the
       // input inside the popup): restore the highlight to the selected item.
       pendingQueryHighlight = { hasQuery: false, selection: true };
@@ -683,12 +630,7 @@ export function createComboboxRoot(
     // If the `Empty` component is not used, the positioner or popup should be hidden
     // with CSS. In this case, allow the Escape key to bubble to close a parent popup
     // if there are no items to show.
-    if (
-      eventDetails.reason === REASONS.escapeKey &&
-      hasItems() &&
-      flatFilteredValues().length === 0 &&
-      !store.context.emptyRef.current
-    ) {
+    if (eventDetails.reason === REASONS.escapeKey && hasItems() && flatFilteredValues().length === 0 && !store.context.emptyRef.current) {
       eventDetails.allowPropagation();
     }
     onOpenChange(nextOpen, eventDetails);
@@ -731,11 +673,7 @@ export function createComboboxRoot(
       }
     }
     setOpenUnwrapped(nextOpen);
-    if (
-      !nextOpen &&
-      inputInsidePopup() &&
-      (eventDetails.reason === REASONS.focusOut || eventDetails.reason === REASONS.outsidePress)
-    ) {
+    if (!nextOpen && inputInsidePopup() && (eventDetails.reason === REASONS.focusOut || eventDetails.reason === REASONS.outsidePress)) {
       field.setTouched(true);
       field.setFocused(false);
       if (field.validationMode === "onBlur") {
@@ -755,10 +693,7 @@ export function createComboboxRoot(
       (selectionMode() === "none" && store.context.popupRef.current && parameters.fillInputOnItemPress()) ||
       (single() && !store.peekState().inputInsidePopup);
     if (shouldFillInput) {
-      setInputValue(
-        stringifyValueLabel(nextValue),
-        createChangeEventDetails(eventDetails.reason, eventDetails.event),
-      );
+      setInputValue(stringifyValueLabel(nextValue), createChangeEventDetails(eventDetails.reason, eventDetails.event));
     }
   }
 
@@ -777,11 +712,7 @@ export function createComboboxRoot(
     }
     if (multiple()) {
       const currentSelectedValue = Array.isArray(selectedValue()) ? selectedValue() : [];
-      const isCurrentlySelected = selectedValueIncludes(
-        currentSelectedValue,
-        itemValue,
-        comparer(),
-      );
+      const isCurrentlySelected = selectedValueIncludes(currentSelectedValue, itemValue, comparer());
       const nextValue = isCurrentlySelected
         ? removeItem(currentSelectedValue, itemValue, comparer())
         : [...currentSelectedValue, itemValue];
@@ -789,9 +720,7 @@ export function createComboboxRoot(
       if (eventDetails.isCanceled) {
         return;
       }
-      const wasFiltering = store.context.inputRef.current
-        ? store.context.inputRef.current.value.trim() !== ""
-        : false;
+      const wasFiltering = store.context.inputRef.current ? store.context.inputRef.current.value.trim() !== "" : false;
       if (!wasFiltering) {
         return;
       }
@@ -820,8 +749,7 @@ export function createComboboxRoot(
   }
 
   function requestSubmit() {
-    const formElement =
-      field.validation.inputElement?.form ?? store.peekState().inputElement?.form;
+    const formElement = field.validation.inputElement?.form ?? store.peekState().inputElement?.form;
     if (formElement && typeof formElement.requestSubmit === "function") {
       formElement.requestSubmit();
     }
@@ -840,12 +768,7 @@ export function createComboboxRoot(
     // Multiple selection mode:
     // If the user typed a filter and didn't select in multiple mode, clear the input
     // after close completes to avoid mid-exit flicker and start fresh on next open.
-    if (
-      multiple() &&
-      store.context.inputRef.current &&
-      store.context.inputRef.current.value !== "" &&
-      !hadInputClear
-    ) {
+    if (multiple() && store.context.inputRef.current && store.context.inputRef.current.value !== "" && !hadInputClear) {
       setInputValue("", createChangeEventDetails(REASONS.inputClear));
     }
     // Single selection mode:
@@ -887,9 +810,8 @@ export function createComboboxRoot(
   const setupOpenOnInputClick = untrack(() => parameters.openOnInputClick());
   const setupInputInsidePopup = untrack(() => store.peekState().inputInsidePopup);
   const setupAutoHighlightMode = untrack(autoHighlightMode);
-  const setupFocusItemOnOpen = untrack(
-    (): false | "auto" =>
-      queryChangedAfterOpen() || (selectionMode() === "none" && !autoHighlightMode()) ? false : "auto",
+  const setupFocusItemOnOpen = untrack((): false | "auto" =>
+    queryChangedAfterOpen() || (selectionMode() === "none" && !autoHighlightMode()) ? false : "auto",
   );
 
   // `readOnly` locks the value, not the interaction: the popup opens and can be browsed.
@@ -1047,11 +969,7 @@ export function createComboboxRoot(
         // In grid mode the navigation hook treats ArrowLeft/ArrowRight as horizontal
         // grid movement. When the input has focus and no item is highlighted the user
         // is still editing the query, so let the input keep its native caret behavior.
-        if (
-          parameters.grid() &&
-          store.peek("activeIndex") == null &&
-          (event.key === "ArrowLeft" || event.key === "ArrowRight")
-        ) {
+        if (parameters.grid() && store.peek("activeIndex") == null && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
           dismissKeyDown(event);
           return;
         }
@@ -1087,10 +1005,7 @@ export function createComboboxRoot(
   }
 
   function getListProps(): Record<string, unknown> {
-    return mergeInteractionProps(
-      { ...listNavigation.floating() },
-      { role: "presentation" } as Record<string, unknown>,
-    );
+    return mergeInteractionProps({ ...listNavigation.floating() }, { role: "presentation" } as Record<string, unknown>);
   }
 
   function getTriggerProps(): Record<string, unknown> {
@@ -1139,24 +1054,23 @@ export function createComboboxRoot(
     // `inputOwnsFormValue` is derived here rather than during render because `ComboboxInput`
     // writes it from a ref callback earlier in the same commit, and it has to land in this same
     // `update` so subscribers never observe an intermediate snapshot.
-    inputOwnsFormValue:
-      selectionMode() === "none" && (parameters.inline() || !store.peek("inputInsidePopup")),
+    inputOwnsFormValue: selectionMode() === "none" && (parameters.inline() || !store.peek("inputInsidePopup")),
   }));
 
-  // Keep the floating context's elements in sync with the registered trigger/input/positioner parts.
   createEffect(
     () => ({
       triggerElement: store.select("triggerElement") as HTMLElement | null,
       inputElement: store.select("inputElement") as HTMLInputElement | null,
       positionerElement: store.select("positionerElement") as HTMLElement | null,
       insidePopup: store.select("inputInsidePopup") as boolean,
+      mounted: store.select("mounted"),
     }),
-    ({ triggerElement, inputElement, positionerElement, insidePopup }) => {
+    ({ triggerElement, inputElement, positionerElement, insidePopup, mounted }) => {
       const referenceElement = (insidePopup ? triggerElement : inputElement) ?? null;
       floatingRootContext.update({
         referenceElement,
         domReferenceElement: referenceElement,
-        floatingElement: positionerElement,
+        floatingElement: mounted ? positionerElement : null,
       });
       return undefined;
     },
@@ -1242,8 +1156,7 @@ export function createComboboxRoot(
       if (pendingHighlight) {
         // A directly rendered list remains visible when the popup state is closed, while a
         // kept-mounted Positioner is hidden and should stay inert.
-        const listIsNavigable =
-          isOpen || isInline || store.peek("positionerElement")?.hidden === false;
+        const listIsNavigable = isOpen || isInline || store.peek("positionerElement")?.hidden === false;
         if (pendingHighlight.hasQuery) {
           if (highlightMode && listIsNavigable) {
             store.set("activeIndex", 0);
@@ -1255,11 +1168,7 @@ export function createComboboxRoot(
           pendingQueryHighlight = null;
           if (listIsNavigable) {
             const clearedBySelection = pendingHighlight.selection;
-            if (
-              highlightMode === "always" &&
-              !clearedBySelection &&
-              store.peek("selectionMode") === "none"
-            ) {
+            if (highlightMode === "always" && !clearedBySelection && store.peek("selectionMode") === "none") {
               // There is no selection to restore in Autocomplete. Keep the first-item reset
               // synchronous so list navigation sees it before a directly rendered list closes.
               store.set("activeIndex", 0);
@@ -1269,8 +1178,7 @@ export function createComboboxRoot(
             queueMicrotask(() => {
               if (
                 (!store.peek("open") && !store.peek("inline")) ||
-                (store.context.inputRef.current &&
-                  store.context.inputRef.current.value.trim() !== "")
+                (store.context.inputRef.current && store.context.inputRef.current.value.trim() !== "")
               ) {
                 return;
               }
@@ -1290,10 +1198,7 @@ export function createComboboxRoot(
                 // untracked, so use the compute function's snapshot instead of
                 // reading the signals again (which would warn as
                 // STRICT_READ_UNTRACKED and never subscribe).
-                const registry =
-                  hasSourceItems || hasExternalItems
-                    ? filtered
-                    : store.context.valuesRef.current;
+                const registry = hasSourceItems || hasExternalItems ? filtered : store.context.valuesRef.current;
                 // A selection-driven clear keeps the just-selected item highlighted;
                 // otherwise return to the open anchor. A selection that is no longer in
                 // the list drops the highlight rather than leaving it on whichever item
@@ -1344,16 +1249,10 @@ export function createComboboxRoot(
         return undefined;
       }
       const itemValue = candidateItems[storeActiveIndex];
-      const previouslyHighlightedItemValue = (
-        lastHighlight === INITIAL_LAST_HIGHLIGHT ? { value: NO_ACTIVE_VALUE } : lastHighlight
-      ).value;
+      const previouslyHighlightedItemValue = (lastHighlight === INITIAL_LAST_HIGHLIGHT ? { value: NO_ACTIVE_VALUE } : lastHighlight).value;
       const isSameItem =
         previouslyHighlightedItemValue !== NO_ACTIVE_VALUE &&
-        compareItemEquality(
-          itemValue,
-          previouslyHighlightedItemValue,
-          store.peek("isItemEqualToValue") as (a: any, b: any) => boolean,
-        );
+        compareItemEquality(itemValue, previouslyHighlightedItemValue, store.peek("isItemEqualToValue") as (a: any, b: any) => boolean);
       if (lastHighlight === INITIAL_LAST_HIGHLIGHT || lastHighlight.index !== storeActiveIndex || !isSameItem) {
         emitHighlight(itemValue, storeActiveIndex, REASONS.none);
       }
@@ -1373,11 +1272,7 @@ export function createComboboxRoot(
         field.setFilled(String(currentInputValue) !== "");
         return undefined;
       }
-      field.setFilled(
-        isMultiple
-          ? Array.isArray(currentSelectedValue) && currentSelectedValue.length > 0
-          : currentSelectedValue != null,
-      );
+      field.setFilled(isMultiple ? Array.isArray(currentSelectedValue) && currentSelectedValue.length > 0 : currentSelectedValue != null);
       return undefined;
     },
   );
@@ -1409,12 +1304,7 @@ export function createComboboxRoot(
   }
 
   trackValueChange(query, () => {
-    if (
-      open() &&
-      query() !== "" &&
-      query() !== String(untrack(() => parameters.defaultInputValue())) &&
-      !inputMatchesSelectedValue()
-    ) {
+    if (open() && query() !== "" && query() !== String(untrack(() => parameters.defaultInputValue())) && !inputMatchesSelectedValue()) {
       setQueryChangedAfterOpen(true);
     }
   });
@@ -1431,9 +1321,7 @@ export function createComboboxRoot(
       return;
     }
     form.clearErrors(name());
-    field.setDirty(
-      isSelectedValueDirty(selectedValue(), field.validityData.initialValue, comparer()),
-    );
+    field.setDirty(isSelectedValueDirty(selectedValue(), field.validityData.initialValue, comparer()));
     field.validation.change(selectedValue());
     if (single() && !hasInputValueProp && !inputInsidePopup()) {
       syncedSelectedLabel = false;
@@ -1485,10 +1373,8 @@ export function createComboboxRoot(
     return stringifyAsValue(rawValue, parameters.itemToStringValue());
   };
 
-  const hasMultipleSelection = () =>
-    multiple() && Array.isArray(selectedValue()) && selectedValue().length > 0;
-  const multipleValues = (): any[] =>
-    multiple() && Array.isArray(selectedValue()) ? selectedValue() : [];
+  const hasMultipleSelection = () => multiple() && Array.isArray(selectedValue()) && selectedValue().length > 0;
+  const multipleValues = (): any[] => (multiple() && Array.isArray(selectedValue()) ? selectedValue() : []);
 
   function handleHiddenInputFocus() {
     // Move focus when the hidden input is focused.
@@ -1510,8 +1396,7 @@ export function createComboboxRoot(
     const findSerializedMatchIndex = () =>
       store.context.valuesRef.current.findIndex(
         (candidate) =>
-          stringifyAsValue(candidate, parameters.itemToStringValue()).toLowerCase() ===
-            nextValueLower ||
+          stringifyAsValue(candidate, parameters.itemToStringValue()).toLowerCase() === nextValueLower ||
           stringifyValueLabel(candidate).toLowerCase() === nextValueLower,
       );
     function handleChange() {
@@ -1612,9 +1497,7 @@ export function createComboboxRoot(
 /**
  * Merges interaction prop objects, chaining event handlers in order.
  */
-function mergeInteractionProps(
-  ...sources: Array<Record<string, unknown> | undefined>
-): Record<string, unknown> {
+function mergeInteractionProps(...sources: Array<Record<string, unknown> | undefined>): Record<string, unknown> {
   const merged: Record<string, unknown> = {};
   for (const source of sources) {
     if (!source) {

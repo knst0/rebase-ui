@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
 import { nextFrames } from "#test-utils";
@@ -53,7 +53,6 @@ describe("<Select.Positioner />", () => {
     expect(positioner.getAttribute("data-side")).toMatch(/^(top|bottom|left|right|inline-start|inline-end)$/);
     expect(positioner).toHaveAttribute("data-open");
   });
-
   it("applies sideOffset to the floating position", async () => {
     renderOpenPositioner({ sideOffset: 12 });
     flush();
@@ -63,6 +62,33 @@ describe("<Select.Positioner />", () => {
     const positioner = screen.getByTestId("positioner");
     expect(positioner.style.getPropertyValue("top")).toMatch(/px$/);
     expect(positioner).toHaveAttribute("data-open");
+  });
+
+  it("repositions a retained popup after a completed close", async () => {
+    const [open, setOpen] = createSignal(true);
+    render(() => (
+      <Select.Root open={open()}>
+        <TriggerAnchor />
+        <SelectPositioner data-testid="positioner" alignItemWithTrigger={false}>
+          <SelectPopup>Content</SelectPopup>
+        </SelectPositioner>
+      </Select.Root>
+    ));
+    flush();
+    await nextFrames();
+    await nextFrames();
+    const positioner = screen.getByTestId("positioner");
+    expect(positioner.style.position).toBe("absolute");
+    flush(() => setOpen(false));
+    await nextFrames();
+    await nextFrames();
+    expect(positioner).toHaveAttribute("hidden");
+    flush(() => setOpen(true));
+    await nextFrames();
+    await nextFrames();
+    expect(positioner).not.toHaveAttribute("hidden");
+    expect(positioner.style.position).toBe("absolute");
+    expect(positioner.style.opacity).not.toBe("0");
   });
 
   it("stays hidden until mounted", async () => {

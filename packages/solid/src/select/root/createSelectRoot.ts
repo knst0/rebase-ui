@@ -315,17 +315,17 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     openMethod: renderedOpenMethod(),
   }));
 
-  // Keep the floating context's elements in sync with the registered trigger/positioner parts.
   createEffect(
     () => ({
       triggerElement: store.select("triggerElement") as HTMLElement | null,
       positionerElement: store.select("positionerElement") as HTMLElement | null,
+      mounted: store.select("mounted"),
     }),
-    ({ triggerElement, positionerElement }) => {
+    ({ triggerElement, positionerElement, mounted }) => {
       floatingRootContext.update({
         referenceElement: triggerElement,
         domReferenceElement: triggerElement,
-        floatingElement: positionerElement,
+        floatingElement: mounted ? positionerElement : null,
       });
       return undefined;
     },

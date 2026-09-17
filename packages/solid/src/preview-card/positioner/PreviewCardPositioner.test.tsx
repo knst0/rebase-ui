@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 
 import { nextFrames } from "#test-utils";
@@ -66,6 +66,49 @@ describe("<PreviewCard.Positioner />", () => {
     await nextFrames();
 
     expect(screen.getByTestId("positioner")).toHaveAttribute("hidden");
+  });
+
+  it("repositions a retained popup after closing and reopening", async () => {
+    const [open, setOpen] = createSignal(true);
+    render(() => (
+      <PreviewCard.Root open={open()} onOpenChange={setOpen}>
+        <PreviewCard.Trigger href="https://example.com/typography">typography</PreviewCard.Trigger>
+        <PreviewCard.Portal keepMounted>
+          <PreviewCard.Positioner data-testid="positioner">
+            <PreviewCard.Popup>Preview content</PreviewCard.Popup>
+          </PreviewCard.Positioner>
+        </PreviewCard.Portal>
+      </PreviewCard.Root>
+    ));
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    const positioner = screen.getByTestId("positioner");
+    expect(positioner).toBeVisible();
+    expect(positioner.style.opacity).not.toBe("0");
+
+    setOpen(false);
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    expect(screen.getByTestId("positioner")).toBe(positioner);
+    expect(positioner).toHaveAttribute("hidden");
+
+    setOpen(true);
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    expect(screen.getByTestId("positioner")).toBe(positioner);
+    expect(positioner).not.toHaveAttribute("hidden");
+    expect(positioner).toHaveAttribute("data-open");
+    expect(positioner).toBeVisible();
+    expect(positioner.style.opacity).not.toBe("0");
+    expect(positioner.style.getPropertyValue("position")).toBe("absolute");
+    expect(positioner.style.getPropertyValue("top")).toMatch(/px$/);
+    expect(positioner.style.getPropertyValue("left")).toMatch(/px$/);
   });
 
   it("renders an arrow with positioning styles", async () => {
