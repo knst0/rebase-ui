@@ -1,6 +1,6 @@
 {
   "name": "@rebase-ui/solid",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Headless, accessible UI primitives for Solid.js, ported from Base UI.",
   "keywords": [
     "accessible",
@@ -41,13 +41,12 @@
     "./alert-dialog": "./src/alert-dialog/index.ts",
     "./avatar": "./src/avatar/index.ts",
     "./button": "./src/button/index.ts",
-    "./collapsible": "./src/collapsible/index.ts",
-    "./dialog": "./src/dialog/index.ts",
     "./checkbox": "./src/checkbox/index.ts",
     "./checkbox-group": "./src/checkbox-group/index.ts",
-    "./radio": "./src/radio/index.ts",
-    "./radio-group": "./src/radio-group/index.ts",
+    "./collapsible": "./src/collapsible/index.ts",
     "./combobox": "./src/combobox/index.ts",
+    "./dialog": "./src/dialog/index.ts",
+    "./drawer": "./src/drawer/index.ts",
     "./field": "./src/field/index.ts",
     "./fieldset": "./src/fieldset/index.ts",
     "./form": "./src/form/index.ts",
@@ -56,64 +55,161 @@
     "./meter": "./src/meter/index.ts",
     "./number-field": "./src/number-field/index.ts",
     "./otp-field": "./src/otp-field/index.ts",
+    "./popover": "./src/popover/index.ts",
+    "./preview-card": "./src/preview-card/index.ts",
+    "./radio": "./src/radio/index.ts",
+    "./radio-group": "./src/radio-group/index.ts",
     "./scroll-area": "./src/scroll-area/index.ts",
+    "./select": "./src/select/index.ts",
     "./separator": "./src/separator/index.ts",
     "./slider": "./src/slider/index.ts",
     "./switch": "./src/switch/index.ts",
     "./tabs": "./src/tabs/index.ts",
+    "./toast": "./src/toast/index.ts",
     "./toggle": "./src/toggle/index.ts",
     "./toggle-group": "./src/toggle-group/index.ts",
-    "./tooltip": "./src/tooltip/index.ts",
-    "./popover": "./src/popover/index.ts",
-    "./preview-card": "./src/preview-card/index.ts",
-    "./select": "./src/select/index.ts",
-    "./toast": "./src/toast/index.ts",
-    "./drawer": "./src/drawer/index.ts"
+    "./tooltip": "./src/tooltip/index.ts"
   },
   "publishConfig": {
     "imports": {
       "#prehydration/slider/thumb": {
-        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.ts",
-        "default": "./dist/slider/thumb/prehydrationScript.min.ts"
+        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.js",
+        "default": "./dist/slider/thumb/prehydrationScript.min.js"
       },
       "#prehydration/tabs/indicator": {
-        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.ts",
-        "default": "./dist/tabs/indicator/prehydrationScript.min.ts"
+        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.js",
+        "default": "./dist/tabs/indicator/prehydrationScript.min.js"
       }
     },
     "exports": {
-      "./accordion": "./dist/accordion/index.js",
-      "./alert-dialog": "./dist/alert-dialog/index.js",
-      "./avatar": "./dist/avatar/index.js",
-      "./button": "./dist/button/index.js",
-      "./collapsible": "./dist/collapsible/index.js",
-      "./combobox": "./dist/combobox/index.js",
-      "./dialog": "./dist/dialog/index.js",
-      "./checkbox": "./dist/checkbox/index.js",
-      "./checkbox-group": "./dist/checkbox-group/index.js",
-      "./radio": "./dist/radio/index.js",
-      "./radio-group": "./dist/radio-group/index.js",
-      "./field": "./dist/field/index.js",
-      "./fieldset": "./dist/fieldset/index.js",
-      "./form": "./dist/form/index.js",
-      "./input": "./dist/input/index.js",
-      "./menu": "./dist/menu/index.js",
-      "./meter": "./dist/meter/index.js",
-      "./number-field": "./dist/number-field/index.js",
-      "./otp-field": "./dist/otp-field/index.js",
-      "./scroll-area": "./dist/scroll-area/index.js",
-      "./separator": "./dist/separator/index.js",
-      "./slider": "./dist/slider/index.js",
-      "./switch": "./dist/switch/index.js",
-      "./tabs": "./dist/tabs/index.js",
-      "./toggle": "./dist/toggle/index.js",
-      "./toggle-group": "./dist/toggle-group/index.js",
-      "./tooltip": "./dist/tooltip/index.js",
-      "./popover": "./dist/popover/index.js",
-      "./preview-card": "./dist/preview-card/index.js",
-      "./select": "./dist/select/index.js",
-      "./toast": "./dist/toast/index.js",
-      "./drawer": "./dist/drawer/index.js"
+      "./accordion": {
+        "types": "./dist/accordion/index.d.ts",
+        "default": "./dist/accordion/index.js"
+      },
+      "./alert-dialog": {
+        "types": "./dist/alert-dialog/index.d.ts",
+        "default": "./dist/alert-dialog/index.js"
+      },
+      "./avatar": {
+        "types": "./dist/avatar/index.d.ts",
+        "default": "./dist/avatar/index.js"
+      },
+      "./button": {
+        "types": "./dist/button/index.d.ts",
+        "default": "./dist/button/index.js"
+      },
+      "./checkbox": {
+        "types": "./dist/checkbox/index.d.ts",
+        "default": "./dist/checkbox/index.js"
+      },
+      "./checkbox-group": {
+        "types": "./dist/checkbox-group/index.d.ts",
+        "default": "./dist/checkbox-group/index.js"
+      },
+      "./collapsible": {
+        "types": "./dist/collapsible/index.d.ts",
+        "default": "./dist/collapsible/index.js"
+      },
+      "./combobox": {
+        "types": "./dist/combobox/index.d.ts",
+        "default": "./dist/combobox/index.js"
+      },
+      "./dialog": {
+        "types": "./dist/dialog/index.d.ts",
+        "default": "./dist/dialog/index.js"
+      },
+      "./drawer": {
+        "types": "./dist/drawer/index.d.ts",
+        "default": "./dist/drawer/index.js"
+      },
+      "./field": {
+        "types": "./dist/field/index.d.ts",
+        "default": "./dist/field/index.js"
+      },
+      "./fieldset": {
+        "types": "./dist/fieldset/index.d.ts",
+        "default": "./dist/fieldset/index.js"
+      },
+      "./form": {
+        "types": "./dist/form/index.d.ts",
+        "default": "./dist/form/index.js"
+      },
+      "./input": {
+        "types": "./dist/input/index.d.ts",
+        "default": "./dist/input/index.js"
+      },
+      "./menu": {
+        "types": "./dist/menu/index.d.ts",
+        "default": "./dist/menu/index.js"
+      },
+      "./meter": {
+        "types": "./dist/meter/index.d.ts",
+        "default": "./dist/meter/index.js"
+      },
+      "./number-field": {
+        "types": "./dist/number-field/index.d.ts",
+        "default": "./dist/number-field/index.js"
+      },
+      "./otp-field": {
+        "types": "./dist/otp-field/index.d.ts",
+        "default": "./dist/otp-field/index.js"
+      },
+      "./popover": {
+        "types": "./dist/popover/index.d.ts",
+        "default": "./dist/popover/index.js"
+      },
+      "./preview-card": {
+        "types": "./dist/preview-card/index.d.ts",
+        "default": "./dist/preview-card/index.js"
+      },
+      "./radio": {
+        "types": "./dist/radio/index.d.ts",
+        "default": "./dist/radio/index.js"
+      },
+      "./radio-group": {
+        "types": "./dist/radio-group/index.d.ts",
+        "default": "./dist/radio-group/index.js"
+      },
+      "./scroll-area": {
+        "types": "./dist/scroll-area/index.d.ts",
+        "default": "./dist/scroll-area/index.js"
+      },
+      "./select": {
+        "types": "./dist/select/index.d.ts",
+        "default": "./dist/select/index.js"
+      },
+      "./separator": {
+        "types": "./dist/separator/index.d.ts",
+        "default": "./dist/separator/index.js"
+      },
+      "./slider": {
+        "types": "./dist/slider/index.d.ts",
+        "default": "./dist/slider/index.js"
+      },
+      "./switch": {
+        "types": "./dist/switch/index.d.ts",
+        "default": "./dist/switch/index.js"
+      },
+      "./tabs": {
+        "types": "./dist/tabs/index.d.ts",
+        "default": "./dist/tabs/index.js"
+      },
+      "./toast": {
+        "types": "./dist/toast/index.d.ts",
+        "default": "./dist/toast/index.js"
+      },
+      "./toggle": {
+        "types": "./dist/toggle/index.d.ts",
+        "default": "./dist/toggle/index.js"
+      },
+      "./toggle-group": {
+        "types": "./dist/toggle-group/index.d.ts",
+        "default": "./dist/toggle-group/index.js"
+      },
+      "./tooltip": {
+        "types": "./dist/tooltip/index.d.ts",
+        "default": "./dist/tooltip/index.js"
+      }
     },
     "access": "public"
   },
