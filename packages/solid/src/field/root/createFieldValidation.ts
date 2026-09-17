@@ -1,4 +1,4 @@
-import { type Accessor, createEffect, createSignal, type Store, type StoreSetter, untrack } from "solid-js";
+import { type Accessor, onCleanup, type Store, type StoreSetter, untrack } from "solid-js";
 
 import type { Form } from "../../form/Form";
 import { DEFAULT_VALIDITY_STATE } from "../../internals/field-constants";
@@ -15,12 +15,6 @@ export interface RegisteredInput {
 }
 
 export type RegisteredInputs = Map<HTMLInputElement, RegisteredInput>;
-
-interface PendingCommit {
-  value: unknown;
-  revalidate: boolean;
-  debounce: number;
-}
 
 export function isEligibleInput(input: HTMLInputElement, formElement: HTMLFormElement | null) {
   if (input.matches(":disabled")) {
@@ -55,6 +49,35 @@ function clearCustomValidity(element: HTMLInputElement | null, inputs: Registere
   element?.setCustomValidity("");
 }
 
+function getElementValidityState(el: HTMLInputElement, isMarkedDirty: boolean): Record<keyof ValidityState, boolean> {
+  const computedState = validityKeys.reduce(
+    (acc, key) => {
+      acc[key] = el.validity[key];
+      return acc;
+    },
+    {} as Record<keyof ValidityState, boolean>,
+  );
+
+  let hasOnlyValueMissingError = false;
+
+  for (const key of validityKeys) {
+    if (key === "valid") {
+      continue;
+    }
+    if (key === "valueMissing" && computedState[key]) {
+      hasOnlyValueMissingError = true;
+    } else if (computedState[key]) {
+      return computedState;
+    }
+  }
+
+  if (hasOnlyValueMissingError && !isMarkedDirty) {
+    computedState.valid = true;
+    computedState.valueMissing = false;
+  }
+  return computedState;
+}
+
 export function createFieldValidation(params: CreateFieldValidationParameters): CreateFieldValidationReturnValue {
   const { fields, formElement } = useFormContext();
 
@@ -76,28 +99,19 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
   let inputElement: HTMLInputElement | null = null;
   let latestRun: object | null = null;
 
-  // Debounced requests go through this signal so the effect below owns the timer: a superseded
-  // request cancels the previous one through the effect's cleanup rather than through a
-  // manually tracked timeout id and generation counter.
-  const [pendingCommit, setPendingCommit] = createSignal<PendingCommit | undefined>(undefined);
+  // The debounce timer is owned directly: a superseding request clears the previous timeout,
+  // and unmount clears any pending one. This keeps the keystroke path free of a signal
+  // round-trip and of tracking-scope boundaries for the one-shot reads inside `runCommit`.
+  let debounceTimeoutId: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => {
+    clearPendingCommit();
+  });
 
-  createEffect(
-    () => pendingCommit(),
-    (request) => {
-      if (request === undefined) {
-        return;
-      }
-
-      const timeoutId = globalThis.setTimeout(() => {
-        void runCommit(request.value, request.revalidate);
-      }, request.debounce);
-
-      return () => globalThis.clearTimeout(timeoutId);
-    },
-  );
-
-  function cancelPendingCommit() {
-    setPendingCommit(undefined);
+  function clearPendingCommit() {
+    if (debounceTimeoutId !== undefined) {
+      globalThis.clearTimeout(debounceTimeoutId);
+      debounceTimeoutId = undefined;
+    }
   }
 
   const registerInput = (element: HTMLInputElement, registration: RegisteredInput): void | (() => void) => {
@@ -112,40 +126,40 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
     return (element && registeredInputs.get(element)?.controlElement) || null;
   };
 
+  function updateRegisteredFieldValidity(nextValidityData: FieldValidityData, externalInvalid?: boolean) {
+    const resolvedExternalInvalid = externalInvalid ?? untrack(invalid);
+    const fieldId = untrack(registeredFieldId) ?? untrack(controlId);
+    if (fieldId == null) {
+      return;
+    }
+
+    const currentFieldData = fields.get(fieldId);
+    if (!currentFieldData) {
+      return;
+    }
+
+    fields.set(fieldId, {
+      ...currentFieldData,
+      validityData: getCombinedFieldValidityData(nextValidityData, resolvedExternalInvalid),
+    });
+  }
+
+  function publishAllValid(input: HTMLInputElement | null, value: unknown, externalInvalid?: boolean) {
+    const nextValidityData = {
+      value,
+      state: { ...DEFAULT_VALIDITY_STATE, valid: true },
+      error: "",
+      errors: [],
+      initialValue: untrack(() => validityData.initialValue),
+    };
+    clearCustomValidity(input, registeredInputs);
+    updateRegisteredFieldValidity(nextValidityData, externalInvalid);
+    setValidityData(() => nextValidityData);
+  }
+
   async function runCommit(value: unknown, revalidate = false) {
     const run = {};
     latestRun = run;
-
-    function updateRegisteredFieldValidity(nextValidityData: FieldValidityData, externalInvalid?: boolean) {
-      const resolvedExternalInvalid = externalInvalid ?? untrack(invalid);
-      const fieldId = untrack(registeredFieldId) ?? untrack(controlId);
-      if (fieldId == null) {
-        return;
-      }
-
-      const currentFieldData = fields.get(fieldId);
-      if (!currentFieldData) {
-        return;
-      }
-
-      fields.set(fieldId, {
-        ...currentFieldData,
-        validityData: getCombinedFieldValidityData(nextValidityData, resolvedExternalInvalid),
-      });
-    }
-
-    function publishAllValid(input: HTMLInputElement | null, externalInvalid?: boolean) {
-      const nextValidityData = {
-        value,
-        state: { ...DEFAULT_VALIDITY_STATE, valid: true },
-        error: "",
-        errors: [],
-        initialValue: untrack(() => validityData.initialValue),
-      };
-      clearCustomValidity(input, registeredInputs);
-      updateRegisteredFieldValidity(nextValidityData, externalInvalid);
-      setValidityData(() => nextValidityData);
-    }
 
     const element = registeredInputs.size > 0 ? findRepresentativeInput(registeredInputs, formElement) : inputElement;
 
@@ -157,7 +171,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       const currentNativeValidity = element.validity;
 
       if (!currentNativeValidity.valueMissing) {
-        publishAllValid(element, false);
+        publishAllValid(element, value, false);
         return;
       }
 
@@ -168,39 +182,12 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       }
     }
 
-    function getState(el: HTMLInputElement) {
-      const computedState = validityKeys.reduce(
-        (acc, key) => {
-          acc[key] = el.validity[key];
-          return acc;
-        },
-        {} as Record<keyof ValidityState, boolean>,
-      );
-
-      let hasOnlyValueMissingError = false;
-
-      for (const key of validityKeys) {
-        if (key === "valid") {
-          continue;
-        }
-        if (key === "valueMissing" && computedState[key]) {
-          hasOnlyValueMissingError = true;
-        } else if (computedState[key]) {
-          return computedState;
-        }
-      }
-
-      if (hasOnlyValueMissingError && !markedDirty()) {
-        computedState.valid = true;
-        computedState.valueMissing = false;
-      }
-      return computedState;
-    }
-
     let result: null | string | string[] = null;
     let validationErrors: string[] = [];
 
-    const nextState: Record<keyof ValidityState, boolean> = element ? getState(element) : { ...DEFAULT_VALIDITY_STATE, valid: true };
+    const nextState: Record<keyof ValidityState, boolean> = element
+      ? getElementValidityState(element, markedDirty())
+      : { ...DEFAULT_VALIDITY_STATE, valid: true };
 
     let defaultValidationMessage: string | undefined;
     const isValidatingOnChange = untrack(shouldValidateOnChange);
@@ -264,23 +251,25 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
   }
 
   const commit = async (value: unknown, revalidate = false) => {
-    cancelPendingCommit();
+    clearPendingCommit();
     await runCommit(value, revalidate);
   };
 
   const change = (value: unknown, cancelPending = false) => {
     const validateOnChange = untrack(shouldValidateOnChange);
 
+    clearPendingCommit();
     if (cancelPending) {
-      cancelPendingCommit();
       return;
     }
 
     if (validateOnChange && value !== "" && validationDebounceTime) {
-      // Replacing the request supersedes any in-flight timer via the effect's cleanup.
-      setPendingCommit({ value, revalidate: false, debounce: validationDebounceTime });
+      // A newer request replaces the pending one by clearing its timer outright.
+      debounceTimeoutId = globalThis.setTimeout(() => {
+        debounceTimeoutId = undefined;
+        void runCommit(value, false);
+      }, validationDebounceTime);
     } else {
-      cancelPendingCommit();
       void runCommit(value, !validateOnChange);
     }
   };
