@@ -468,5 +468,33 @@ describe("<NumberField.Root />", () => {
         capture.restore();
       }
     });
+
+    it("reads no reactive values outside a tracking scope when wrapped in Field.Root", async () => {
+      const capture = captureStrictReads();
+      try {
+        await renderWithFlush(() => (
+          <Field.Root>
+            <NumberField.Root defaultValue={100}>
+              <NumberField.Group>
+                <NumberField.Input data-testid="input" aria-label="Amount" />
+              </NumberField.Group>
+            </NumberField.Root>
+          </Field.Root>
+        ));
+        const input = screen.getByTestId("input") as HTMLInputElement;
+
+        input.focus();
+        typeInto(input, "42");
+        input.blur();
+        flush();
+        await nextFrames();
+
+        const attribution = (capture.attribution?.events ?? []).map((event) => JSON.stringify(event));
+        expect(capture.diagnostics, attribution.length > 0 ? `attribution: ${attribution.join("\n")}` : undefined).toEqual([]);
+        expect(attribution).toEqual([]);
+      } finally {
+        capture.restore();
+      }
+    });
   });
 });

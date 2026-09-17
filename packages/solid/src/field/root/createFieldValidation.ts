@@ -1,4 +1,4 @@
-import { type Accessor, createEffect, createSignal, type Store, type StoreSetter } from "solid-js";
+import { type Accessor, createEffect, createSignal, type Store, type StoreSetter, untrack } from "solid-js";
 
 import type { Form } from "../../form/Form";
 import { DEFAULT_VALIDITY_STATE } from "../../internals/field-constants";
@@ -116,8 +116,9 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
     const run = {};
     latestRun = run;
 
-    function updateRegisteredFieldValidity(nextValidityData: FieldValidityData, externalInvalid = invalid()) {
-      const fieldId = registeredFieldId() ?? controlId();
+    function updateRegisteredFieldValidity(nextValidityData: FieldValidityData, externalInvalid?: boolean) {
+      const resolvedExternalInvalid = externalInvalid ?? untrack(invalid);
+      const fieldId = untrack(registeredFieldId) ?? untrack(controlId);
       if (fieldId == null) {
         return;
       }
@@ -129,7 +130,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
 
       fields.set(fieldId, {
         ...currentFieldData,
-        validityData: getCombinedFieldValidityData(nextValidityData, externalInvalid),
+        validityData: getCombinedFieldValidityData(nextValidityData, resolvedExternalInvalid),
       });
     }
 
@@ -139,7 +140,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
         state: { ...DEFAULT_VALIDITY_STATE, valid: true },
         error: "",
         errors: [],
-        initialValue: validityData.initialValue,
+        initialValue: untrack(() => validityData.initialValue),
       };
       clearCustomValidity(input, registeredInputs);
       updateRegisteredFieldValidity(nextValidityData, externalInvalid);
@@ -149,7 +150,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
     const element = registeredInputs.size > 0 ? findRepresentativeInput(registeredInputs, formElement) : inputElement;
 
     if (revalidate) {
-      if (state.valid() !== false || !element) {
+      if (untrack(state.valid) !== false || !element) {
         return;
       }
 
@@ -202,7 +203,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
     const nextState: Record<keyof ValidityState, boolean> = element ? getState(element) : { ...DEFAULT_VALIDITY_STATE, valid: true };
 
     let defaultValidationMessage: string | undefined;
-    const isValidatingOnChange = shouldValidateOnChange();
+    const isValidatingOnChange = untrack(shouldValidateOnChange);
 
     if (element && element.validationMessage && !isValidatingOnChange) {
       defaultValidationMessage = element.validationMessage;
@@ -254,7 +255,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       state: nextState,
       error: defaultValidationMessage ?? (Array.isArray(result) ? result[0] : (result ?? "")),
       errors: validationErrors,
-      initialValue: validityData.initialValue,
+      initialValue: untrack(() => validityData.initialValue),
     };
 
     updateRegisteredFieldValidity(nextValidityData);
@@ -268,7 +269,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
   };
 
   const change = (value: unknown, cancelPending = false) => {
-    const validateOnChange = shouldValidateOnChange();
+    const validateOnChange = untrack(shouldValidateOnChange);
 
     if (cancelPending) {
       cancelPendingCommit();
