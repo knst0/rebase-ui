@@ -49,7 +49,7 @@ function ComponentCard(props: ComponentItem) {
 
 export default function Home() {
   return (
-    <main class="col-span-2 m-4 lg:m-16">
+    <main class="m-4 lg:m-16">
       <ul class="border-border grid border-t border-l md:grid-cols-[repeat(auto-fit,minmax(380px,1fr))]">
         <For each={components}>{(component) => <ComponentCard {...component} />}</For>
       </ul>

@@ -109,6 +109,12 @@
       corner-shape: superellipse(1.3);
     }
   }
+  .dotted-right {
+    background-image: linear-gradient(color-mix(in oklab, var(--color-fg) 20%, transparent) 33%, transparent 0);
+    background-position: 100% center;
+    background-repeat: repeat-y;
+    background-size: 1px 4px;
+  }
 }
 
 @layer components {

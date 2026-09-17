@@ -45,12 +45,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/(main)/components";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
-      $$route?: undefined;
-    },
-    {
       path: "/(main)/";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
@@ -240,6 +234,12 @@ declare module "virtual:file-routes" {
       path: "/(main)/components/tooltip/";
       page: true;
       $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
       $$route?: undefined;
     }
   ];

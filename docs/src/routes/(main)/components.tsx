@@ -174,13 +174,13 @@ export default function ComponentsLayout(props: ParentProps) {
   const headings = createMemo(() => page()?.headings ?? []);
 
   return (
-    <>
-      <main class="mx-auto mt-12 w-full max-w-[680px] py-20 sm:py-28 lg:mt-0">{props.children}</main>
-      <aside class="sticky top-0 h-screen pt-5 pb-4">
+    <div class="mx-auto flex w-full max-w-[944px] gap-8 px-4 lg:pr-0 lg:pl-6">
+      <main class="mt-12 w-full max-w-[680px] min-w-0 py-20 sm:py-28 lg:mt-0">{props.children}</main>
+      <aside class="sticky top-0 hidden h-screen w-[224px] shrink-0 pt-5 pb-4 xl:block">
         <Show when={headings().length > 0}>
           <ComponentsNav page={page} headings={headings} />
         </Show>
       </aside>
-    </>
+    </div>
   );
 }
