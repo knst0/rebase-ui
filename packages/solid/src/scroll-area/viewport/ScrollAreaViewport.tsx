@@ -394,7 +394,7 @@ export function ScrollAreaViewport<T extends ValidComponent = "div">(props: Scro
         props={[
           {
             role: "presentation",
-            get tabIndex() {
+            get tabindex() {
               // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
               // Keep non-scrollable viewports out of tab order.
               return hiddenState().x && hiddenState().y ? -1 : 0;

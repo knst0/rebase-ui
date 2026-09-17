@@ -1,4 +1,4 @@
-import { render, screen } from "@solidjs/testing-library";
+import { fireEvent, render, screen } from "@solidjs/testing-library";
 import { Show, createSignal, flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -53,6 +53,8 @@ describe("<Avatar.Fallback />", () => {
       </Avatar.Root>
     ));
 
+    fireEvent.error(screen.getByTestId("image"));
+
     await vi.waitFor(() => {
       flush();
       expect(onLoadingStatusChange).toHaveBeenCalledWith("error");
@@ -64,10 +66,12 @@ describe("<Avatar.Fallback />", () => {
   it("does not render once the image loads", async () => {
     render(() => (
       <Avatar.Root>
-        <Avatar.Image src={LOADABLE_IMAGE} />
+        <Avatar.Image data-testid="image" src={LOADABLE_IMAGE} />
         <Avatar.Fallback data-testid="fallback">JD</Avatar.Fallback>
       </Avatar.Root>
     ));
+
+    fireEvent.load(screen.getByTestId("image"));
 
     await vi.waitFor(() => {
       flush();
@@ -86,6 +90,8 @@ describe("<Avatar.Fallback />", () => {
         <Avatar.Fallback data-testid="fallback">JD</Avatar.Fallback>
       </Avatar.Root>
     ));
+
+    fireEvent.load(screen.getByTestId("image"));
 
     await vi.waitFor(() => {
       flush();

@@ -133,6 +133,7 @@ describe("<Avatar.Image />", () => {
         ));
       });
 
+      fireEvent.load(screen.getByTestId("image"));
       await waitForStatus(statuses, "loaded");
 
       expect(statuses()).toEqual(["loading", "loaded"]);
@@ -149,6 +150,7 @@ describe("<Avatar.Image />", () => {
         ));
       });
 
+      fireEvent.error(screen.getByTestId("image"));
       await waitForStatus(statuses, "error");
 
       expect(statuses()).toEqual(["loading", "error"]);
@@ -168,6 +170,7 @@ describe("<Avatar.Image />", () => {
         </Avatar.Root>
       ));
 
+      fireEvent.load(screen.getByTestId("image"));
       await waitForStatus(statuses, "loaded");
       onLoadingStatusChange.mockClear();
 
@@ -177,6 +180,7 @@ describe("<Avatar.Image />", () => {
       expect(statuses()).toContain("loading");
       expect(screen.getByText("JD")).not.toBe(null);
 
+      fireEvent.error(screen.getByTestId("image"));
       await waitForStatus(statuses, "error");
     });
 
@@ -217,6 +221,8 @@ describe("<Avatar.Image />", () => {
         </Avatar.Root>
       ));
 
+      fireEvent.load(screen.getByTestId("image"));
+
       await vi.waitFor(() => {
         flush();
         expect(screen.getByTestId("image")).not.toHaveAttribute("aria-hidden");
@@ -235,14 +241,14 @@ describe("<Avatar.Image />", () => {
         </Avatar.Root>
       ));
 
-      const image = screen.getByTestId("image");
+      fireEvent.error(screen.getByTestId("image"));
 
       await vi.waitFor(() => {
         flush();
         expect(onLoadingStatusChange).toHaveBeenCalledWith("error");
       });
 
-      expect(image).toHaveAttribute("aria-hidden", "true");
+      expect(screen.getByTestId("image")).toHaveAttribute("aria-hidden", "true");
       expect(screen.queryByRole("img")).toBe(null);
     });
   });
@@ -256,6 +262,8 @@ describe("<Avatar.Image />", () => {
           <Avatar.Image data-testid="image" onLoad={onLoad} src={LOADABLE_IMAGE} />
         </Avatar.Root>
       ));
+
+      fireEvent.load(screen.getByTestId("image"));
 
       await vi.waitFor(() => {
         flush();
@@ -273,6 +281,8 @@ describe("<Avatar.Image />", () => {
           <Avatar.Image data-testid="image" onError={onError} src={BROKEN_IMAGE} />
         </Avatar.Root>
       ));
+
+      fireEvent.error(screen.getByTestId("image"));
 
       await vi.waitFor(() => {
         flush();

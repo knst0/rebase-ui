@@ -32,13 +32,13 @@ describe("<Switch.Thumb />", () => {
     },
   );
 
-  it("throws a descriptive error when rendered outside <Switch.Root>", async () => {
+  it("throws a descriptive error when rendered outside <Switch.Root>", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     try {
-      await expect(render(() => <SwitchThumb />)).rejects.toThrow(
-        "Rebase UI: SwitchRootContext is missing. Switch parts must be placed within <Switch.Root>.",
-      );
+      expect(() => {
+        render(() => <SwitchThumb />);
+      }).toThrow("Rebase UI: SwitchRootContext is missing. Switch parts must be placed within <Switch.Root>.");
     } finally {
       errorSpy.mockRestore();
     }
