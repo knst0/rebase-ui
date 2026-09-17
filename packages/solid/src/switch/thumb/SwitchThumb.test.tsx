@@ -16,6 +16,7 @@ const testContext: SwitchRootContext = {
   filled: () => false,
   focused: () => false,
   valid: () => null,
+  validating: () => false,
 };
 
 describe("<Switch.Thumb />", () => {
