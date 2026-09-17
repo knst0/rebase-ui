@@ -18,3 +18,9 @@ export default function App() {
     </Router>
   );
 }
+
+if (import.meta.env.PROD) {
+  void import("@plausible-analytics/tracker").then(({ init }) =>
+    init({ domain: window.location.host, endpoint: "https://a.knst.dev/api/event" }),
+  );
+}
