@@ -72,7 +72,7 @@ export default function OTPFieldCustomNormalizeDemo() {
             return (
               <OTPField.Input
                 class={[
-                  "m-0 h-10 w-10 rounded-none border bg-white dark:bg-neutral-950 text-center font-inherit text-base font-normal text-neutral-950 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:focus:outline-white dark:border-white dark:text-white",
+                  "font-inherit m-0 h-10 w-10 rounded-none border bg-white text-center text-base font-normal text-neutral-950 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:focus:outline-white",
                   activeInvalidIndex() === i()
                     ? "border-red-500 outline-2 outline-red-500 dark:border-red-400 dark:outline-red-400"
                     : "border-neutral-950",

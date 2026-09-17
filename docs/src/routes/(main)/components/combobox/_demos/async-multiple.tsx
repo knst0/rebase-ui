@@ -136,14 +136,11 @@ export default function ExampleAsyncMultipleCombobox() {
         })();
       }}
     >
-      <div class="max-w-md flex flex-col gap-1">
-        <label
-          class="flex flex-col gap-1 text-sm leading-5 font-bold text-neutral-950 dark:text-white"
-          for={id}
-        >
+      <div class="flex max-w-md flex-col gap-1">
+        <label class="flex flex-col gap-1 text-sm leading-5 font-bold text-neutral-950 dark:text-white" for={id}>
           Assign reviewers
         </label>
-        <Combobox.InputGroup class="flex min-h-8 w-64 cursor-text flex-wrap items-center gap-0.5 border border-neutral-950 bg-white dark:bg-neutral-950 px-2 py-1 focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-neutral-950 dark:focus-within:outline-white has-[button]:px-1 dark:border-white min-[32rem]:w-[22rem]">
+        <Combobox.InputGroup class="flex min-h-8 w-64 cursor-text flex-wrap items-center gap-0.5 border border-neutral-950 bg-white px-2 py-1 focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-neutral-950 has-[button]:px-1 min-[32rem]:w-[22rem] dark:border-white dark:bg-neutral-950 dark:focus-within:outline-white">
           <Combobox.Value>
             {(value: Accessor<DirectoryUser[]>) => (
               <Combobox.Chips
@@ -153,7 +150,7 @@ export default function ExampleAsyncMultipleCombobox() {
                 <For each={value()}>
                   {(user) => (
                     <Combobox.Chip
-                      class="group flex min-h-[calc(1.5rem-2px)] cursor-default items-center gap-1 overflow-hidden bg-neutral-100 py-0 pr-[0.2rem] pl-[0.4rem] text-sm leading-none text-neutral-950 outline-none focus-within:bg-neutral-950 focus-within:text-white [@media(hover:hover)]:data-highlighted:bg-neutral-950 [@media(hover:hover)]:data-highlighted:text-white dark:bg-neutral-800 dark:text-white dark:focus-within:bg-white dark:focus-within:text-neutral-950 dark:[@media(hover:hover)]:data-highlighted:bg-white dark:[@media(hover:hover)]:data-highlighted:text-neutral-950"
+                      class="group flex min-h-[calc(1.5rem-2px)] cursor-default items-center gap-1 overflow-hidden bg-neutral-100 py-0 pr-[0.2rem] pl-[0.4rem] text-sm leading-none text-neutral-950 outline-none focus-within:bg-neutral-950 focus-within:text-white dark:bg-neutral-800 dark:text-white dark:focus-within:bg-white dark:focus-within:text-neutral-950 [@media(hover:hover)]:data-highlighted:bg-neutral-950 [@media(hover:hover)]:data-highlighted:text-white dark:[@media(hover:hover)]:data-highlighted:bg-white dark:[@media(hover:hover)]:data-highlighted:text-neutral-950"
                       aria-label={user.name}
                       aria-description="Press Backspace or Delete to remove"
                     >
@@ -175,7 +172,7 @@ export default function ExampleAsyncMultipleCombobox() {
                       ? `${value().length} selected. From the start of the input, press Left Arrow to focus the selected items`
                       : undefined
                   }
-                  class="h-[calc(1.5rem-2px)] min-w-12 flex-1 border-0 bg-white p-0 text-sm any-pointer-coarse:text-base dark:bg-neutral-950 font-normal text-neutral-950 outline-none placeholder:text-neutral-500 dark:placeholder:text-neutral-400 dark:text-white"
+                  class="h-[calc(1.5rem-2px)] min-w-12 flex-1 border-0 bg-white p-0 text-sm font-normal text-neutral-950 outline-none placeholder:text-neutral-500 dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-400 any-pointer-coarse:text-base"
                 />
               </Combobox.Chips>
             )}
@@ -186,10 +183,10 @@ export default function ExampleAsyncMultipleCombobox() {
       <Combobox.Portal>
         <Combobox.Positioner class="outline-none" sideOffset={4}>
           <Combobox.Popup
-            class="w-[var(--anchor-width)] max-w-[var(--available-width)] origin-[var(--transform-origin)] border border-neutral-950 bg-white text-neutral-950 shadow-[0.25rem_0.25rem_0_rgb(0_0_0_/_12%)] transition-[scale,opacity] duration-100 data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none"
+            class="w-[var(--anchor-width)] max-w-[var(--available-width)] origin-[var(--transform-origin)] border border-neutral-950 bg-white text-neutral-950 shadow-[0.25rem_0.25rem_0_rgb(0_0_0_/_12%)] transition-[scale,opacity] duration-100 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none"
             aria-busy={isPending() ? "true" : undefined}
           >
-            <div class="max-h-[min(var(--available-height),24.5rem)] overflow-y-auto overscroll-contain py-1 scroll-pt-1 scroll-pb-1">
+            <div class="max-h-[min(var(--available-height),24.5rem)] scroll-pt-1 scroll-pb-1 overflow-y-auto overscroll-contain py-1">
               <Combobox.Status>
                 {status() ? (
                   <div class="flex items-center gap-2 py-1 pr-5 pl-2 text-sm leading-5 text-neutral-500 dark:text-neutral-400">
@@ -199,9 +196,7 @@ export default function ExampleAsyncMultipleCombobox() {
               </Combobox.Status>
               <Combobox.Empty>
                 {emptyMessage() ? (
-                  <div class="py-2 pr-4 pl-2 text-sm leading-4 text-neutral-500 dark:text-neutral-400">
-                    {emptyMessage()}
-                  </div>
+                  <div class="py-2 pr-4 pl-2 text-sm leading-4 text-neutral-500 dark:text-neutral-400">{emptyMessage()}</div>
                 ) : null}
               </Combobox.Empty>
               <Combobox.List>
@@ -292,12 +287,7 @@ async function searchUsers(
   }
 
   const users = allUsers.filter((user) => {
-    return (
-      filter(user.name, query) ||
-      filter(user.username, query) ||
-      filter(user.email, query) ||
-      filter(user.title, query)
-    );
+    return filter(user.name, query) || filter(user.username, query) || filter(user.email, query) || filter(user.title, query);
   });
 
   return {

@@ -78,9 +78,7 @@ The following example shows a typed wrapper around the Select component with cor
 import type { JSX } from "solid-js";
 import { Select } from "@rebase-ui/solid/select";
 
-export function MySelect<Value, Multiple extends boolean | undefined = false>(
-  props: Select.Root.Props<Value, Multiple>,
-): JSX.Element {
+export function MySelect<Value, Multiple extends boolean | undefined = false>(props: Select.Root.Props<Value, Multiple>): JSX.Element {
   return <Select.Root {...props}>{/* ... */}</Select.Root>;
 }
 ```
@@ -94,10 +92,10 @@ Passing the `items` prop to `<Select.Root>` instead renders the matching label f
 ```jsx title="items prop"
 // @highlight-text "items"
 const items = [
-  { value: null, label: 'Select theme' },
-  { value: 'system', label: 'System default' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
+  { value: null, label: "Select theme" },
+  { value: "system", label: "System default" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
 ];
 
 // @highlight-text "items"
@@ -148,9 +146,9 @@ To show a placeholder value, use the `placeholder` prop on `<Select.Value>`:
 
 ```jsx title="Placeholder item"
 const items = [
-  { value: 'system', label: 'System default' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
+  { value: "system", label: "System default" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
 ];
 
 <Select.Root items={items}>
@@ -164,10 +162,10 @@ With placeholders, users cannot clear selected values using the select itself. I
 ```jsx title="Clearable item"
 const items = [
   // @highlight
-  { value: null, label: 'Select theme' },
-  { value: 'system', label: 'System default' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
+  { value: null, label: "Select theme" },
+  { value: "system", label: "System default" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
 ];
 
 <Select.Root items={items}>
@@ -203,14 +201,14 @@ interface ProduceGroupItem {
 
 const groups: ProduceGroupItem[] = [
   {
-    value: 'Fruits',
+    value: "Fruits",
     // @highlight
-    items: ['Apple', 'Banana', 'Orange'],
+    items: ["Apple", "Banana", "Orange"],
   },
   {
-    value: 'Vegetables',
+    value: "Vegetables",
     // @highlight
-    items: ['Carrot', 'Lettuce', 'Spinach'],
+    items: ["Carrot", "Lettuce", "Spinach"],
   },
 ];
 ```

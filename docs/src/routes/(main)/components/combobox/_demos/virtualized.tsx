@@ -42,16 +42,14 @@ export default function ExampleVirtualizedCombobox() {
     >
       <label class="flex flex-col gap-1 text-sm leading-5 font-bold text-neutral-950 dark:text-white">
         Search 10,000 items
-        <Combobox.Input class="h-8 w-64 border border-neutral-950 bg-white dark:bg-neutral-950 px-2 text-sm any-pointer-coarse:text-base font-normal text-neutral-950 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:focus:outline-white dark:border-white dark:text-white" />
+        <Combobox.Input class="h-8 w-64 border border-neutral-950 bg-white px-2 text-sm font-normal text-neutral-950 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:focus:outline-white any-pointer-coarse:text-base" />
       </label>
 
       <Combobox.Portal>
         <Combobox.Positioner class="outline-none" sideOffset={4}>
           <Combobox.Popup class="w-[var(--anchor-width)] max-w-[var(--available-width)] border border-neutral-950 bg-white text-neutral-950 shadow-[0.25rem_0.25rem_0_rgb(0_0_0_/_12%)] dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none">
             <Combobox.Empty>
-              <div class="py-3 px-2 text-sm leading-4 text-neutral-500 dark:text-neutral-400">
-                No items found.
-              </div>
+              <div class="px-2 py-3 text-sm leading-4 text-neutral-500 dark:text-neutral-400">No items found.</div>
             </Combobox.Empty>
             <Combobox.List class="p-0">
               <VirtualizedList api={listApi} />
@@ -73,10 +71,7 @@ function VirtualizedList(props: { api: VirtualListApi }) {
   const startIndex = () => Math.max(0, Math.floor(scrollTop() / ESTIMATE_SIZE) - OVERSCAN);
   const endIndex = () => {
     const viewportHeight = scrollElement?.clientHeight ?? 360;
-    return Math.min(
-      filteredItems().length,
-      Math.ceil((scrollTop() + viewportHeight) / ESTIMATE_SIZE) + OVERSCAN,
-    );
+    return Math.min(filteredItems().length, Math.ceil((scrollTop() + viewportHeight) / ESTIMATE_SIZE) + OVERSCAN);
   };
   const visibleItems = () =>
     filteredItems()
@@ -89,10 +84,7 @@ function VirtualizedList(props: { api: VirtualListApi }) {
     if (!element) {
       return;
     }
-    const top =
-      align === "start"
-        ? index * ESTIMATE_SIZE
-        : (index + 1) * ESTIMATE_SIZE - element.clientHeight;
+    const top = align === "start" ? index * ESTIMATE_SIZE : (index + 1) * ESTIMATE_SIZE - element.clientHeight;
     element.scrollTo({ top });
   };
 
@@ -106,7 +98,7 @@ function VirtualizedList(props: { api: VirtualListApi }) {
         onScroll={(event) => {
           setScrollTop(event.currentTarget.scrollTop);
         }}
-        class="h-[min(22.5rem,var(--total-size))] max-h-[var(--available-height)] overflow-auto overscroll-contain scroll-py-1"
+        class="h-[min(22.5rem,var(--total-size))] max-h-[var(--available-height)] scroll-py-1 overflow-auto overscroll-contain"
         style={`--total-size: ${totalSize()}px`}
       >
         <div role="presentation" class="relative w-full" style={`height: ${totalSize()}px`}>

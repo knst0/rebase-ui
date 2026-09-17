@@ -21,7 +21,7 @@ export default function ExampleNumberField() {
         <NumberField.Decrement class={`${stepperClasses} border-r-0`}>
           <MinusIcon />
         </NumberField.Decrement>
-        <NumberField.Input class="h-full w-[7ch] border border-neutral-950 bg-white px-2 text-left text-sm font-normal text-neutral-950 tabular-nums any-pointer-coarse:text-base dark:border-white dark:bg-neutral-950 dark:text-white focus:z-1 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:focus:outline-white" />
+        <NumberField.Input class="h-full w-[7ch] border border-neutral-950 bg-white px-2 text-left text-sm font-normal text-neutral-950 tabular-nums focus:z-1 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:focus:outline-white any-pointer-coarse:text-base" />
         <NumberField.Increment class={`${stepperClasses} border-l-0`}>
           <PlusIcon />
         </NumberField.Increment>
@@ -32,15 +32,7 @@ export default function ExampleNumberField() {
 
 function CursorGrowIcon(props: { class?: string }) {
   return (
-    <svg
-      width="26"
-      height="14"
-      viewBox="0 0 24 14"
-      fill="black"
-      stroke="white"
-      class={props.class}
-      style="display: block;"
-    >
+    <svg width="26" height="14" viewBox="0 0 24 14" fill="black" stroke="white" class={props.class} style="display: block;">
       <path d="M19.5 5.5L6.49737 5.51844V2L1 6.9999L6.5 12L6.49737 8.5L19.5 8.5V12L25 6.9999L19.5 2V5.5Z" />
     </svg>
   );

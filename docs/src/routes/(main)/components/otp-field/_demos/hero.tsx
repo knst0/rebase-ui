@@ -12,18 +12,13 @@ export default function ExampleOTPField() {
       <label for={id} class="text-sm font-bold text-neutral-950 dark:text-white">
         Verification code
       </label>
-      <OTPField.Root
-        id={id}
-        length={OTP_LENGTH}
-        aria-describedby={descriptionId}
-        class="flex w-full gap-2"
-      >
+      <OTPField.Root id={id} length={OTP_LENGTH} aria-describedby={descriptionId} class="flex w-full gap-2">
         <For each={Array.from({ length: OTP_LENGTH })}>
           {(_, index) => {
             const i = createMemo(() => index());
             return (
               <OTPField.Input
-                class="m-0 h-10 w-10 rounded-none border border-neutral-950 bg-white dark:bg-neutral-950 text-center font-inherit text-base font-normal text-neutral-950 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:focus:outline-white dark:border-white dark:text-white"
+                class="font-inherit m-0 h-10 w-10 rounded-none border border-neutral-950 bg-white text-center text-base font-normal text-neutral-950 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:focus:outline-white"
                 aria-label={i() === 0 ? undefined : `Character ${i() + 1} of ${OTP_LENGTH}`}
               />
             );

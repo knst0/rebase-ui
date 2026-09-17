@@ -31,10 +31,7 @@ export default function ExampleAsyncSingleCombobox() {
     if (isPending()) {
       return (
         <>
-          <span
-            aria-hidden="true"
-            class="inline-block size-3 animate-spin rounded-full border border-current border-r-transparent"
-          />
+          <span aria-hidden="true" class="inline-block size-3 animate-spin rounded-full border border-current border-r-transparent" />
           Searching…
         </>
       );
@@ -117,11 +114,11 @@ export default function ExampleAsyncSingleCombobox() {
     >
       <div class="relative flex flex-col gap-1 text-sm leading-5 font-bold text-neutral-950 dark:text-white">
         <label for={id}>Assign reviewer</label>
-        <Combobox.InputGroup class="relative h-8 w-64 border border-neutral-950 bg-white dark:bg-neutral-950 focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-neutral-950 dark:focus-within:outline-white dark:border-white md:w-80 [&>input]:pr-[calc(0.5rem+2rem)] has-[.combobox-clear]:[&>input]:pr-[calc(0.5rem+2rem*2)]">
+        <Combobox.InputGroup class="relative h-8 w-64 border border-neutral-950 bg-white focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-neutral-950 md:w-80 dark:border-white dark:bg-neutral-950 dark:focus-within:outline-white [&>input]:pr-[calc(0.5rem+2rem)] has-[.combobox-clear]:[&>input]:pr-[calc(0.5rem+2rem*2)]">
           <Combobox.Input
             id={id}
             placeholder="e.g. Michael"
-            class="h-full w-full border-0 bg-white pl-2 dark:bg-neutral-950 text-sm any-pointer-coarse:text-base font-normal text-neutral-950 outline-none placeholder:text-neutral-500 dark:placeholder:text-neutral-400 dark:text-white"
+            class="h-full w-full border-0 bg-white pl-2 text-sm font-normal text-neutral-950 outline-none placeholder:text-neutral-500 dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-400 any-pointer-coarse:text-base"
           />
           <div class="absolute right-0 bottom-0 flex h-full items-center justify-center text-neutral-500 dark:text-neutral-400">
             <Combobox.Clear
@@ -143,10 +140,10 @@ export default function ExampleAsyncSingleCombobox() {
       <Combobox.Portal>
         <Combobox.Positioner class="outline-none" sideOffset={4}>
           <Combobox.Popup
-            class="w-[var(--anchor-width)] max-w-[var(--available-width)] origin-[var(--transform-origin)] border border-neutral-950 bg-white text-neutral-950 shadow-[0.25rem_0.25rem_0_rgb(0_0_0_/_12%)] transition-[scale,opacity] data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:transition-none dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none"
+            class="w-[var(--anchor-width)] max-w-[var(--available-width)] origin-[var(--transform-origin)] border border-neutral-950 bg-white text-neutral-950 shadow-[0.25rem_0.25rem_0_rgb(0_0_0_/_12%)] transition-[scale,opacity] data-ending-style:transition-none data-starting-style:scale-95 data-starting-style:opacity-0 dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none"
             aria-busy={isPending() ? "true" : undefined}
           >
-            <div class="max-h-[min(var(--available-height),22.5rem)] overflow-y-auto overscroll-contain py-1 scroll-pt-1 scroll-pb-1">
+            <div class="max-h-[min(var(--available-height),22.5rem)] scroll-pt-1 scroll-pb-1 overflow-y-auto overscroll-contain py-1">
               <Combobox.Status>
                 {status() ? (
                   <div class="flex items-center gap-2 py-1 pr-5 pl-2 text-sm leading-5 text-neutral-500 dark:text-neutral-400">
@@ -156,9 +153,7 @@ export default function ExampleAsyncSingleCombobox() {
               </Combobox.Status>
               <Combobox.Empty>
                 {emptyMessage() ? (
-                  <div class="py-2 pr-4 pl-2 text-sm leading-4 text-neutral-500 dark:text-neutral-400">
-                    {emptyMessage()}
-                  </div>
+                  <div class="py-2 pr-4 pl-2 text-sm leading-4 text-neutral-500 dark:text-neutral-400">{emptyMessage()}</div>
                 ) : null}
               </Combobox.Empty>
               <Combobox.List>
@@ -264,12 +259,7 @@ async function searchUsers(
   }
 
   const users = allUsers.filter((user) => {
-    return (
-      filter(user.name, query) ||
-      filter(user.username, query) ||
-      filter(user.email, query) ||
-      filter(user.title, query)
-    );
+    return filter(user.name, query) || filter(user.username, query) || filter(user.email, query) || filter(user.title, query);
   });
 
   return {
