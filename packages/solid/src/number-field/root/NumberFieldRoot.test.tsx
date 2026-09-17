@@ -194,6 +194,94 @@ describe("<NumberField.Root />", () => {
         vi.useRealTimers();
       }
     });
+
+    it("stops repeating when disabled mid-hold and suppresses the trailing click", async () => {
+      vi.useFakeTimers();
+      try {
+        const onValueChange = vi.fn();
+        const onValueCommitted = vi.fn();
+        const [disabled, setDisabled] = createSignal(false);
+        render(() => (
+          <NumberField.Root defaultValue={100} disabled={disabled()} onValueChange={onValueChange} onValueCommitted={onValueCommitted}>
+            <NumberField.Group>
+              <NumberField.Increment data-testid="increment" />
+              <NumberField.Input data-testid="input" aria-label="Amount" />
+            </NumberField.Group>
+          </NumberField.Root>
+        ));
+        flush();
+
+        const increment = screen.getByTestId("increment");
+        const input = screen.getByTestId("input") as HTMLInputElement;
+
+        fireEvent.pointerDown(increment, { button: 0, pointerType: "mouse" });
+        flush();
+        vi.advanceTimersByTime(450);
+        flush();
+        expect(input).toHaveValue("101");
+
+        setDisabled(true);
+        flush();
+        vi.advanceTimersByTime(1000);
+        flush();
+        expect(input).toHaveValue("101");
+        expect(onValueChange).toHaveBeenCalledTimes(1);
+
+        // The canceled press releases without committing.
+        fireEvent.pointerUp(increment);
+        flush();
+        expect(onValueCommitted).not.toHaveBeenCalled();
+
+        setDisabled(false);
+        flush();
+        // The trailing click of the canceled press is suppressed...
+        fireEvent.click(increment);
+        flush();
+        expect(input).toHaveValue("101");
+        expect(onValueCommitted).not.toHaveBeenCalled();
+        // ...but the next fresh click steps again.
+        fireEvent.click(increment);
+        flush();
+        expect(input).toHaveValue("102");
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("stops repeating at the max boundary", async () => {
+      vi.useFakeTimers();
+      try {
+        const onValueChange = vi.fn();
+        render(() => (
+          <NumberField.Root defaultValue={100} max={102} onValueChange={onValueChange}>
+            <NumberField.Group>
+              <NumberField.Increment data-testid="increment" />
+              <NumberField.Input data-testid="input" aria-label="Amount" />
+            </NumberField.Group>
+          </NumberField.Root>
+        ));
+        flush();
+
+        const increment = screen.getByTestId("increment");
+        const input = screen.getByTestId("input") as HTMLInputElement;
+
+        fireEvent.pointerDown(increment, { button: 0, pointerType: "mouse" });
+        flush();
+        vi.advanceTimersByTime(2000);
+        flush();
+        expect(input).toHaveValue("102");
+        expect(onValueChange).toHaveBeenCalledTimes(2);
+        expect(onValueChange).toHaveBeenLastCalledWith(102, expect.objectContaining({ reason: "increment-press" }));
+
+        // The spent ticks produce no further changes once the boundary is reached.
+        vi.advanceTimersByTime(2000);
+        flush();
+        expect(input).toHaveValue("102");
+        expect(onValueChange).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   describe("keyboard", () => {
@@ -414,6 +502,109 @@ describe("<NumberField.Root />", () => {
       flush();
       expect(input).toHaveValue("101");
       expect(onValueCommitted).toHaveBeenLastCalledWith(101, expect.objectContaining({ reason: "wheel" }));
+    });
+
+    it("ignores horizontal wheel events so the page can scroll instead", async () => {
+      const onValueChange = vi.fn();
+      const onValueCommitted = vi.fn();
+      await renderWithFlush(() => <NumberFieldFixture allowWheelScrub onValueChange={onValueChange} onValueCommitted={onValueCommitted} />);
+      const input = screen.getByTestId("input") as HTMLInputElement;
+      input.focus();
+
+      fireEvent.wheel(input, { deltaY: 0, deltaX: 100 });
+      flush();
+      fireEvent.wheel(input, { deltaY: 0, deltaX: -100 });
+      flush();
+      // A precision touchpad emits sub-pixel noise on the cross axis during a sideways swipe.
+      fireEvent.wheel(input, { deltaY: -0.5, deltaX: 100 });
+      flush();
+      fireEvent.wheel(input, { deltaY: 0.5, deltaX: -100 });
+      flush();
+      // An event with no movement at all.
+      fireEvent.wheel(input, { deltaY: 0, deltaX: 0 });
+      flush();
+
+      expect(input).toHaveValue("100");
+      expect(onValueChange).not.toHaveBeenCalled();
+      expect(onValueCommitted).not.toHaveBeenCalled();
+    });
+
+    it("scrubs on a vertical wheel event that carries horizontal noise", async () => {
+      await renderWithFlush(() => <NumberFieldFixture allowWheelScrub />);
+      const input = screen.getByTestId("input") as HTMLInputElement;
+      input.focus();
+
+      fireEvent.wheel(input, { deltaY: 1, deltaX: -0.5 });
+      flush();
+      expect(input).toHaveValue("99");
+
+      fireEvent.wheel(input, { deltaY: -1, deltaX: 0.5 });
+      flush();
+      expect(input).toHaveValue("100");
+    });
+
+    it("uses the horizontal delta for shift + wheel when the browser swaps the axis", async () => {
+      await renderWithFlush(() => <NumberFieldFixture allowWheelScrub largeStep={10} />);
+      const input = screen.getByTestId("input") as HTMLInputElement;
+      input.focus();
+
+      // Chromium delivers shift + wheel as a horizontal event, so the horizontal delta carries
+      // the intended direction.
+      fireEvent.wheel(input, { deltaY: 0, deltaX: -100, shiftKey: true });
+      flush();
+      expect(input).toHaveValue("110");
+
+      fireEvent.wheel(input, { deltaY: 0, deltaX: 100, shiftKey: true });
+      flush();
+      expect(input).toHaveValue("100");
+    });
+  });
+
+  describe("focus selection", () => {
+    it("keeps the selection the browser set when focus moves into the input", async () => {
+      await renderWithFlush(() => <NumberFieldFixture />);
+      const input = screen.getByTestId("input") as HTMLInputElement;
+
+      // Tabbing into an input natively selects the whole value before the focus event fires.
+      input.setSelectionRange(0, input.value.length);
+      input.focus();
+      flush();
+
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe(input.value.length);
+    });
+
+    it("places the caret at the end when a stepper press focuses the input", async () => {
+      await renderWithFlush(() => <NumberFieldFixture />);
+      const increment = screen.getByTestId("increment");
+      const input = screen.getByTestId("input") as HTMLInputElement;
+
+      fireEvent.pointerDown(increment, { button: 0, pointerType: "mouse" });
+      flush();
+
+      expect(document.activeElement).toBe(input);
+      expect(input.selectionStart).toBe(input.value.length);
+      expect(input.selectionEnd).toBe(input.value.length);
+
+      fireEvent.pointerUp(increment);
+      flush();
+    });
+
+    it("keeps a selection the consumer sets in onFocus when focus is forwarded", async () => {
+      const { container } = await renderWithFlush(() => (
+        <NumberField.Root defaultValue={100}>
+          <NumberField.Input data-testid="input" onFocus={(event) => event.currentTarget.select()} />
+        </NumberField.Root>
+      ));
+      const input = screen.getByTestId("input") as HTMLInputElement;
+      const hidden = container.querySelector('input[type="number"]') as HTMLInputElement;
+
+      hidden.focus();
+      flush();
+
+      expect(document.activeElement).toBe(input);
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe(input.value.length);
     });
   });
 

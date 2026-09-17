@@ -61,6 +61,64 @@ describe("<Combobox.List />", () => {
     expect(rows[0]).toHaveTextContent("Apple");
   });
 
+  it("does not render aria-orientation on the listbox role", async () => {
+    render(() => (
+      <Combobox.Root defaultOpen items={["Apple"]}>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <ComboboxList data-testid="list">
+                <Combobox.Collection>
+                  {(item: unknown) => {
+                    const value = item as string;
+                    return <Combobox.Item value={value}>{value}</Combobox.Item>;
+                  }}
+                </Combobox.Collection>
+              </ComboboxList>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox.Root>
+    ));
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    // `listbox` is implicitly vertical.
+    const list = screen.getByTestId("list");
+    expect(list).toHaveAttribute("role", "listbox");
+    expect(list).not.toHaveAttribute("aria-orientation");
+  });
+
+  it("does not render aria-orientation on the grid role", async () => {
+    render(() => (
+      <Combobox.Root defaultOpen grid items={["Apple"]}>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <ComboboxList data-testid="list">
+                <Combobox.Collection>
+                  {(item: unknown) => {
+                    const value = item as string;
+                    return <Combobox.Item value={value}>{value}</Combobox.Item>;
+                  }}
+                </Combobox.Collection>
+              </ComboboxList>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox.Root>
+    ));
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    // The grid role does not support aria-orientation (axe: aria-allowed-attr).
+    const list = screen.getByTestId("list");
+    expect(list).toHaveAttribute("role", "grid");
+    expect(list).not.toHaveAttribute("aria-orientation");
+  });
+
   it("uses the grid role when the combobox is in grid mode", async () => {
     render(() => (
       <Combobox.Root defaultOpen grid items={["Apple"]}>

@@ -1,5 +1,5 @@
 import { render, screen } from "@solidjs/testing-library";
-import { createSignal, flush, For } from "solid-js";
+import { createSignal, flush, For, Show } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { pressKey } from "#test-utils";
@@ -109,7 +109,7 @@ describe("useCompositeRoot roving tab stop", () => {
     expect(tabIndexes()).toEqual(["0", "-1", "-1", "-1"]);
   });
 
-  it("keeps a single tab stop when the highlighted item unmounts", () => {
+  it("moves the tab stop back into range when the highlighted item unmounts", () => {
     const [count, setCount] = createSignal(4);
 
     render(() => (
@@ -128,7 +128,74 @@ describe("useCompositeRoot roving tab stop", () => {
     setCount(1);
     flush();
 
-    expect(tabIndexes().filter((value) => value === "0")).toHaveLength(0);
+    expect(tabIndexes()).toEqual(["0"]);
+  });
+
+  it("keeps the tab stop on the highlighted item when an earlier item is removed", () => {
+    const [showFirst, setShowFirst] = createSignal(true);
+
+    render(() => (
+      <CompositeRoot orientation="horizontal">
+        <Show when={showFirst()}>{<CompositeItem as="button" props={{ children: "item 0" }} />}</Show>
+        <CompositeItem as="button" props={{ children: "item 1" }} />
+        <CompositeItem as="button" props={{ children: "item 2" }} />
+        <CompositeItem as="button" props={{ children: "item 3" }} />
+      </CompositeRoot>
+    ));
+
+    screen.getAllByRole("button")[0].focus();
+    pressKey(ARROW_RIGHT);
+    flush();
+    pressKey(ARROW_RIGHT);
+    flush();
+    expect(tabIndexes()).toEqual(["-1", "-1", "0", "-1"]);
+
+    setShowFirst(false);
+    flush();
+
+    expect(tabIndexes()).toEqual(["-1", "0", "-1"]);
+    expect(tabIndexes().filter((value) => value === "0")).toHaveLength(1);
+
+    // Navigation continues from the item that holds the tab stop.
+    pressKey(ARROW_RIGHT);
+    flush();
+
+    expect(document.activeElement?.textContent).toBe("item 3");
+    expect(tabIndexes()).toEqual(["-1", "-1", "0"]);
+  });
+
+  it("moves the tab stop to the active item when the highlighted item is removed", () => {
+    const [items, setItems] = createSignal([0, 1, 2, 3]);
+
+    render(() => (
+      <CompositeRoot orientation="horizontal">
+        <For each={items()}>
+          {(index) => (
+            <CompositeItem
+              as="button"
+              props={
+                {
+                  children: `item ${index}`,
+                  [ACTIVE_COMPOSITE_ITEM]: index === 2 ? "" : undefined,
+                } as Record<string, unknown>
+              }
+            />
+          )}
+        </For>
+      </CompositeRoot>
+    ));
+    flush();
+    expect(tabIndexes()).toEqual(["-1", "-1", "0", "-1"]);
+
+    screen.getAllByRole("button")[2].focus();
+    pressKey(ARROW_RIGHT);
+    flush();
+    expect(tabIndexes()).toEqual(["-1", "-1", "-1", "0"]);
+
+    setItems([0, 1, 2]);
+    flush();
+
+    expect(tabIndexes()).toEqual(["-1", "-1", "0"]);
   });
 });
 

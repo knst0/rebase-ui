@@ -37,6 +37,18 @@ describe("<Select.Popup />", () => {
     expect(popup.getAttribute("data-side")).toMatch(/^(top|bottom|left|right|inline-start|inline-end)$/);
   });
 
+  it("does not render aria-orientation when the popup owns the listbox role", async () => {
+    renderOpenPopup();
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    // `listbox` is implicitly vertical.
+    const popup = screen.getByTestId("popup");
+    expect(popup).toHaveAttribute("role", "listbox");
+    expect(popup).not.toHaveAttribute("aria-orientation");
+  });
+
   it("matches the positioner side", async () => {
     render(() => (
       <Select.Root defaultOpen>

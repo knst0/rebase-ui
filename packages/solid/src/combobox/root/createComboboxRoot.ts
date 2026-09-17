@@ -970,32 +970,32 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
         // grid movement. When the input has focus and no item is highlighted the user
         // is still editing the query, so let the input keep its native caret behavior.
         if (parameters.grid() && store.peek("activeIndex") == null && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
-          dismissKeyDown(event);
+          dismissKeyDown?.(event);
           return;
         }
-        navigationKeyDown(event);
-        dismissKeyDown(event);
-        clickKeyDown();
+        navigationKeyDown?.(event);
+        dismissKeyDown?.(event);
+        clickKeyDown?.();
       },
       onPointerDown: (event: PointerEvent) => {
-        navigationReference.onPointerDown(event);
-        dismissReference.onPointerDown(event);
-        clickReference.onPointerDown(event);
+        navigationReference.onPointerDown?.(event);
+        dismissReference.onPointerDown?.(event);
+        clickReference.onPointerDown?.(event);
       },
       onMouseDown: (event: MouseEvent) => {
-        navigationReference.onMouseDown(event);
-        clickReference.onMouseDown(event);
+        navigationReference.onMouseDown?.(event);
+        clickReference.onMouseDown?.(event);
       },
       onClick: (event: MouseEvent) => {
-        navigationReference.onClick(event);
-        dismissReference.onClick(event);
-        clickReference.onClick(event);
+        navigationReference.onClick?.(event);
+        dismissReference.onClick?.(event);
+        clickReference.onClick?.(event);
       },
       onFocus: (event: FocusEvent) => {
-        navigationReference.onFocus(event);
+        navigationReference.onFocus?.(event);
       },
       onPointerEnter: (event: PointerEvent) => {
-        navigationReference.onPointerEnter(event);
+        navigationReference.onPointerEnter?.(event);
       },
     };
   }

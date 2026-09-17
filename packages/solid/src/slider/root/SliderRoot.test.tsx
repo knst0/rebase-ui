@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
+import { createSignal } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { describeConformance } from "#test-utils";
@@ -137,4 +138,66 @@ describe("<Slider.Root />", () => {
     expect(label.id).toMatch(/-label$/);
     expect(screen.getByRole("group")).toHaveAttribute("aria-labelledby", label.id);
   });
+
+  it("does not re-fire the control ref on reactive updates", async () => {
+    const controlRef = vi.fn();
+    const user = userEvent.setup();
+    render(() => (
+      <SliderRoot defaultValue={25}>
+        <SliderControl ref={controlRef}>
+          <SliderTrack>
+            <SliderIndicator />
+            <SliderThumb aria-label="Volume" />
+          </SliderTrack>
+        </SliderControl>
+      </SliderRoot>
+    ));
+
+    expect(controlRef).toHaveBeenCalledTimes(1);
+
+    const thumb = screen.getByRole("slider", { name: "Volume" });
+    thumb.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(thumb).toHaveAttribute("aria-valuenow", "26");
+    expect(controlRef).toHaveBeenCalledTimes(1);
+  });
+
+  it("settles with a single registered thumb across control remounts", async () => {
+    const user = userEvent.setup();
+    render(() => {
+      const [shown, setShown] = createSignal(true);
+      return (
+        <>
+          <button type="button" onClick={() => setShown((value) => !value)}>
+            toggle
+          </button>
+          {shown() ? (
+            <SliderRoot defaultValue={25}>
+              <SliderControl>
+                <SliderTrack>
+                  <SliderIndicator />
+                  <SliderThumb aria-label="Volume" />
+                </SliderTrack>
+              </SliderControl>
+            </SliderRoot>
+          ) : null}
+        </>
+      );
+    });
+
+    expect(screen.getAllByRole("slider")).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "toggle" }));
+    expect(screen.queryByRole("slider")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "toggle" }));
+    const thumbs = screen.getAllByRole("slider");
+    expect(thumbs).toHaveLength(1);
+
+    thumbs[0].focus();
+    await user.keyboard("{ArrowRight}");
+    expect(thumbs[0]).toHaveAttribute("aria-valuenow", "26");
+  });
+
 });

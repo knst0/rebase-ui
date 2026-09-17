@@ -75,33 +75,47 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
 
   // Registers into the handle's pending map while no root is attached so imperative
   // `handle.open(id)` resolves the trigger. Migrates to the live store once it attaches.
-  createEffect(
-    () => ({ element: triggerElement(), liveStore: store() }),
-    ({ element, liveStore }) => {
-      if (element === null || liveStore !== undefined || !handle) {
-        return undefined;
-      }
-      return handle.registerPendingTrigger(thisTriggerId, element);
-    },
-  );
+  // Created only for detached triggers with a handle: without one the body would bail
+  // out unconditionally, so mounting skips the effect and its subscriptions entirely.
+  if (handle) {
+    createEffect(
+      () => ({ element: triggerElement(), liveStore: store() }),
+      ({ element, liveStore }) => {
+        if (element === null || liveStore !== undefined) {
+          return undefined;
+        }
+        return handle.registerPendingTrigger(thisTriggerId, element);
+      },
+    );
+  }
 
   // Syncs the hover config to the store eagerly (while closed), not only once
   // the popup is mounted. `setupTrigger` above applies these fields only while
   // the popup is mounted, but `PopoverPopup` reads them once when it mounts on
   // open — without this, the popup's hover interaction would observe the
   // initial `false`/`0` on first open and mis-handle trigger-to-popup hover.
+  // The hover config is subscribed only once the write path is reachable (a store
+  // is present, the element mounted, and no other trigger owns the popup), so a
+  // closed or shadowed trigger mounts without tracking prop changes it would discard.
   createEffect(
-    () => ({ liveStore: store(), element: triggerElement(), openOnHover: openOnHover(), closeDelay: local.closeDelay ?? 0 }),
-    ({ liveStore, element, openOnHover, closeDelay }) => {
+    () => {
+      const liveStore = store();
+      const element = triggerElement();
       if (!liveStore || element === null) {
         return undefined;
       }
-      const activeTriggerId = untrack(() => liveStore.peek("activeTriggerId")) as string | null;
+      const activeTriggerId = liveStore.peek("activeTriggerId") as string | null;
       if (activeTriggerId !== null && activeTriggerId !== thisTriggerId) {
         return undefined;
       }
-      liveStore.set("openOnHover", openOnHover);
-      liveStore.set("closeDelay", closeDelay);
+      return { liveStore, openOnHover: openOnHover(), closeDelay: local.closeDelay ?? 0 };
+    },
+    (data) => {
+      if (!data) {
+        return undefined;
+      }
+      data.liveStore.set("openOnHover", data.openOnHover);
+      data.liveStore.set("closeDelay", data.closeDelay);
       return undefined;
     },
   );

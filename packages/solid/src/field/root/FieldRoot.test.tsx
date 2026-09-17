@@ -339,4 +339,90 @@ describe("<Field.Root />", () => {
       expect(validate).toHaveBeenCalledTimes(1);
     });
   });
+  describe("async validation pending state", () => {
+    it("publishes neutral validity and raises the validating flag while a validator is in flight", async () => {
+      let resolveValidate!: (value: string | null) => void;
+      const validate = vi.fn(
+        () =>
+          new Promise<string | null>((resolve) => {
+            resolveValidate = resolve;
+          }),
+      );
+
+      await render(() => (
+        <Field.Root data-testid="root" validationMode="onChange" validate={validate}>
+          <Field.Control data-testid="control" />
+          <Field.Error data-testid="error" />
+        </Field.Root>
+      ));
+
+      const root = screen.getByTestId("root");
+      const control = screen.getByTestId("control");
+
+      fireEvent.change(control, { target: { value: "taken" } });
+      await flushMicrotasks();
+
+      expect(validate).toHaveBeenCalledTimes(1);
+      // Validity is unknown mid-flight: neutral, error hidden, flag raised.
+      expect(root).not.toHaveAttribute("data-valid");
+      expect(root).not.toHaveAttribute("data-invalid");
+      expect(root).toHaveAttribute("data-validating");
+      expect(control).not.toHaveAttribute("aria-invalid");
+      expect(screen.queryByTestId("error")).toBe(null);
+
+      resolveValidate("Username is taken");
+      await flushMicrotasks();
+      await waitFor(() => {
+        expect(root).toHaveAttribute("data-invalid", "");
+      });
+
+      expect(root).not.toHaveAttribute("data-validating");
+      expect(control).toHaveAttribute("aria-invalid", "true");
+      expect(screen.getByTestId("error")).toHaveTextContent("Username is taken");
+    });
+
+    it("retires a superseded async run without clearing the latest pending flag", async () => {
+      const resolvers: Array<(value: string | null) => void> = [];
+      const validate = vi.fn(
+        () =>
+          new Promise<string | null>((resolve) => {
+            resolvers.push(resolve);
+          }),
+      );
+
+      await render(() => (
+        <Field.Root data-testid="root" validationMode="onChange" validate={validate}>
+          <Field.Control data-testid="control" />
+          <Field.Error data-testid="error" />
+        </Field.Root>
+      ));
+
+      const root = screen.getByTestId("root");
+      const control = screen.getByTestId("control");
+
+      fireEvent.change(control, { target: { value: "a" } });
+      await flushMicrotasks();
+      expect(root).toHaveAttribute("data-validating");
+
+      fireEvent.change(control, { target: { value: "ab" } });
+      await flushMicrotasks();
+
+      expect(validate).toHaveBeenCalledTimes(2);
+      expect(root).toHaveAttribute("data-validating");
+
+      // The stale run resolves last: ignored, the latest run still owns the flag.
+      resolvers[0]("stale error");
+      await flushMicrotasks();
+      expect(root).toHaveAttribute("data-validating");
+      expect(root).not.toHaveAttribute("data-invalid");
+      expect(screen.queryByTestId("error")).toBe(null);
+
+      resolvers[1](null);
+      await flushMicrotasks();
+      await waitFor(() => {
+        expect(root).toHaveAttribute("data-valid", "");
+      });
+      expect(root).not.toHaveAttribute("data-validating");
+    });
+  });
 });

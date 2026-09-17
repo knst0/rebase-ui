@@ -47,7 +47,6 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
   const { validationMode, setTouched, setFocused, invalid, shouldValidateOnChange, validation } = useFieldRootContext();
   const { labelId } = useLabelableContext();
 
-  let hasTouchedInput = false;
   let blockRevalidation = false;
   let pendingCaret: number | null = null;
 
@@ -131,18 +130,6 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
       }
 
       setFocused(true);
-
-      if (hasTouchedInput) {
-        return;
-      }
-
-      hasTouchedInput = true;
-
-      // Browsers set selection at the start of the input field by default. We want to set it at
-      // the end for the first focus.
-      const currentTarget = event.currentTarget;
-      const length = currentTarget.value.length;
-      currentTarget.setSelectionRange(length, length);
     });
 
     chainHandler("onBlur", (event: FocusEvent & { currentTarget: HTMLInputElement }) => {

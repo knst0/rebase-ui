@@ -112,15 +112,19 @@ export function TooltipTrigger<Payload = unknown, T extends ValidComponent = "bu
 
   // Registers into the handle's pending map while no root is attached so imperative
   // `handle.open(id)` resolves the trigger. Migrates to the live store once it attaches.
-  createEffect(
-    () => ({ element: triggerElement(), liveStore: store() }),
-    ({ element, liveStore }) => {
-      if (element === null || liveStore !== undefined || !handle) {
-        return undefined;
-      }
-      return handle.registerPendingTrigger(thisTriggerId, element);
-    },
-  );
+  // Created only for detached triggers with a handle: without one the body would bail
+  // out unconditionally, so mounting skips the effect and its subscriptions entirely.
+  if (handle) {
+    createEffect(
+      () => ({ element: triggerElement(), liveStore: store() }),
+      ({ element, liveStore }) => {
+        if (element === null || liveStore !== undefined) {
+          return undefined;
+        }
+        return handle.registerPendingTrigger(thisTriggerId, element);
+      },
+    );
+  }
 
   const providerDelay = useTooltipProviderContext();
 

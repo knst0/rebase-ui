@@ -121,6 +121,7 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
     errors: [],
     value: null,
     initialValue: null,
+    isValidating: false,
   });
 
   const valid = createMemo<boolean | null>(() => {
@@ -140,13 +141,14 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
     valid,
     filled,
     focused,
+    validating: () => validityData.isValidating,
   };
-
   const validation = createFieldValidation({
     setValidityData,
     validate,
     validityData,
     validationDebounceTime,
+    validationMode,
     invalid,
     markedDirty: () => markedDirty,
     state,
@@ -231,16 +233,17 @@ export interface FieldValidityData {
   errors: string[];
   value: unknown;
   initialValue: unknown;
+  /**
+   * Whether an async validator is currently in flight. Reset when the latest
+   * validation run settles or is superseded.
+   */
+  isValidating: boolean;
 }
 
 export interface FieldRootActions {
   validate: () => void;
 }
-
 export interface FieldRootState {
-  /**
-   * Whether the component should ignore user interaction.
-   */
   disabled: Accessor<boolean>;
   /**
    * Whether the field has been touched.
@@ -262,6 +265,10 @@ export interface FieldRootState {
    * Whether the field is focused.
    */
   focused: Accessor<boolean>;
+  /**
+   * Whether an async validator is currently in flight.
+   */
+  validating: Accessor<boolean>;
 }
 
 export interface FieldRootOwnProps {

@@ -41,9 +41,19 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
 
   const registerControlId = (source: object, nextId: string | null | undefined) => {
     if (nextId === undefined) {
-      if (registrations.delete(source)) {
-        setControlId(resolveControlId);
+      if (!registrations.delete(source)) {
+        return;
       }
+
+      if (registrations.size === 0) {
+        // The last control unregistered: reset so `for`/`id` don't stick to a removed
+        // control. A disposed subtree keeps its rendered association since its scopes
+        // are gone and no live reader observes this reset.
+        setControlId(defaultId);
+        return;
+      }
+
+      setControlId(resolveControlId);
       return;
     }
 

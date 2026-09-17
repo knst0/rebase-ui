@@ -283,7 +283,7 @@ export function NumberFieldScrubArea<T extends ValidComponent = "span">(props: N
 
     if (event.pointerType === "mouse") {
       event.preventDefault();
-      untrack(store.inputElement)?.focus();
+      store.focusInput();
     }
 
     isScrubbingRef = true;

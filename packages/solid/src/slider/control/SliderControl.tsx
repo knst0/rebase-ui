@@ -4,7 +4,6 @@ import { createEffect, onCleanup, untrack } from "solid-js";
 
 import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
-import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
@@ -536,6 +535,23 @@ export function SliderControl<T extends ValidComponent = "div">(props: SliderCon
     "data-base-ui-slider-control": renderBeforeHydration() ? "" : undefined,
   };
 
+  // Stable ref identity with an identity guard (see `handleThumbRef` in SliderThumb):
+  // re-fires with the same element must not re-run registration work or stack
+  // duplicate listeners, which cascades into recomputations (update loop).
+  let controlRefElement: HTMLElement | null = null;
+  const handleControlRef = (element: HTMLElement | null) => {
+    controlElement = element;
+    if (element === controlRefElement) {
+      return;
+    }
+    controlRefElement = element;
+    registerFieldControlRef(element);
+    setStylesRef(element);
+    if (element) {
+      element.addEventListener("touchstart", handleTouchStart as EventListener, { passive: true });
+    }
+  };
+
   return (
     <RenderElement
       as={as}
@@ -545,12 +561,7 @@ export function SliderControl<T extends ValidComponent = "div">(props: SliderCon
         elementProps,
         controlHandlers,
         {
-          ref: mergeRefs(registerFieldControlRef, setStylesRef, (element: HTMLElement | null) => {
-            controlElement = element;
-            if (element) {
-              element.addEventListener("touchstart", handleTouchStart as EventListener, { passive: true });
-            }
-          }),
+          ref: handleControlRef,
         },
       ]}
       stateAttributesMapping={sliderStateAttributesMapping}

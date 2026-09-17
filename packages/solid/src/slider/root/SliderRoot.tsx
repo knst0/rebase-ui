@@ -144,6 +144,12 @@ export function SliderRoot<Value extends number | readonly number[], T extends V
     }
   };
 
+  // Stable ref identity: recreating this callback would re-fire the root ref,
+  // which cascades into redundant registry/effect work on every update.
+  const setSliderRef = (element: HTMLElement | null) => {
+    sliderElement = element;
+  };
+
   const range = () => Array.isArray(valueUnwrapped());
 
   const values = createMemo(() => {
@@ -354,9 +360,7 @@ export function SliderRoot<Value extends number | readonly number[], T extends V
             elementProps,
             (props) => validation.getValidationProps(disabled(), props),
             {
-              ref: (element: HTMLElement) => {
-                sliderElement = element;
-              },
+              ref: setSliderRef,
             },
           ]}
           stateAttributesMapping={sliderStateAttributesMapping}

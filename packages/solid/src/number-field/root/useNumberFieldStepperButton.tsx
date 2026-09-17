@@ -1,5 +1,5 @@
 import type { JSX, ValidComponent } from "@solidjs/web";
-import { onCleanup, untrack } from "solid-js";
+import { createEffect, onCleanup, untrack } from "solid-js";
 
 import { createButton } from "../../internals/create-button";
 import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
@@ -90,6 +90,9 @@ export function useNumberFieldStepperButton<T extends ValidComponent>(
 
   let holding = false;
   let holdTicked = false;
+  // Armed when a hold is canceled by disabling mid-press, so the trailing click of the canceled
+  // press doesn't step (mirrors the upstream press-and-hold reset on `disabled`).
+  let holdCanceled = false;
   let startTimeout: ReturnType<typeof setTimeout> | undefined;
   let repeatInterval: ReturnType<typeof setInterval> | undefined;
 
@@ -105,12 +108,24 @@ export function useNumberFieldStepperButton<T extends ValidComponent>(
   }
 
   function tick(triggerEvent: Event): boolean {
+    // The hold may have been disabled after the timers were scheduled but before they ran;
+    // stop instead of stepping from a stale press.
+    if (untrack(buttonDisabled) || untrack(readOnly)) {
+      clearHoldTimers();
+      return false;
+    }
     const amount = store.getStepAmount(triggerEvent as EventWithOptionalKeyState);
-    return store.incrementValue(amount, {
+    const changed = store.incrementValue(amount, {
       direction,
       event: triggerEvent,
       reason: pressReason,
     });
+    if (!changed) {
+      // At a boundary (or after a canceled change) there is nothing more to repeat, so stop the
+      // auto-change sequence like upstream instead of ticking forever.
+      clearHoldTimers();
+    }
+    return changed;
   }
 
   function stopHold(nativeEvent: PointerEvent) {
@@ -124,6 +139,23 @@ export function useNumberFieldStepperButton<T extends ValidComponent>(
     const committed = store.lastChangedValueRef.current ?? store.valueRef.current;
     store.onValueCommitted(committed, createGenericEventDetails(pressReason, nativeEvent));
   }
+
+  // Mirror the upstream press-and-hold effect: disabling (or making read-only) mid-hold cancels
+  // the press — repeats stop at once instead of continuing from a stale press. The boundary is
+  // deliberately excluded here: reaching it stops the timers via `tick`, but the release still
+  // commits like upstream.
+  createEffect(
+    () => local.disabled === true || state.disabled() === true || state.readOnly() === true,
+    (isDisabled) => {
+      if (isDisabled) {
+        if (holding || holdTicked) {
+          holdCanceled = true;
+        }
+        holding = false;
+        clearHoldTimers();
+      }
+    },
+  );
 
   onCleanup(clearHoldTimers);
 
@@ -167,9 +199,11 @@ export function useNumberFieldStepperButton<T extends ValidComponent>(
         return;
       }
 
-      // A press-and-hold already stepped (and committed on release); don't step again.
-      if (holdTicked) {
+      // A press-and-hold already stepped (and committed on release); don't step again. A hold
+      // canceled by disabling mid-press suppresses its trailing click the same way.
+      if (holdTicked || holdCanceled) {
         holdTicked = false;
+        holdCanceled = false;
         return;
       }
 
@@ -204,7 +238,7 @@ export function useNumberFieldStepperButton<T extends ValidComponent>(
 
       if (!isTouchLikePointerType(event.pointerType)) {
         // Focus the input so the user can continue with keyboard interactions.
-        store.inputElement()?.focus();
+        store.focusInput();
       }
 
       try {
@@ -215,12 +249,16 @@ export function useNumberFieldStepperButton<T extends ValidComponent>(
 
       holding = true;
       holdTicked = false;
+      holdCanceled = false;
 
       startTimeout = setTimeout(() => {
         startTimeout = undefined;
-        if (tick(event)) {
-          holdTicked = true;
+        if (!tick(event)) {
+          // The first tick didn't change anything (disabled, read-only, boundary, or canceled),
+          // so there is nothing to repeat.
+          return;
         }
+        holdTicked = true;
         repeatInterval = setInterval(() => {
           if (tick(event)) {
             holdTicked = true;

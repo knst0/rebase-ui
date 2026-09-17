@@ -492,11 +492,14 @@ export function createAnchorPositioning(
       const unwrappedElement = (isRef(resolvedAnchor) ? (resolvedAnchor as { current: Element | null }).current : resolvedAnchor) || null;
       const finalAnchor = unwrappedElement || null;
 
+      if (isDetachedOrDisabledAnchor(finalAnchor)) {
+        return undefined;
+      }
+
       if (finalAnchor !== registeredPositionReference) {
         floatingApi.refs.setPositionReference(finalAnchor);
         registeredPositionReference = finalAnchor;
       }
-      return undefined;
     },
   );
 
@@ -505,7 +508,7 @@ export function createAnchorPositioning(
     ({ isMounted, isPositioned }) => {
       if (keepMounted && isMounted && isPositioned) {
         const { reference, floating } = floatingApi.elements;
-        if (reference && floating) {
+        if (reference && floating && !isDetachedOrDisabledAnchor(reference)) {
           return autoUpdate(reference, floating, floatingApi.update, autoUpdateOptions);
         }
       }
@@ -561,6 +564,15 @@ export function createAnchorPositioning(
 
 function isRef(param: Element | VirtualElement | { current: unknown } | null | undefined): param is { current: unknown } {
   return param != null && "current" in (param as object);
+}
+
+// Whether floating-ui must skip this anchor: a detached element has no meaningful rect to
+// position against, and a disabled one must not be followed by anchor tracking.
+function isDetachedOrDisabledAnchor(anchor: Element | VirtualElement | null): boolean {
+  if (!(anchor instanceof Element)) {
+    return false;
+  }
+  return !anchor.isConnected || anchor.hasAttribute("disabled") || anchor.getAttribute("aria-disabled") === "true";
 }
 
 export interface CreateAnchorPositioningSharedParameters {

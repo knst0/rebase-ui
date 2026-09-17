@@ -28,7 +28,12 @@ export function useCompositeItem(parameters: UseCompositeItemParameters = {}): U
   const index = () => context.indexOf(itemElement);
 
   const compositeRef = (element: HTMLElement | null) => {
+    if (itemElement !== null) {
+      context.unregisterItem(itemElement);
+    }
+
     itemElement = element;
+
     if (element !== null) {
       const metadata = typeof parameters.metadata === "function" ? parameters.metadata() : parameters.metadata;
       context.registerItem(element, metadata);

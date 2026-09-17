@@ -15,6 +15,7 @@ export interface NumberFieldRootContext {
   incrementValue: (amount: number, params: IncrementValueParameters) => boolean;
   inputElement: Accessor<HTMLInputElement | null>;
   setInputElement: (element: HTMLInputElement | null) => void;
+  focusInput: () => void;
   allowInputSyncRef: { current: boolean };
   valueRef: { current: number | null };
   lastChangedValueRef: { current: number | null };

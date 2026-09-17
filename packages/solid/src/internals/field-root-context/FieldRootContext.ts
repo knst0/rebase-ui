@@ -31,6 +31,7 @@ const DEFAULT_VALIDITY_DATA: FieldValidityData = {
   error: "",
   value: "",
   initialValue: null,
+  isValidating: false,
 };
 
 const NOOP_VALIDITY_SETTER: StoreSetter<FieldValidityData> = NOOP;

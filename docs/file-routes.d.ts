@@ -45,6 +45,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/";
       page: true;
       $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
@@ -88,6 +94,12 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/(main)/components/collapsible/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/(main)/components/combobox/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -177,6 +189,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/(main)/components/select/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/(main)/components/separator/";
       page: true;
       $component: FileRouteLazyRef;
@@ -220,24 +238,6 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/(main)/components/tooltip/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components";
-      page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/select/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/combobox/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -374,6 +374,14 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/select/";
+              id: "/select/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/slider/";
               id: "/slider/";
               page: true;
@@ -392,14 +400,6 @@ declare module "virtual:file-routes" {
             {
               path: "/toggle/";
               id: "/toggle/";
-              page: true;
-              $component: FileRouteLazyRef;
-              $$route?: undefined;
-              children?: undefined;
-            },
-            {
-              path: "/select/";
-              id: "/select/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
@@ -430,16 +430,16 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
-              path: "/fieldset/";
-              id: "/fieldset/";
+              path: "/combobox/";
+              id: "/combobox/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
               children?: undefined;
             },
             {
-              path: "/combobox/";
-              id: "/combobox/";
+              path: "/fieldset/";
+              id: "/fieldset/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

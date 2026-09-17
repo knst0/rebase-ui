@@ -1,5 +1,5 @@
 import { createRoot, createSignal, flush } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createFloating } from "../createFloating";
 import { createClick } from "./createClick";
@@ -151,6 +151,30 @@ describe("floating interactions", () => {
       flush();
 
       expect(opened).toEqual([true]);
+
+      dispose();
+    }));
+
+  it("registers floating touch listeners as passive", () =>
+    createRoot((dispose) => {
+      const { context } = createOwner();
+      createDismiss(context);
+
+      const floating = document.createElement("div");
+      const addEventListener = vi.spyOn(floating, "addEventListener");
+      try {
+        context.refs.setFloating(floating);
+        flush();
+
+        for (const type of ["touchmove", "touchend"]) {
+          expect(addEventListener).toHaveBeenCalledWith(type, expect.any(Function), {
+            capture: true,
+            passive: true,
+          });
+        }
+      } finally {
+        addEventListener.mockRestore();
+      }
 
       dispose();
     }));

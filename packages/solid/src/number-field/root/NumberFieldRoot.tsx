@@ -322,6 +322,20 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
     },
   );
 
+  // Programmatic focus leaves the caret at the start (Chrome/Firefox) or selects the whole value
+  // (Safari). Store the caret at the end before focusing: every engine restores the stored
+  // selection on `focus()`, and a selection the consumer sets in `onFocus` still wins. Keyboard
+  // and pointer focus keep the browser's native selection behavior.
+  function focusInput() {
+    const input = untrack(inputElement);
+    if (!input) {
+      return;
+    }
+    const length = input.value.length;
+    input.setSelectionRange(length, length);
+    input.focus();
+  }
+
   // The `wheel` listener must be non-passive so `preventDefault` can stop page scrolling.
   // It is attached natively to the input instead of via JSX for the same reason.
   createEffect(
@@ -340,6 +354,18 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
           return;
         }
 
+        // Some browsers deliver shift + wheel on the horizontal axis, so there the horizontal
+        // delta is the intended vertical one. Touchpads emit sub-pixel noise on the cross axis,
+        // so compare the axes rather than requiring an exact zero.
+        const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+        const delta = event.shiftKey && isHorizontal ? event.deltaX : event.deltaY;
+
+        // Ignore horizontal gestures so the page can scroll instead of scrubbing. Shift is exempt:
+        // its gesture is horizontal wherever the browser swaps the axis.
+        if (delta === 0 || (!event.shiftKey && isHorizontal)) {
+          return;
+        }
+
         // Prevent the default behavior to avoid scrolling the page.
         event.preventDefault();
         allowInputSyncRef.current = true;
@@ -349,7 +375,7 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
         // Each wheel turn is a discrete, final change, so commit it immediately like keyboard
         // steps (gated on an actual change so boundary no-ops don't commit).
         const changed = incrementValue(amount, {
-          direction: event.deltaY > 0 ? -1 : 1,
+          direction: delta > 0 ? -1 : 1,
           event,
           reason: REASONS.wheel,
         });
@@ -378,6 +404,7 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
   const contextValue: NumberFieldRootContext = {
     inputElement,
     setInputElement: (element) => setInputElement(element),
+    focusInput,
     minWithDefault: () => minWithDefault(),
     maxWithDefault: () => maxWithDefault(),
     id,
@@ -419,7 +446,7 @@ export function NumberFieldRoot<T extends ValidComponent = "div">(props: NumberF
   const hiddenInputValidationProps = createMemo(() =>
     validation.getValidationProps(disabled(), {
       onFocus: () => {
-        inputElement()?.focus();
+        focusInput();
       },
       onChange: (event: Event) => {
         // Workaround for https://github.com/react/react/issues/9023

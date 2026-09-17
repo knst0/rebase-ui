@@ -134,6 +134,7 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
   };
 
   const setHighlightedIndex = (index: number, shouldScrollIntoView = false) => {
+    highlightedElement = untrack(elements)[index] ?? null;
     setInternalHighlightedIndex(index);
     parameters.onHighlightedIndexChange?.(index);
 
@@ -163,7 +164,7 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
     }
     return claimedTabStops++ === untrack(highlightedIndex) ? 0 : -1;
   };
-
+  let highlightedElement: HTMLElement | null = null;
   let tabStopElement: HTMLElement | null = null;
 
   createEffect(
@@ -208,6 +209,25 @@ export function useCompositeRoot(parameters: UseCompositeRootParameters = {}): U
         }
 
         scrollHighlightedIntoView(activeItem);
+        return;
+      }
+
+      // Items added or removed around the highlighted one shift its index, so the tab stop
+      // would otherwise move to a different item and navigation would resume from the
+      const nextIndex = highlightedElement == null ? -1 : items.indexOf(highlightedElement);
+
+      if (nextIndex === -1) {
+        // A replacement at the same index can keep the tab stop. Otherwise move it to an
+        // eligible item so a missing, hidden, or disabled replacement does not take the
+        // composite out of the tab order.
+        const replacement = items[currentIndex];
+        if (replacement == null || isListIndexDisabled(items, currentIndex, indices)) {
+          setHighlightedIndex(getFallbackIndex(items, indices));
+          return;
+        }
+        highlightedElement = replacement;
+      } else if (nextIndex !== currentIndex) {
+        setHighlightedIndex(nextIndex);
         return;
       }
 
@@ -360,6 +380,31 @@ function shouldDeferToNativeInput(event: KeyboardEvent, forwardKey: string, back
   }
 
   return false;
+}
+
+// Resolves the item that should hold the tab stop: the active item when it can take focus,
+// otherwise the first item that can. Falls back to index 0 so an all-disabled composite keeps
+// the index in range and regains a tab stop as soon as one of its items becomes focusable.
+function getFallbackIndex(elements: CompositeElements, disabledIndices?: DisabledIndices): number {
+  let fallbackIndex = -1;
+
+  for (let index = 0; index < elements.length; index += 1) {
+    const element = elements[index];
+
+    if (!element || isListIndexDisabled(elements, index, disabledIndices)) {
+      continue;
+    }
+
+    if (element.hasAttribute(ACTIVE_COMPOSITE_ITEM)) {
+      return index;
+    }
+
+    if (fallbackIndex === -1) {
+      fallbackIndex = index;
+    }
+  }
+
+  return Math.max(fallbackIndex, 0);
 }
 
 function resolveValueOrAccessor<T>(value: ValueOrAccessor<T> | undefined): T | undefined {

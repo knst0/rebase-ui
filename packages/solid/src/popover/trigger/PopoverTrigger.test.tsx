@@ -42,6 +42,35 @@ describe("<Popover.Trigger />", () => {
     expect(screen.getByText("Content").getAttribute("id")).toBe(controls);
   });
 
+  it("mounts a closed hover trigger without opening and keeps its hover config", async () => {
+    render(() => (
+      <Popover.Root>
+        <Popover.Trigger openOnHover delay={0} closeDelay={200}>
+          Hover me
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner>
+            <Popover.Popup>Content</Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ));
+    flush();
+    await nextFrames();
+
+    // Mounting performs no open work: the popup stays unmounted and closed.
+    const trigger = screen.getByRole("button", { name: "Hover me" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Content")).not.toBeInTheDocument();
+
+    // The eagerly synced hover config still applies on first interaction.
+    fireEvent.mouseEnter(trigger);
+    await sleep(10);
+    flush();
+    await nextFrames();
+    expect(screen.queryByText("Content")).toBeInTheDocument();
+  });
+
   it("opens on hover when openOnHover is set", async () => {
     render(() => (
       <Popover.Root>

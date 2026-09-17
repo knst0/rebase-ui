@@ -25,6 +25,12 @@ export function createAnimationsFinishedRunner(
 
   onCleanup(cancel);
 
+  // Whether the element animates in the current `open` epoch. Probed on the first run of
+  // each epoch and cached: repeat runs skip `getAnimations` entirely until `open` changes.
+  let cachedElement: HTMLElement | null | undefined;
+  let cachedOpen: boolean | undefined;
+  let cachedHasAnimations: boolean | undefined;
+
   return (fnToExecute, signal = null) => {
     cancel();
 
@@ -34,6 +40,17 @@ export function createAnimationsFinishedRunner(
     }
 
     if (globalThis.REBASE_UI_ANIMATIONS_DISABLED || typeof resolvedElement.getAnimations !== "function") {
+      fnToExecute();
+      return;
+    }
+
+    const open = untrack(waitForStartingStyleRemoved);
+    if (cachedElement !== resolvedElement || cachedOpen !== open) {
+      cachedElement = resolvedElement;
+      cachedOpen = open;
+      cachedHasAnimations = undefined;
+    } else if (cachedHasAnimations === false && !signal?.aborted) {
+      // Probed before in this epoch: the element doesn't animate, so there is nothing to wait for.
       fnToExecute();
       return;
     }
@@ -51,7 +68,17 @@ export function createAnimationsFinishedRunner(
         return;
       }
 
-      Promise.all(resolvedElement.getAnimations().map((animation) => animation.finished)).then(
+      const animations = resolvedElement.getAnimations();
+      if (animations.length === 0) {
+        // Early exit: the element isn't animating, so there is nothing to wait for.
+        // Cache the outcome until `open` changes instead of re-querying on every run.
+        cachedHasAnimations = false;
+        fnToExecute();
+        return;
+      }
+      cachedHasAnimations = true;
+
+      Promise.all(animations.map((animation) => animation.finished)).then(
         () => {
           if (!signal?.aborted) {
             fnToExecute();

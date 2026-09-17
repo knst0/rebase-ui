@@ -68,6 +68,58 @@ describe("<Select.List />", () => {
     expect(screen.getByRole("listbox")).toHaveAttribute("aria-multiselectable", "true");
   });
 
+  it("does not render aria-orientation on the listbox role", () => {
+    render(() => (
+      <Root defaultOpen>
+        <SelectPositioner alignItemWithTrigger={false}>
+          <SelectList>
+            <SelectItem value="a">
+              <SelectItemText>a</SelectItemText>
+            </SelectItem>
+          </SelectList>
+        </SelectPositioner>
+      </Root>
+    ));
+    flush();
+
+    // `listbox` is implicitly vertical.
+    expect(screen.getByRole("listbox")).not.toHaveAttribute("aria-orientation");
+  });
+
+  it("anchors multiple selection to the first selected item in rendered order", () => {
+    let captured: SelectStore | undefined;
+    render(() => (
+      <Root defaultOpen multiple defaultValue={["b", "a", "c"]}>
+        <CaptureStore
+          onStore={(store) => {
+            captured = store;
+          }}
+        />
+        <SelectPositioner alignItemWithTrigger={false}>
+          <SelectList>
+            <SelectItem value="a">
+              <SelectItemText>a</SelectItemText>
+            </SelectItem>
+            <SelectItem value="b">
+              <SelectItemText>b</SelectItemText>
+            </SelectItem>
+            <SelectItem value="c">
+              <SelectItemText>c</SelectItemText>
+            </SelectItem>
+          </SelectList>
+        </SelectPositioner>
+      </Root>
+    ));
+    flush();
+
+    // `a` renders first but sits in the middle of the value array, so neither
+    // end of that array points at it — only the rendered order does.
+    expect(captured?.peek("selectedIndex")).toBe(0);
+    const anchorText = captured?.context.selectedItemTextRef.current;
+    expect(anchorText?.textContent).toBe("a");
+    expect(screen.getByRole("option", { name: "a" }).contains(anchorText ?? null)).toBe(true);
+  });
+
   it("forwards list scrolls to the popup scroll handler so the arrows update", () => {
     let captured: SelectStore | undefined;
     render(() => (

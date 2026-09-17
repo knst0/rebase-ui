@@ -595,6 +595,21 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
     },
   };
 
+  // Stable ref identity with an identity guard: an unstable merged ref from a custom
+  // `render` component re-fires with the same element on every update. Propagating each
+  // re-fire would unregister/re-register the thumb in the composite registry, bumping
+  // its version and cascading into recomputations (update loop). Only genuine
+  // attach/detach transitions reach the registry.
+  let thumbRefElement: HTMLElement | null = null;
+  const handleThumbRef = (element: HTMLElement | null) => {
+    thumbElement = element;
+    if (element === thumbRefElement) {
+      return;
+    }
+    thumbRefElement = element;
+    listItemRef(element);
+  };
+
   return (
     <RenderElement
       as={as}
@@ -607,9 +622,7 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
           style: mergeStyles(state, thumbStyle(), local.style),
         }),
         {
-          ref: mergeRefs(listItemRef, (element: HTMLElement | null) => {
-            thumbElement = element;
-          }),
+          ref: handleThumbRef,
         },
       ]}
       stateAttributesMapping={sliderStateAttributesMapping}

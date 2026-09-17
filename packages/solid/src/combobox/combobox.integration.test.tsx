@@ -200,4 +200,36 @@ describe("combobox interactions", () => {
     expect(screen.getAllByRole("group")).toHaveLength(1);
     expect(screen.getByRole("group")).toHaveAccessibleName("Vegetables");
   });
+
+  it("ignores pointer and keyboard events on a disabled input without throwing", () => {
+    // jsdom reports listener exceptions as window errors instead of
+    // throwing them back through dispatchEvent, so capture them directly.
+    const listenerErrors: Array<unknown> = [];
+    const onWindowError = (event: ErrorEvent) => {
+      listenerErrors.push(event.error);
+    };
+    window.addEventListener("error", onWindowError);
+    try {
+      render(() => (
+        <Combobox.Root items={fruits} disabled>
+          <Combobox.Input data-testid="input" />
+        </Combobox.Root>
+      ));
+      flush();
+
+      const input = screen.getByTestId("input");
+      fireEvent.pointerEnter(input);
+      fireEvent.pointerDown(input, { isPrimary: true, button: 0 });
+      fireEvent.mouseDown(input, { button: 0 });
+      fireEvent.focus(input);
+      fireEvent.keyDown(input, { key: "ArrowDown" });
+      fireEvent.click(input, { button: 0 });
+      flush();
+
+      expect(listenerErrors).toEqual([]);
+      expect(input).toBeInTheDocument();
+    } finally {
+      window.removeEventListener("error", onWindowError);
+    }
+  });
 });

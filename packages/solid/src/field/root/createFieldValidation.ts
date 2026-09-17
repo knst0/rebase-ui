@@ -86,13 +86,13 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
     validate,
     validityData,
     validationDebounceTime,
+    validationMode,
     invalid,
     markedDirty,
     state,
     shouldValidateOnChange,
     registeredFieldId,
   } = params;
-
   const { controlId, getDescriptionProps } = useLabelableContext();
 
   const registeredInputs: RegisteredInputs = new Map();
@@ -151,9 +151,23 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       error: "",
       errors: [],
       initialValue: untrack(() => validityData.initialValue),
+      isValidating: false,
     };
     clearCustomValidity(input, registeredInputs);
     updateRegisteredFieldValidity(nextValidityData, externalInvalid);
+    setValidityData(() => nextValidityData);
+  }
+
+  function publishPendingValidity(value: unknown, state: FieldValidityData["state"], errors: string[]) {
+    const nextValidityData = {
+      value,
+      state,
+      error: errors[0] ?? "",
+      errors,
+      initialValue: untrack(() => validityData.initialValue),
+      isValidating: true,
+    };
+    updateRegisteredFieldValidity(nextValidityData);
     setValidityData(() => nextValidityData);
   }
 
@@ -165,6 +179,11 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
 
     if (revalidate) {
       if (untrack(state.valid) !== false || !element) {
+        // This run supersedes any in-flight async validation without publishing,
+        // so retire its pending flag instead of leaking it.
+        setValidityData((draft) => {
+          draft.isValidating = false;
+        });
         return;
       }
 
@@ -174,9 +193,11 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
         publishAllValid(element, value, false);
         return;
       }
-
       for (const key of validityKeys) {
         if (key !== "valid" && key !== "valueMissing" && key !== "customError" && currentNativeValidity[key]) {
+          setValidityData((draft) => {
+            draft.isValidating = false;
+          });
           return;
         }
       }
@@ -184,8 +205,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
 
     let result: null | string | string[] = null;
     let validationErrors: string[] = [];
-
-    const nextState: Record<keyof ValidityState, boolean> = element
+    const nextState: FieldValidityData["state"] = element
       ? getElementValidityState(element, markedDirty())
       : { ...DEFAULT_VALIDITY_STATE, valid: true };
 
@@ -205,6 +225,20 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
 
       const resultOrPromise = validate(value, formValues);
       if (typeof resultOrPromise === "object" && resultOrPromise !== null && "then" in resultOrPromise) {
+        // Validity is unknown while the validator runs, so go neutral, but keep what
+        // must block submission synchronously: native failures, and a previous custom
+        // error outside onSubmit mode. A previous native error is never kept, since
+        // `nextState` already carries the fresh native verdict.
+        if (nextState.valid === false) {
+          publishPendingValidity(value, nextState, validationErrors);
+        } else if (validationMode === "onSubmit" || !untrack(() => validityData.state.customError)) {
+          publishPendingValidity(value, { ...nextState, valid: null }, []);
+        } else {
+          setValidityData((draft) => {
+            draft.isValidating = true;
+          });
+        }
+
         result = await resultOrPromise;
         if (latestRun !== run) {
           return;
@@ -243,6 +277,7 @@ export function createFieldValidation(params: CreateFieldValidationParameters): 
       error: defaultValidationMessage ?? (Array.isArray(result) ? result[0] : (result ?? "")),
       errors: validationErrors,
       initialValue: untrack(() => validityData.initialValue),
+      isValidating: false,
     };
 
     updateRegisteredFieldValidity(nextValidityData);
@@ -313,6 +348,7 @@ export interface CreateFieldValidationParameters {
   validate: (value: unknown, formValues: Form.Values) => string | string[] | null | Promise<string | string[] | null>;
   validityData: Store<FieldValidityData>;
   validationDebounceTime: number;
+  validationMode: Form.ValidationMode;
   invalid: Accessor<boolean>;
   markedDirty: () => boolean; // fixme: реактивное?
   state: FieldRootState;

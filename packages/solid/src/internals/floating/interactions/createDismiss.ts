@@ -711,8 +711,8 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
           { capture: true },
         ),
         addListener(floating, "mouseup", markInsideReactTree, { capture: true }),
-        addListener(floating, "touchend", markInsideReactTree, { capture: true }),
-        addListener(floating, "touchmove", markInsideReactTree, { capture: true }),
+        addListener(floating, "touchend", markInsideReactTree, { capture: true, passive: true }),
+        addListener(floating, "touchmove", markInsideReactTree, { capture: true, passive: true }),
       ];
 
       return () => {
