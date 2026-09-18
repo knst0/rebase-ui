@@ -148,29 +148,6 @@ export function TooltipTrigger<Payload = unknown, T extends ValidComponent = "bu
 
   const disabled = () => local.disabled ?? store()?.select("disabled") ?? false;
 
-  // Interaction creators access context and read options once, so they run in the body of a
-  // child component that mounts once a store is available (immediately for triggers inside a
-  // root; on handle attach for detached triggers) instead of in an effect.
-  const setupInteractions = (liveStore: TooltipStore<any>) => (
-    <TooltipTriggerInteractions
-      store={liveStore}
-      triggerId={thisTriggerId}
-      triggerElementRef={triggerElementRef}
-      disabled={local.disabled ?? untrack(() => liveStore.select("disabled"))}
-      disableHoverablePopup={untrack(() => liveStore.select("disableHoverablePopup"))}
-      trackCursorAxis={untrack(() => liveStore.select("trackCursorAxis"))}
-      delay={local.delay}
-      closeDelay={local.closeDelay}
-      closeDelayWithDefault={closeDelayWithDefault()}
-      providerDelay={providerDelay}
-      isNestedTriggerHoveredRef={isNestedTriggerHoveredRef}
-      onInteractions={(hover, focus) => {
-        setHoverProps(hover);
-        setFocusProps(focus);
-      }}
-    />
-  );
-
   const isOpenedByThisTrigger = () => {
     const liveStore = store();
     return liveStore ? ((liveStore.select("isOpenedByTrigger", thisTriggerId) as boolean) ?? false) : false;
@@ -274,19 +251,15 @@ export function TooltipTrigger<Payload = unknown, T extends ValidComponent = "bu
     if (handlers.length === 0) {
       return undefined;
     }
-    if (!focusVeto) {
-      return (event: any) => {
-        for (const handler of handlers) {
-          handler(event);
-        }
-      };
-    }
-    // Focusing into a nested trigger must not open the parent tooltip: skip the
-    // focus interaction while still running the remaining handlers.
+    // Focusing into a nested trigger must not open the parent tooltip, and a disabled
+    // trigger must not open it at all: skip the focus interaction (which has no per-event
+    // veto point of its own) while still running the remaining handlers. Hover opens are
+    // vetoed via `shouldOpen` in the interaction itself.
     return (event: any) => {
-      const vetoed = isEnabledNestedTriggerTarget(getTargetElement(event));
+      const vetoed = focusVeto && isEnabledNestedTriggerTarget(getTargetElement(event));
+      const skipFocus = focus !== undefined && (vetoed || untrack(disabled));
       for (const handler of handlers) {
-        if (handler === focus && vetoed) {
+        if (handler === focus && skipFocus) {
           continue;
         }
         handler(event);
@@ -383,7 +356,33 @@ export function TooltipTrigger<Payload = unknown, T extends ValidComponent = "bu
     <>
       {(() => {
         const liveStore = store();
-        return liveStore ? setupInteractions(liveStore) : null;
+        if (!liveStore) {
+          return null;
+        }
+        // Interaction creators access context and read options once, so they run in the body
+        // of a child component that mounts once a store is available (immediately for
+        // triggers inside a root; on handle attach for detached triggers) instead of in an
+        // effect. `disabled` stays a live accessor: hover opens are vetoed per event via
+        // `shouldOpen`, and focus handlers are skipped per event in `chainHandlers`.
+        return (
+          <TooltipTriggerInteractions
+            store={liveStore}
+            triggerId={thisTriggerId}
+            triggerElementRef={triggerElementRef}
+            disabled={disabled}
+            disableHoverablePopup={untrack(() => liveStore.select("disableHoverablePopup"))}
+            trackCursorAxis={untrack(() => liveStore.select("trackCursorAxis"))}
+            delay={local.delay}
+            closeDelay={local.closeDelay}
+            closeDelayWithDefault={closeDelayWithDefault()}
+            providerDelay={providerDelay}
+            isNestedTriggerHoveredRef={isNestedTriggerHoveredRef}
+            onInteractions={(hover, focus) => {
+              setHoverProps(hover);
+              setFocusProps(focus);
+            }}
+          />
+        );
       })()}
       <RenderElement
         as={as}
@@ -404,7 +403,7 @@ function TooltipTriggerInteractions(props: {
   store: TooltipStore<any>;
   triggerId: string;
   triggerElementRef: { readonly current: Element | null };
-  disabled: boolean;
+  disabled: () => boolean;
   disableHoverablePopup: boolean;
   trackCursorAxis: "none" | "x" | "y" | "both";
   delay: number | undefined;
@@ -438,7 +437,7 @@ function TooltipTriggerInteractions(props: {
   const isActiveTrigger = untrack(() => liveStore.select("isTriggerActive", triggerId)) as boolean;
 
   const hover = createHoverReferenceInteraction(floatingContext, {
-    enabled: !props.disabled,
+    enabled: !props.disabled(),
     mouseOnly: true,
     move: false,
     handleClose: !props.disableHoverablePopup && props.trackCursorAxis !== "both" ? safePolygon() : null,
@@ -453,11 +452,11 @@ function TooltipTriggerInteractions(props: {
     isActiveTrigger,
     isClosing: () => (liveStore.select("transitionStatus") as string | undefined) === "ending",
     shouldOpen() {
-      return !props.isNestedTriggerHoveredRef.current;
+      return !untrack(props.disabled) && !props.isNestedTriggerHoveredRef.current;
     },
   });
 
-  const focus = createFocus(floatingContext, { enabled: !props.disabled }).reference();
+  const focus = createFocus(floatingContext, { enabled: !props.disabled() }).reference();
 
   props.onInteractions(hover ?? undefined, focus);
   onCleanup(() => {
@@ -506,7 +505,7 @@ export interface TooltipTriggerOwnProps<Payload = unknown> {
   /**
    * If `true`, the tooltip will not open when interacting with this trigger.
    * Note that this doesn't apply the `disabled` attribute to the trigger element.
-   * If you want to disable the trigger element itself, you can pass the `disabled` prop to the trigger element via the `render` prop.
+   * If you need a natively disabled trigger element, compose it via the `as` prop.
    * @default false
    */
   disabled?: boolean | undefined;
