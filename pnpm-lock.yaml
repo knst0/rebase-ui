@@ -115,6 +115,9 @@ importers:
       '@rebase-ui/monorepo-tests':
         specifier: workspace:*
         version: link:test
+      '@solidjs/diagnostics':
+        specifier: 2.0.0-rc.2
+        version: 2.0.0-rc.2(vitest@5.0.0)
       '@types/node':
         specifier: ^26.5.1
         version: 26.5.1
@@ -1565,6 +1568,14 @@ packages:
 
   '@solidjs/compiler@2.0.0-rc.8':
     resolution: {integrity: sha512-rjX98GSc5elXAdQU1N/LdYAITW46UW/nBZvx54NV9WOhaFKAsAA6vLMi3SuHMF9WCRRMikLs9+DjRK0ZHBtkfA==}
+
+  '@solidjs/diagnostics@2.0.0-rc.2':
+    resolution: {integrity: sha512-zP6K9S+S+20rSQwXtveloH5SpjAOkD7+gXlptNTC02RSpmZ/L0edLxx4p4AkcJz6XszpPcBZPyFuwFt+aGy3uQ==}
+    peerDependencies:
+      vitest: '>=2.0.0'
+    peerDependenciesMeta:
+      vitest:
+        optional: true
 
   '@solidjs/meta@1.0.0-next.2':
     resolution: {integrity: sha512-4aqPczFqDdep4JTAUXfh4nyfq7InbTgimd7NuN6ZWWE29UPv0uR5dyr53yFcf2YgVXjFdX+JGhXtsE0njGL+fA==}
@@ -4423,6 +4434,12 @@ snapshots:
       '@solidjs/compiler-linux-x64-gnu': 2.0.0-rc.8
       '@solidjs/compiler-wasm32-wasi': 2.0.0-rc.8
       '@solidjs/compiler-win32-x64-msvc': 2.0.0-rc.8
+
+  '@solidjs/diagnostics@2.0.0-rc.2(vitest@5.0.0)':
+    dependencies:
+      '@solidjs/signals': 2.0.0-rc.8
+    optionalDependencies:
+      vitest: 5.0.0(@types/node@26.5.1)(@vitest/browser-playwright@5.0.0)(@vitest/ui@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@26.5.1)(jiti@2.7.0)(yaml@2.9.1))
 
   '@solidjs/meta@1.0.0-next.2(@solidjs/web@2.0.0-rc.8(solid-js@2.0.0-rc.8))(solid-js@2.0.0-rc.8)':
     dependencies:
