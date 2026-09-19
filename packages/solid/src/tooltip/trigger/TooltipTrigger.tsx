@@ -437,7 +437,7 @@ function TooltipTriggerInteractions(props: {
   const isActiveTrigger = untrack(() => liveStore.select("isTriggerActive", triggerId)) as boolean;
 
   const hover = createHoverReferenceInteraction(floatingContext, {
-    enabled: !props.disabled(),
+    enabled: untrack(() => !props.disabled()),
     mouseOnly: true,
     move: false,
     handleClose: !props.disableHoverablePopup && props.trackCursorAxis !== "both" ? safePolygon() : null,
@@ -450,13 +450,13 @@ function TooltipTriggerInteractions(props: {
     },
     triggerElementRef: props.triggerElementRef,
     isActiveTrigger,
-    isClosing: () => (liveStore.select("transitionStatus") as string | undefined) === "ending",
+    isClosing: () => (liveStore.peek("transitionStatus") as string | undefined) === "ending",
     shouldOpen() {
       return !untrack(props.disabled) && !props.isNestedTriggerHoveredRef.current;
     },
   });
 
-  const focus = createFocus(floatingContext, { enabled: !props.disabled() }).reference();
+  const focus = createFocus(floatingContext, { enabled: untrack(() => !props.disabled()) }).reference();
 
   props.onInteractions(hover ?? undefined, focus);
   onCleanup(() => {
