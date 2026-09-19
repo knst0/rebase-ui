@@ -99,7 +99,7 @@ export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Pro
     open: () => store.select("open"),
     ref: () => store.context.popupRef.current,
     onComplete: () => {
-      if (untrack(() => store.select("open"))) {
+      if (store.peek("open")) {
         store.context.onOpenChangeComplete?.(true);
       }
     },

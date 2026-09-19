@@ -502,7 +502,7 @@ export function trackOpenStateTransitions(
     open,
     ref: () => store.context.popupRef.current,
     onComplete: () => {
-      if (!untrack(open)) {
+      if (!open()) {
         forceUnmount();
       }
     },

@@ -338,6 +338,23 @@ describe("<Field.Root />", () => {
 
       expect(validate).toHaveBeenCalledTimes(1);
     });
+
+    it("releases the actions ref when the field unmounts", async () => {
+      const [actions, setActions] = createSignal<Field.Root.Actions | null>(null);
+
+      const { unmount } = await render(() => (
+        <Field.Root actionsRef={setActions}>
+          <Field.Control />
+        </Field.Root>
+      ));
+
+      expect(actions()).not.toBeNull();
+
+      unmount();
+      flush();
+
+      expect(actions()).toBeNull();
+    });
   });
   describe("async validation pending state", () => {
     it("publishes neutral validity and raises the validating flag while a validator is in flight", async () => {

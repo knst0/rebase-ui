@@ -192,31 +192,35 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
     return lastUsed >= 0 && lastUsed < sliderValues().length ? lastUsed : -1;
   };
 
+  // Imperative measurement: runs from effect applies, a microtask and a ResizeObserver,
+  // where reads cannot subscribe. The effects below track the inputs that must re-measure.
   function getInsetPosition() {
-    const control = controlElement();
-    const thumb = thumbElement;
-    if (!control || !thumb) {
-      return;
-    }
+    untrack(() => {
+      const control = controlElement();
+      const thumb = thumbElement;
+      if (!control || !thumb) {
+        return;
+      }
 
-    const thumbRect = thumb.getBoundingClientRect();
-    const controlRect = control.getBoundingClientRect();
+      const thumbRect = thumb.getBoundingClientRect();
+      const controlRect = control.getBoundingClientRect();
 
-    const side = vertical() ? "height" : "width";
-    // the total travel distance adjusted to account for the thumb size
-    const controlSize = controlRect[side] - thumbRect[side];
-    // px distance from the starting edge (inline-start or bottom) to the thumb center
-    const thumbOffsetFromControlEdge = thumbRect[side] / 2 + (controlSize * thumbValuePercent()) / 100;
-    const nextPositionPercent = (thumbOffsetFromControlEdge / controlRect[side]) * 100;
-    const nextInsetPosition = Number.isFinite(nextPositionPercent) ? nextPositionPercent : undefined;
+      const side = vertical() ? "height" : "width";
+      // the total travel distance adjusted to account for the thumb size
+      const controlSize = controlRect[side] - thumbRect[side];
+      // px distance from the starting edge (inline-start or bottom) to the thumb center
+      const thumbOffsetFromControlEdge = thumbRect[side] / 2 + (controlSize * thumbValuePercent()) / 100;
+      const nextPositionPercent = (thumbOffsetFromControlEdge / controlRect[side]) * 100;
+      const nextInsetPosition = Number.isFinite(nextPositionPercent) ? nextPositionPercent : undefined;
 
-    setPositionPercent(nextInsetPosition);
+      setPositionPercent(nextInsetPosition);
 
-    if (index() === 0) {
-      setIndicatorPosition((prevPosition) => [nextInsetPosition, prevPosition[1]]);
-    } else if (last()) {
-      setIndicatorPosition((prevPosition) => [prevPosition[0], nextInsetPosition]);
-    }
+      if (index() === 0) {
+        setIndicatorPosition((prevPosition) => [nextInsetPosition, prevPosition[1]]);
+      } else if (last()) {
+        setIndicatorPosition((prevPosition) => [prevPosition[0], nextInsetPosition]);
+      }
+    });
   }
 
   createEffect(

@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, createEffect, createMemo, createSignal, createStore, onCleanup, type Setter, untrack } from "solid-js";
+import { type Accessor, createEffect, createMemo, createSignal, createStore, type Setter, untrack } from "solid-js";
 
 import { useFieldsetRootContext } from "../../fieldset/root/FieldsetRootContext";
 import type { Form } from "../../form/Form";
@@ -174,14 +174,16 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
     () => local.actionsRef,
     (actionsRef) => {
       if (!actionsRef) {
-        return;
+        return undefined;
       }
 
       actionsRef({ validate: validateFieldControl });
 
-      onCleanup(() => {
+      // The apply callback is unowned, so the release must be the effect's returned
+      // cleanup — `onCleanup` here would never run and the ref would outlive the field.
+      return () => {
         actionsRef(null);
-      });
+      };
     },
   );
 

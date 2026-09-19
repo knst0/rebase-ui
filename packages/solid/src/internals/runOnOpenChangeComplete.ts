@@ -1,4 +1,4 @@
-import { type Accessor, createEffect } from "solid-js";
+import { type Accessor, createEffect, untrack } from "solid-js";
 
 import { createAnimationsFinishedRunner } from "./createAnimationsFinishedRunner";
 
@@ -18,6 +18,8 @@ export interface RunOnOpenChangeCompleteParameters {
   ref: Accessor<HTMLElement | null | undefined>;
   /**
    * Function to call when the animation completes (or there is no animation).
+   * Invoked imperatively — inside the effect phase and in later animation
+   * continuations — so its reads are snapshots and never subscribe.
    */
   onComplete: () => void;
 }
@@ -40,7 +42,7 @@ export function runOnOpenChangeComplete(parameters: RunOnOpenChangeCompleteParam
 
       const abortController = new AbortController();
 
-      runOnAnimationsFinished(parameters.onComplete, abortController.signal);
+      runOnAnimationsFinished(() => untrack(parameters.onComplete), abortController.signal);
 
       return () => {
         abortController.abort();

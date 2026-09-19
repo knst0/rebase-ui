@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, onCleanup, type Setter, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, type Setter, untrack } from "solid-js";
 
 import { EMPTY_OBJECT } from "#utils/empty";
 
@@ -103,14 +103,16 @@ export function Form<FormValues extends Record<string, any> = Record<string, any
     () => local.actionsRef,
     (actionsRef) => {
       if (!actionsRef) {
-        return;
+        return undefined;
       }
 
       actionsRef({ validate });
 
-      onCleanup(() => {
+      // The apply callback is unowned, so the release must be the effect's returned
+      // cleanup — `onCleanup` here would never run and the ref would outlive the form.
+      return () => {
         actionsRef(null);
-      });
+      };
     },
   );
 

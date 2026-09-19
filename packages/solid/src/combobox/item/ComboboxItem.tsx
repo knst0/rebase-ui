@@ -83,8 +83,10 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
     }
   }
 
+  // Called from ref callbacks and effect applies — imperative scopes where a read cannot
+  // subscribe, so the registry flag is snapshotted.
   function syncValueRef(itemIndex: number, itemValue: unknown) {
-    if (itemIndex === -1 || hasItems()) {
+    if (itemIndex === -1 || untrack(hasItems)) {
       return;
     }
     if (itemValue === undefined) {

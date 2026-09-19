@@ -208,5 +208,24 @@ describe("<Form />", () => {
       expect(validateFirst).not.toHaveBeenCalled();
       expect(validateSecond).toHaveBeenCalledTimes(1);
     });
+
+    it("releases the actions ref when the form unmounts", async () => {
+      const [actions, setActions] = createSignal<Form.Actions | null>(null);
+
+      const { unmount } = await render(() => (
+        <Form actionsRef={setActions}>
+          <Field.Root name="test">
+            <Field.Control />
+          </Field.Root>
+        </Form>
+      ));
+
+      expect(actions()).not.toBeNull();
+
+      unmount();
+      flush();
+
+      expect(actions()).toBeNull();
+    });
   });
 });

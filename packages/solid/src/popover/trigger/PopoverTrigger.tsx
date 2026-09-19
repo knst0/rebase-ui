@@ -206,8 +206,10 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
   // Focus guards are created per store (the store identity is stable) so the guard
   // ref objects stay stable across renders.
   let guardsCache: { store: PopoverStore<any>; guards: TriggerFocusGuards } | undefined;
+  // Called from `FocusGuard`'s body and ref callbacks — imperative scopes where a read
+  // cannot subscribe. `showFocusGuards()` tracks the store and re-creates the guards.
   function getGuards(): TriggerFocusGuards | undefined {
-    const liveStore = store();
+    const liveStore = untrack(store);
     if (!liveStore) {
       return undefined;
     }
@@ -304,10 +306,10 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
           guardRef={
             {
               get current() {
-                return store()?.context.triggerFocusTargetRef.current ?? null;
+                return untrack(store)?.context.triggerFocusTargetRef.current ?? null;
               },
               set current(element: HTMLSpanElement | null) {
-                const liveStore = store();
+                const liveStore = untrack(store);
                 if (liveStore) {
                   liveStore.context.triggerFocusTargetRef.current = element;
                 }

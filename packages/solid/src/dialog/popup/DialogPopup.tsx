@@ -97,9 +97,7 @@ export function DialogPopup<T extends ValidComponent = "div">(props: DialogPopup
   runOnOpenChangeComplete({
     open: store.open,
     ref: store.popupElement,
-    // One-shot snapshot: the completion handler runs inside the effect phase
-    // (and later async continuations), so it must not subscribe to `open`.
-    onComplete: () => store.onOpenChangeComplete(untrack(store.open)),
+    onComplete: () => store.onOpenChangeComplete(store.open()),
   });
 
   createFocusTrap({

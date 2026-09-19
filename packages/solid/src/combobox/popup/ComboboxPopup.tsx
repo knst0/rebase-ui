@@ -171,11 +171,13 @@ export function ComboboxPopup<T extends ValidComponent = "div">(props: ComboboxP
       interactionType === "touch" ? store.context.popupRef.current : store.peek("inputElement");
   }
 
+  // `FloatingFocusManager` reads `returnFocus` imperatively when focus goes back to the
+  // trigger, so the flag is snapshotted instead of subscribed to.
   function resolveFinalFocus() {
     if (local.finalFocus != null) {
       return local.finalFocus;
     }
-    return inputInsidePopup() ? undefined : false;
+    return (store.peek("inputInsidePopup") as boolean) ? undefined : false;
   }
 
   const focusManagerModal = () => !inputInsidePopup() || modal();
