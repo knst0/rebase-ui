@@ -18,17 +18,17 @@
   },
   "devDependencies": {
     "@solidjs/diagnostics": "2.0.0-rc.2",
-    "@changesets/cli": "^3.0.2",
+    "@changesets/cli": "^3.0.3",
     "@rebase-ui/monorepo-tests": "workspace:*",
-    "@types/node": "^26.5.1",
-    "@vitest/browser-playwright": "^5.0.0",
+    "@types/node": "^26.6.2",
+    "@vitest/browser-playwright": "^5.0.1",
     "cross-env": "^10.1.0",
-    "oxfmt": "^0.67.0",
-    "oxlint": "^1.82.0",
-    "oxlint-tsgolint": "^7.0.2001",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "oxlint-tsgolint": "^7.0.2002",
     "playwright": "^1.63.0",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "devEngines": {
     "packageManager": {
