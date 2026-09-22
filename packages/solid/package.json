@@ -228,14 +228,14 @@
   },
   "devDependencies": {
     "@solidjs/testing-library": "^1.0.0-beta.3",
-    "@solidjs/vite-plugin": "3.0.0-next.43",
-    "@solidjs/web": "^2.0.0-rc.8",
-    "@testing-library/dom": "^10.4.1",
+    "@solidjs/vite-plugin": "3.0.0-next.44",
+    "@solidjs/web": "^2.0.0-rc.9",
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.7",
-    "jsdom": "^30.0.1",
-    "oxc-minify": "^0.149.0",
-    "solid-js": "^2.0.0-rc.8",
+    "jsdom": "^30.1.0",
+    "oxc-minify": "^0.150.0",
+    "solid-js": "^2.0.0-rc.9",
     "tsdown": "^0.23.0"
   },
   "peerDependencies": {
