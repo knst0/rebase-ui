@@ -41,6 +41,10 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
   let reachedMaxHeight = false;
   let initialPlaced = false;
   let originalPositionerStyles: Record<string, string | undefined> = {};
+  // Set once aligned placement writes inline positioner styles; only those need restoring. The
+  // non-aligned positioner is styled by Floating UI, and restoring the pre-placement `top`/`left`
+  // on close would snap the popup to the viewport origin while its exit transition plays.
+  let alignedStylesApplied = false;
 
   function handleScroll(scroller: HTMLDivElement) {
     const positionerElement = store.peek("positionerElement") as HTMLElement | null;
@@ -187,7 +191,10 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
 
       initialPlaced = false;
       reachedMaxHeight = false;
-      clearStyles(positionerElement, originalPositionerStyles);
+      if (alignedStylesApplied) {
+        alignedStylesApplied = false;
+        clearStyles(positionerElement, originalPositionerStyles);
+      }
       return undefined;
     },
   );
@@ -305,6 +312,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
 
         const maxRight = viewportWidth - paddingRight;
 
+        alignedStylesApplied = true;
         positionerElement.style.left = `${clamp(alignedLeft, paddingLeft, maxRight - positionerRect.width)}px`;
         positionerElement.style.height = `${height}px`;
         // `none` (not the invalid `auto`) so the explicit height governs in align mode and isn't

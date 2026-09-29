@@ -94,6 +94,26 @@ export function isEventTargetWithin(event: Event, node: Node | null | undefined)
   return eventAgain.target != null && node.contains(eventAgain.target as Node);
 }
 
+/**
+ * Whether `target` lies inside `root` in the Solid component tree rather than only the DOM tree.
+ * Solid portals tag the nodes they mount with `_$host` (the DOM parent at the portal's position in
+ * the component tree), the link Solid's own event delegation follows, so popups portaled from
+ * inside `root` (Select, Popover, Menu, …) count as inside it, like React-tree bubbling upstream.
+ */
+export function isWithinComponentTree(root: Node, target: Node): boolean {
+  let node: Node | null = target;
+
+  while (node) {
+    if (node === root) {
+      return true;
+    }
+
+    node = (node as Node & { _$host?: Node | null })._$host ?? node.parentNode ?? (isShadowRoot(node) ? node.host : null);
+  }
+
+  return false;
+}
+
 export function isRootElement(element: Element): boolean {
   return element.matches("html,body");
 }

@@ -206,10 +206,13 @@ export function CheckboxRoot<T extends ValidComponent = "span">(props: CheckboxR
         return;
       }
 
-      form.clearErrors(name());
-      setDirty(isChecked !== validityData.initialValue);
+      // One-shot reads from an apply callback: the field/form state is consumed, never tracked.
+      untrack(() => {
+        form.clearErrors(name());
+        setDirty(isChecked !== validityData.initialValue);
 
-      validation.change(isChecked);
+        validation.change(isChecked);
+      });
     },
   );
 

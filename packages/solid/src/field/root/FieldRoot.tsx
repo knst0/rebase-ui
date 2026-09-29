@@ -58,8 +58,8 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
   const touched = createMemo(() => (local.touched === undefined ? touchedState() : accessBoolean(local.touched)));
 
   let markedDirty = false;
-  const [registeredFieldName, setRegisteredFieldName] = createSignal<string>();
-  const [registeredFieldId, setRegisteredFieldId] = createSignal<string>();
+  const [registeredFieldName, setRegisteredFieldName] = createSignal<string | undefined>(undefined, { ownedWrite: true });
+  const [registeredFieldId, setRegisteredFieldId] = createSignal<string | undefined>(undefined, { ownedWrite: true });
 
   const effectiveName = () => local.name ?? registeredFieldName();
 

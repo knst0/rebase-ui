@@ -3,6 +3,7 @@ import { type Accessor, createEffect, createSignal, createUniqueId, type Setter,
 import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import { isWithinComponentTree } from "../../internals/floating/utils/element";
 import { createScrollLock } from "../../internals/scroll-lock";
 import { createTransitionStatus, type TransitionStatus } from "../../internals/transition-status";
 import type { DialogHandle } from "../store/DialogHandle";
@@ -112,8 +113,8 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
   const [preventUnmountOnClose, setPreventUnmountOnClose] = createSignal(false);
   const [closeSettled, setCloseSettled] = createSignal(true);
   const popupId = () => dialogPopupId;
-  const [titleElementId, setTitleElementId] = createSignal<string | undefined>(undefined);
-  const [descriptionElementId, setDescriptionElementId] = createSignal<string | undefined>(undefined);
+  const [titleElementId, setTitleElementId] = createSignal<string | undefined>(undefined, { ownedWrite: true });
+  const [descriptionElementId, setDescriptionElementId] = createSignal<string | undefined>(undefined, { ownedWrite: true });
 
   const dialogPopupId = createUniqueId();
 
@@ -377,10 +378,10 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
           return;
         }
 
-        const target = event.target as Element | null;
+        const target = event.target as Node | null;
         const popup = untrack(popupElement);
 
-        if (popup && target && popup.contains(target)) {
+        if (popup && target && isWithinComponentTree(popup, target)) {
           return;
         }
 
@@ -400,9 +401,9 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
         }
 
         const popup = untrack(popupElement);
-        const relatedTarget = event.relatedTarget as Element | null;
+        const relatedTarget = event.relatedTarget as Node | null;
 
-        if (popup && relatedTarget && popup.contains(relatedTarget)) {
+        if (popup && relatedTarget && isWithinComponentTree(popup, relatedTarget)) {
           return;
         }
 
@@ -419,7 +420,7 @@ export function createDialogRoot(parameters: CreateDialogRootParameters): Create
     },
   );
 
-  function isTriggerElement(target: Element): boolean {
+  function isTriggerElement(target: Node): boolean {
     for (const element of triggerElements.values()) {
       if (element === target || element.contains(target)) {
         return true;

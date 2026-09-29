@@ -7,9 +7,9 @@ export function LabelableProvider(props: LabelableProvider.Props): JSX.Element {
   const defaultId = createUniqueId();
   const initialControlId = untrack(() => (props.controlId === undefined ? defaultId : props.controlId));
 
-  const [controlId, setControlId] = createSignal<string | null | undefined>(initialControlId);
-  const [labelId, setLabelId] = createSignal<string | undefined>(untrack(() => props.labelId));
-  const [messageIds, setMessageIds] = createSignal<string[]>([]);
+  const [controlId, setControlId] = createSignal<string | null | undefined>(initialControlId, { ownedWrite: true });
+  const [labelId, setLabelId] = createSignal<string | undefined>(untrack(() => props.labelId), { ownedWrite: true });
+  const [messageIds, setMessageIds] = createSignal<string[]>([], { ownedWrite: true });
 
   const registrations = new Map<object, string | null>();
 

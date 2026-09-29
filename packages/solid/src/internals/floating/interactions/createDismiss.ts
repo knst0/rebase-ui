@@ -1,4 +1,4 @@
-import { getComputedStyle, getParentNode, isElement, isHTMLElement, isLastTraversableNode, isShadowRoot } from "@floating-ui/utils/dom";
+import { getComputedStyle, getParentNode, isElement, isHTMLElement, isLastTraversableNode, isNode, isShadowRoot } from "@floating-ui/utils/dom";
 import { createEffect, untrack } from "solid-js";
 
 import { createChangeEventDetails } from "../../event-details/createEventDetails";
@@ -8,7 +8,7 @@ import { useFloatingTree } from "../tree/FloatingTree";
 import type { FloatingTreeStore } from "../tree/FloatingTreeStore";
 import type { FloatingContext, FloatingUIOpenChangeDetails } from "../types";
 import { createAttribute } from "../utils/createAttribute";
-import { contains, getTarget, isEventTargetWithin, isRootElement } from "../utils/element";
+import { contains, getTarget, isEventTargetWithin, isRootElement, isWithinComponentTree } from "../utils/element";
 import { isVirtualClick } from "../utils/event";
 import { getNodeChildren } from "../utils/nodes";
 
@@ -156,7 +156,13 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
   });
 
   const isEventWithinOwnElements = stableCallback(() => (event: Event) => {
-    return isEventTargetWithin(event, store.select("floatingElement")) || isEventTargetWithin(event, store.select("domReferenceElement"));
+    const floating = store.select("floatingElement");
+    const target = getTarget(event);
+    return (
+      isEventTargetWithin(event, floating) ||
+      (floating != null && isNode(target) && isWithinComponentTree(floating, target)) ||
+      isEventTargetWithin(event, store.select("domReferenceElement"))
+    );
   });
 
   const closeOnReferencePress = stableCallback(() => (event: PointerEvent | MouseEvent) => {

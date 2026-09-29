@@ -85,7 +85,7 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
 
   const textRef: { current: HTMLElement | null } = { current: null };
 
-  const [index, setIndex] = createSignal(-1);
+  const [index, setIndex] = createSignal(-1, { ownedWrite: true });
   const highlighted = () => store.select("isActive", index()) as boolean;
   const selected = () => store.select("isSelected", local.value ?? null) as boolean;
   const selectedByFocus = () => store.select("isSelectedByFocus", index()) as boolean;

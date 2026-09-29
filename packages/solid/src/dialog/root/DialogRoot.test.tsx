@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { nextFrames } from "#test-utils";
 
+import * as Select from "../../select/index.parts";
 import * as Dialog from "../index.parts";
 import * as DialogPopupDataAttributes from "../popup/DialogPopupDataAttributes";
 import { createDialogHandle } from "../store/DialogHandle";
@@ -336,6 +337,91 @@ describe("<Dialog.Root />", () => {
 
     expect(screen.queryByTestId("inner-popup")).toBeNull();
     expect(screen.queryByTestId("outer-popup")).toBeInTheDocument();
+  });
+
+  describe("with a portaled Select inside the popup", () => {
+    function renderDialogWithSelect(onOpenChange = vi.fn(), onValueChange = vi.fn()) {
+      render(() => (
+        <Dialog.Root onOpenChange={onOpenChange}>
+          <Dialog.Trigger>Open dialog</Dialog.Trigger>
+          <button type="button">Outside</button>
+          <Dialog.Portal>
+            <Dialog.Popup data-testid="popup">
+              <Dialog.Title>Dialog title</Dialog.Title>
+              <Select.Root defaultValue="apple" onValueChange={onValueChange}>
+                <Select.Trigger data-testid="select-trigger">
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Positioner alignItemWithTrigger={false}>
+                    <Select.Popup data-testid="select-popup">
+                      <Select.Item value="apple">
+                        <Select.ItemText>Apple</Select.ItemText>
+                      </Select.Item>
+                      <Select.Item value="banana">
+                        <Select.ItemText>Banana</Select.ItemText>
+                      </Select.Item>
+                    </Select.Popup>
+                  </Select.Positioner>
+                </Select.Portal>
+              </Select.Root>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
+      ));
+
+      return { onOpenChange, onValueChange };
+    }
+
+    async function openDialogAndSelect() {
+      const user = await openViaTrigger(screen.getByRole("button", { name: "Open dialog" }));
+      await user.click(screen.getByTestId("select-trigger"));
+      flush();
+      await nextFrames();
+      expect(screen.getByRole("option", { name: "Banana" })).toBeInTheDocument();
+      return user;
+    }
+
+    it("keeps the dialog open when an option is chosen with the pointer, then closes on outside press", async () => {
+      const { onOpenChange, onValueChange } = renderDialogWithSelect();
+      const user = await openDialogAndSelect();
+
+      await user.click(screen.getByRole("option", { name: "Banana" }));
+      flush();
+      await nextFrames();
+
+      expect(onValueChange).toHaveBeenLastCalledWith("banana", expect.anything());
+      expect(screen.getByTestId("select-trigger")).toHaveTextContent("banana");
+      expect(screen.queryByTestId("popup")).toBeInTheDocument();
+      expect(onOpenChange).not.toHaveBeenCalledWith(false, expect.anything());
+
+      await user.click(screen.getByRole("button", { name: "Outside" }));
+      flush();
+      await nextFrames();
+
+      expect(screen.queryByTestId("popup")).toBeNull();
+      expect(onOpenChange).toHaveBeenLastCalledWith(false, expect.objectContaining({ reason: "outside-press" }));
+    });
+
+    it("closes only the Select on Escape", async () => {
+      const { onOpenChange } = renderDialogWithSelect();
+      const user = await openDialogAndSelect();
+
+      await user.keyboard("{Escape}");
+      flush();
+      await nextFrames();
+
+      expect(screen.queryByRole("option", { name: "Banana" })).toBeNull();
+      expect(screen.queryByTestId("popup")).toBeInTheDocument();
+      expect(onOpenChange).not.toHaveBeenCalledWith(false, expect.anything());
+
+      await user.keyboard("{Escape}");
+      flush();
+      await nextFrames();
+
+      expect(screen.queryByTestId("popup")).toBeNull();
+      expect(onOpenChange).toHaveBeenLastCalledWith(false, expect.objectContaining({ reason: "escape-key" }));
+    });
   });
 
   it("calls `onOpenChangeComplete` after open and close animations settle", async () => {

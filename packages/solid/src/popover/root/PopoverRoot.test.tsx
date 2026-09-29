@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
+import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 
 import { nextFrames } from "#test-utils";
 
+import * as Select from "../../select/index.parts";
 import * as Popover from "../index.parts";
 
 function renderPopover(options?: { rootProps?: Record<string, any>; triggerProps?: Record<string, any>; popupChildren?: string }) {
@@ -205,5 +207,62 @@ describe("<Popover.Root />", () => {
     await nextFrames();
 
     expect(screen.getByText("Payload: Trigger payload")).toBeInTheDocument();
+  });
+
+  it("stays open when an option of a portaled Select inside it is chosen with the pointer", async () => {
+    const onOpenChange = vi.fn();
+    const onValueChange = vi.fn();
+    render(() => (
+      <Popover.Root onOpenChange={onOpenChange}>
+        <Popover.Trigger>Open popover</Popover.Trigger>
+        <button type="button">Outside</button>
+        <Popover.Portal>
+          <Popover.Positioner>
+            <Popover.Popup data-testid="popup">
+              <Select.Root defaultValue="apple" onValueChange={onValueChange}>
+                <Select.Trigger data-testid="select-trigger">
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Positioner alignItemWithTrigger={false}>
+                    <Select.Popup>
+                      <Select.Item value="apple">
+                        <Select.ItemText>Apple</Select.ItemText>
+                      </Select.Item>
+                      <Select.Item value="banana">
+                        <Select.ItemText>Banana</Select.ItemText>
+                      </Select.Item>
+                    </Select.Popup>
+                  </Select.Positioner>
+                </Select.Portal>
+              </Select.Root>
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ));
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Open popover" }));
+    flush();
+    await nextFrames();
+    await user.click(screen.getByTestId("select-trigger"));
+    flush();
+    await nextFrames();
+
+    await user.click(screen.getByRole("option", { name: "Banana" }));
+    flush();
+    await nextFrames();
+
+    expect(onValueChange).toHaveBeenLastCalledWith("banana", expect.anything());
+    expect(screen.queryByTestId("popup")).toBeInTheDocument();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false, expect.anything());
+
+    await user.click(screen.getByRole("button", { name: "Outside" }));
+    flush();
+    await nextFrames();
+
+    expect(screen.queryByTestId("popup")).toBeNull();
+    expect(onOpenChange).toHaveBeenLastCalledWith(false, expect.objectContaining({ reason: "outside-press" }));
   });
 });

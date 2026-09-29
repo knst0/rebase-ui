@@ -18,7 +18,7 @@ export function AvatarRoot<T extends ValidComponent = "span">(props: AvatarRoot.
 
   const as = untrack(() => local.as);
 
-  const [imageLoadingStatus, setImageLoadingStatus] = createSignal<ImageLoadingStatus>("idle");
+  const [imageLoadingStatus, setImageLoadingStatus] = createSignal<ImageLoadingStatus>("idle", { ownedWrite: true });
 
   const state: AvatarRootState = {
     imageLoadingStatus,
