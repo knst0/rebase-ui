@@ -20,15 +20,15 @@
     "@solidjs/diagnostics": "2.0.0-rc.2",
     "@changesets/cli": "^3.0.3",
     "@rebase-ui/monorepo-tests": "workspace:*",
-    "@types/node": "^26.6.2",
-    "@vitest/browser-playwright": "^5.0.1",
+    "@types/node": "^26.6.3",
+    "@vitest/browser-playwright": "^5.0.2",
     "cross-env": "^10.1.0",
-    "oxfmt": "^0.68.0",
-    "oxlint": "^1.83.0",
-    "oxlint-tsgolint": "^7.0.2002",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
+    "oxlint-tsgolint": "^7.0.2003",
     "playwright": "^1.63.0",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.2"
   },
   "devEngines": {
     "packageManager": {
