@@ -69,6 +69,8 @@ describe("<Menu.LinkItem />", () => {
     const link = screen.getByRole("menuitem");
     expect(link.tagName).toBe("A");
     expect(link).toHaveAttribute("href", "https://example.com");
+    // A real navigation would unload the browser-mode test iframe.
+    link.addEventListener("click", (event) => event.preventDefault());
 
     await user.click(link);
     flush();
