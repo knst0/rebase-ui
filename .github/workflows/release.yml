@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: "Bump and verify, but do not publish or tag"
+        description: "Bump and verify, but do not publish, tag or deploy docs"
         required: false
         type: boolean
         default: false
@@ -15,9 +15,8 @@ concurrency:
   group: release
   cancel-in-progress: false
 
-defaults:
-  run:
-    shell: bash
+env:
+  PACKAGE_DIR: packages/solid
 
 jobs:
   prepare:
@@ -26,62 +25,50 @@ jobs:
     permissions:
       contents: write
     outputs:
-      version: ${{ steps.meta.outputs.version }}
-      tag: ${{ steps.meta.outputs.tag }}
-      sha: ${{ steps.meta.outputs.sha }}
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+      sha: ${{ steps.bump.outputs.sha }}
       branch: ${{ steps.bump.outputs.branch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          persist-credentials: true
 
       - uses: ./.github/actions/setup-node
 
       - id: bump
         name: Bump the version on a release branch
         run: |
-          status=$(.github/scripts/changeset.sh status)
-          echo "$status"
-          version=$(printf '%s\n' "$status" |
-            sed -n 's/^[0-9]* changeset(s): .* -> \([0-9][0-9.]*\).*/\1/p' | head -n1)
-          [ -n "$version" ] || { echo "::error::no pending changesets; nothing to release"; exit 1; }
+          [ -n "$(git ls-files '.changeset/*.md' | grep -v '^.changeset/README.md$')" ] ||
+            { echo "::error::no pending changesets; nothing to release"; exit 1; }
 
-          branch="release/v${version}"
-          git switch -c "$branch"
+          pnpm changeset version
 
-          bumped=$(.github/scripts/changeset.sh version | tail -n1)
-          [ "$bumped" = "$version" ] ||
-            { echo "::error::version mismatch: expected ${version}, got ${bumped}"; exit 1; }
+          version=$(node -p "require('./${PACKAGE_DIR}/package.json').version")
+          tag="v${version}"
+          branch="release/${tag}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null; then
+            echo "::error::tag ${tag} already exists on origin"; exit 1
+          fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
           git add -A
-          git commit -m "chore(release): v${version}"
+          git commit -m "chore(release): ${tag}"
+          # The branch is owned by this workflow; a previous (dry) run may have left it behind.
+          git push --force --set-upstream origin "$branch"
 
-          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
-
-      - id: meta
-        name: Resolve version and guard the tag
-        run: .github/scripts/version.sh
-
-      - name: Release notes
-        run: .github/scripts/release-notes.sh | tee RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: release-notes
-          path: RELEASE_NOTES.md
-          if-no-files-found: error
-
-      - name: Push the release branch
-        run: git push --force-with-lease --set-upstream origin "${{ steps.bump.outputs.branch }}"
+          {
+            echo "version=${version}"
+            echo "tag=${tag}"
+            echo "branch=${branch}"
+            echo "sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
 
   verify:
     name: Verify the release commit
     needs: prepare
-    permissions:
-      contents: read
     uses: ./.github/workflows/check.yml
     with:
       ref: ${{ needs.prepare.outputs.sha }}
@@ -92,58 +79,79 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
       id-token: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      SHA: ${{ needs.prepare.outputs.sha }}
+      BRANCH: ${{ needs.prepare.outputs.branch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.prepare.outputs.sha }}
-          fetch-depth: 0
-          persist-credentials: true
 
       - uses: ./.github/actions/setup-node
         with:
           registry-url: https://registry.npmjs.org
 
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: release-notes
+      - name: Release notes
+        run: |
+          awk -v heading="## ${VERSION}" '
+            $0 == heading { found = 1; next }
+            found && /^## / { exit }
+            found
+          ' "${PACKAGE_DIR}/CHANGELOG.md" | sed '/./,$!d' > RELEASE_NOTES.md
+          [ -s RELEASE_NOTES.md ] || { echo "::error::no CHANGELOG section for ${VERSION}"; exit 1; }
+          cat RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Build
-        run: pnpm build
+      - run: pnpm build
+
+      - name: Publish to npm (dry run)
+        if: ${{ inputs.dry-run }}
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: pnpm publish --dry-run --no-git-checks
 
       - name: Publish to npm
-        env:
-          DRY_RUN: ${{ inputs.dry-run }}
-        run: .github/scripts/npm-publish.sh
-
-      - name: Tag and create the GitHub release
         if: ${{ !inputs.dry-run }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.prepare.outputs.tag }}
-        run: .github/scripts/github-release.sh
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: |
+          name=$(node -p "require('./package.json').name")
+          # Skip when a previous attempt already published this version.
+          npm view "${name}@${VERSION}" version >/dev/null 2>&1 ||
+            pnpm publish --no-git-checks --provenance
 
-  sync-pr:
-    name: Sync PR into main
+      - name: Create the tag and GitHub release
+        if: ${{ !inputs.dry-run }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 ||
+            gh release create "$TAG" --target "$SHA" --title "$TAG" --notes-file RELEASE_NOTES.md
+
+      - name: Open or update the sync PR into main
+        if: ${{ !inputs.dry-run }}
+        run: |
+          {
+            cat RELEASE_NOTES.md
+            printf '\n---\n\nPost-release sync: version bump, changelog and consumed changesets for '
+            printf '**%s**, already published at %s/%s/releases/tag/%s.\n\n' \
+              "$TAG" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$TAG"
+            printf 'Merge (do not squash) to keep the tagged commit reachable from `main`.\n'
+          } > body.md
+          title="chore(release): ${TAG}"
+          gh pr create --base main --head "$BRANCH" --title "$title" --body-file body.md ||
+            gh pr edit "$BRANCH" --title "$title" --body-file body.md
+
+  # Events from GITHUB_TOKEN never trigger other workflows, so the docs
+  # deploy is called directly instead of listening for the release.
+  docs:
+    name: Rebuild docs
     needs: [prepare, publish]
     if: ${{ !inputs.dry-run }}
-    runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: release-notes
-
-      - name: Open or update the sync PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ needs.prepare.outputs.branch }}
-          TAG: ${{ needs.prepare.outputs.tag }}
-          REPO: ${{ github.repository }}
-        run: .github/scripts/sync-pr.sh
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}

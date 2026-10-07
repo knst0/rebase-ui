@@ -9,18 +9,13 @@ on:
         type: string
         default: ""
 
-permissions: {}
-
-defaults:
-  run:
-    shell: bash
+permissions:
+  contents: read
 
 jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -28,72 +23,25 @@ jobs:
 
       - uses: ./.github/actions/setup-node
 
-      - name: Format
-        run: pnpm fmt --check
+      - run: pnpm fmt --check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm audit --prod --audit-level high
 
-      - name: Lint the release plumbing
-        run: .github/scripts/changeset.sh status
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:ci
+      - run: pnpm test:package
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Test
-        run: pnpm test:ci
-
-      - name: Build and test package
-        run: pnpm test:package
-
-      - name: Build docs
-        run: pnpm --filter @rebase-ui/docs build
-
-      - name: Bundle sizes
-        run: pnpm --filter @rebase-ui/solid bundle:size
-
-      - name: Pack
-        run: pnpm --filter @rebase-ui/solid pack --pack-destination "$RUNNER_TEMP"
-
-  audit:
-    name: Advisories
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ inputs.ref }}
-
-      - uses: ./.github/actions/setup-node
-
-      - name: pnpm audit
-        run: pnpm audit --prod --audit-level high
+      - run: pnpm --filter @rebase-ui/docs build
+      - run: pnpm --filter @rebase-ui/solid bundle:size
 
   workflows:
-    name: Workflows and scripts
+    name: Workflows
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Shell syntax and ShellCheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends shellcheck
-          mapfile -t scripts < <(find .github/scripts -name '*.sh')
-          for script in "${scripts[@]}"; do
-            bash -n "$script"
-          done
-          shellcheck "${scripts[@]}"
-
-      - name: actionlint
-        run: |
-          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-          ./actionlint -color
+      # actionlint also runs the preinstalled shellcheck on every `run:` block.
+      - run: bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) && ./actionlint -color

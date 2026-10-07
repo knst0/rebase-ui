@@ -18,6 +18,23 @@ on:
         required: false
         type: string
         default: "rebase.ui.knst.dev"
+  workflow_call:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to build the docs from"
+        required: false
+        type: string
+        default: ""
+      base:
+        description: "Vite base path"
+        required: false
+        type: string
+        default: "/"
+      cname:
+        description: "Custom domain written to the CNAME file"
+        required: false
+        type: string
+        default: "rebase.ui.knst.dev"
 
 permissions: {}
 
