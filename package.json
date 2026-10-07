@@ -10,7 +10,7 @@
     "test": "pnpm test:chromium",
     "test:browsers": "cross-env VITEST_ENV=all-browsers pnpm test:unit",
     "test:chromium": "cross-env VITEST_ENV=chromium pnpm test:unit",
-    "test:ci": "cross-env VITEST_ENV=chromium vitest run --project @rebase-ui/solid --project @rebase-ui/docs",
+    "test:ci": "vitest run --project @rebase-ui/docs && cross-env VITEST_ENV=chromium vitest run --project @rebase-ui/solid",
     "test:firefox": "cross-env VITEST_ENV=firefox pnpm test:unit",
     "test:package": "pnpm build && vitest run --project @rebase-ui/solid-package",
     "test:unit": "vitest --project @rebase-ui/solid",
