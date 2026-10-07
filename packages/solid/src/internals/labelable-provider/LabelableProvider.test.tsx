@@ -3,8 +3,8 @@ import { createSignal, flush, Show } from "solid-js";
 import { describe, expect, it } from "vitest";
 
 import { createLabelableId } from "./createLabelableId";
-import { LabelableProvider } from "./LabelableProvider";
 import { useLabelableContext } from "./LabelableContext";
+import { LabelableProvider } from "./LabelableProvider";
 
 function Label() {
   const { controlId } = useLabelableContext();

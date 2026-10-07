@@ -1,6 +1,6 @@
+import { getParentNode, isHTMLElement, isLastTraversableNode } from "@floating-ui/utils/dom";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { type Accessor, createMemo, createSignal, onCleanup, untrack } from "solid-js";
-import { getParentNode, isHTMLElement, isLastTraversableNode } from "@floating-ui/utils/dom";
 
 import { script as prehydrationScript } from "#prehydration/tabs/indicator";
 import { EMPTY_STATE_MAPPING } from "#utils/empty";
@@ -65,10 +65,8 @@ export function TabsIndicator<T extends ValidComponent = "span">(props: TabsIndi
     let left = layoutOffset.left;
     let top = layoutOffset.top;
 
-    const rectLeft =
-      (tabRect.left - tabsListRect.left) / scaleX + tabsListElement.scrollLeft - tabsListElement.clientLeft;
-    const rectTop =
-      (tabRect.top - tabsListRect.top) / scaleY + tabsListElement.scrollTop - tabsListElement.clientTop;
+    const rectLeft = (tabRect.left - tabsListRect.left) / scaleX + tabsListElement.scrollLeft - tabsListElement.clientLeft;
+    const rectTop = (tabRect.top - tabsListRect.top) / scaleY + tabsListElement.scrollTop - tabsListElement.clientTop;
 
     // The rect-based offset is sub-pixel-precise but is derived from projected viewport
     // geometry: a rotation, skew, flip, perspective, or 3D transform on the tab or any

@@ -5,7 +5,12 @@ import { CodePanel } from "./HighlightedCode";
 export function TypePopover(props: { label: string; source: string }) {
   return (
     <PreviewCard.Root>
-      <PreviewCard.Trigger as="button" type="button" class="text-accent cursor-help underline decoration-dotted underline-offset-4" delay={0}>
+      <PreviewCard.Trigger
+        as="button"
+        type="button"
+        class="text-accent cursor-help underline decoration-dotted underline-offset-4"
+        delay={0}
+      >
         {props.label}
       </PreviewCard.Trigger>
       <PreviewCard.Portal>

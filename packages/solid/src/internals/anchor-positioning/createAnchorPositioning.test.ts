@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { nextFrames } from "#test-utils";
 
-import { createAnchorPositioning } from "./createAnchorPositioning";
 import { useFloatingRootContext } from "../floating/useFloatingRootContext";
+import { createAnchorPositioning } from "./createAnchorPositioning";
 
 vi.mock("@floating-ui/dom", async (importOriginal) => {
   const original = await importOriginal<typeof import("@floating-ui/dom")>();

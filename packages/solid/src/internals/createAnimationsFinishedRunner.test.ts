@@ -60,9 +60,7 @@ describe("createAnimationsFinishedRunner", () => {
       await createRoot(async (dispose) => {
         const gate = Promise.withResolvers<void>();
         const element = document.createElement("div");
-        const getAnimations = stubGetAnimations(element, () => [
-          { finished: gate.promise, pending: true, playState: "running" },
-        ]);
+        const getAnimations = stubGetAnimations(element, () => [{ finished: gate.promise, pending: true, playState: "running" }]);
         const run = createAnimationsFinishedRunner(() => element);
 
         const onComplete = vi.fn();

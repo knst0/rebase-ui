@@ -142,14 +142,12 @@ describe("<Tabs.Indicator />", () => {
     }
 
     function mockTabTransform(tab: HTMLElement, transform: string) {
-      vi.spyOn(window, "getComputedStyle").mockImplementation(
-        ((element: Element) => {
-          if (element === tab) {
-            return { width: "", height: "", transform, translate: "none" };
-          }
-          return { width: "", height: "", transform: "none", translate: "none" };
-        }) as typeof window.getComputedStyle,
-      );
+      vi.spyOn(window, "getComputedStyle").mockImplementation(((element: Element) => {
+        if (element === tab) {
+          return { width: "", height: "", transform, translate: "none" };
+        }
+        return { width: "", height: "", transform: "none", translate: "none" };
+      }) as typeof window.getComputedStyle);
     }
 
     function renderTwoTabs() {
@@ -233,5 +231,4 @@ describe("<Tabs.Indicator />", () => {
       }
     });
   });
-
 });

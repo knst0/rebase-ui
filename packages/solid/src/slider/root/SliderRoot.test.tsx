@@ -199,5 +199,4 @@ describe("<Slider.Root />", () => {
     await user.keyboard("{ArrowRight}");
     expect(thumbs[0]).toHaveAttribute("aria-valuenow", "26");
   });
-
 });

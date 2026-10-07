@@ -1,4 +1,12 @@
-import { getComputedStyle, getParentNode, isElement, isHTMLElement, isLastTraversableNode, isNode, isShadowRoot } from "@floating-ui/utils/dom";
+import {
+  getComputedStyle,
+  getParentNode,
+  isElement,
+  isHTMLElement,
+  isLastTraversableNode,
+  isNode,
+  isShadowRoot,
+} from "@floating-ui/utils/dom";
 import { createEffect, untrack } from "solid-js";
 
 import { createChangeEventDetails } from "../../event-details/createEventDetails";

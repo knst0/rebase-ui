@@ -16,7 +16,7 @@ const { artifact } = await captureArtifact(
     // mount a tree or exercise a store, then perform the interaction
     // under test; flush() happens automatically at the end
   },
-  { scenario: "todo-toggle" }
+  { scenario: "todo-toggle" },
 );
 ```
 
@@ -46,7 +46,7 @@ assertBudget(artifact, {
   allow: [], // tolerated diagnostic codes
   maxReruns: 2, // total re-run cardinality for the scenario
   maxWastedRuns: 0, // unchanged recomputes (plain, non-held)
-  scopes: { TodoRow: 1 } // per-scope caps; "/regex/" keys also work
+  scopes: { TodoRow: 1 }, // per-scope caps; "/regex/" keys also work
 });
 ```
 
