@@ -39,7 +39,7 @@ jobs:
       - id: bump
         name: Bump the version on a release branch
         run: |
-          [ -n "$(git ls-files '.changeset/*.md' | grep -v '^.changeset/README.md$')" ] ||
+          git ls-files '.changeset/*.md' | grep -qv '^.changeset/README.md$' ||
             { echo "::error::no pending changesets; nothing to release"; exit 1; }
 
           pnpm changeset version
@@ -136,7 +136,7 @@ jobs:
             printf '\n---\n\nPost-release sync: version bump, changelog and consumed changesets for '
             printf '**%s**, already published at %s/%s/releases/tag/%s.\n\n' \
               "$TAG" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$TAG"
-            printf 'Merge (do not squash) to keep the tagged commit reachable from `main`.\n'
+            printf 'Merge (do not squash) to keep the tagged commit reachable from main.\n'
           } > body.md
           title="chore(release): ${TAG}"
           gh pr create --base main --head "$BRANCH" --title "$title" --body-file body.md ||

@@ -1,6 +1,7 @@
 {
   "name": "@rebase-ui/monorepo",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "pnpm --filter @rebase-ui/solid build",
     "changeset": "changeset",
