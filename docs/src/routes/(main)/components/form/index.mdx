@@ -1,0 +1,66 @@
+---
+title: Form
+description: A high-quality, unstyled Solid.js form component with consolidated error handling.
+---
+
+# Form
+
+A native form element with consolidated error handling.
+
+<Demo hero />
+
+## Anatomy
+
+Form is composed together with [Field](/components/field). Import the components and place them together:
+
+```jsx title="Anatomy"
+import { Field } from "@rebase-ui/solid/field";
+import { Form } from "@rebase-ui/solid/form";
+
+<Form>
+  <Field.Root>
+    <Field.Label />
+    <Field.Control />
+    <Field.Error />
+  </Field.Root>
+</Form>;
+```
+
+## Examples
+
+### Submit with an action
+
+Wrap the submit handler in [`action`](https://v2.solidjs.com/reference/solid-js/lifecycle-actions/action) so the whole mutation runs as a single transaction: writes made before and after the server round-trip are committed atomically, and a failure reverts cleanly instead of leaving the form in a half-updated state.
+
+Use a bare `yield` after awaiting the server to re-enter the transaction before writing the returned errors — a plain `await` alone lets those writes escape it. The in-flight state is read back with `isPending`, so no separate loading signal is needed. Adding `'use server'` to the request function turns it into a Server Function in a supporting framework.
+
+<Demo form-action />
+
+### Submit form values as a JavaScript object
+
+You can use `onFormSubmit` instead of the native `onSubmit` to access form values as a JavaScript object. This is useful when you need to transform the values before submission, or integrate with 3rd party APIs.
+
+```tsx title="Submission using onFormSubmit"
+<Form
+  onFormSubmit={async (formValues: { id: string; quantity: number }) => {
+    const payload = {
+      product_id: formValues.id,
+      order_quantity: formValues.quantity,
+    };
+
+    const response = await fetch("https://api.example.com", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }}
+/>
+```
+
+When used, `preventDefault` is called on the native submit event.
+
+### Using with Zod
+
+When parsing the schema using `schema.safeParse()`, the `z.flattenError(result.error).fieldErrors` data can be used to map the errors to each field's `name`.
+
+<Demo zod />

@@ -1,0 +1,245 @@
+{
+  "name": "@rebase-ui/solid",
+  "version": "0.12.0",
+  "description": "Headless, accessible UI primitives for Solid.js, ported from Base UI.",
+  "keywords": [
+    "accessible",
+    "base-ui",
+    "components",
+    "headless",
+    "solid",
+    "solid-js",
+    "ui"
+  ],
+  "homepage": "https://rebase.ui.knst.dev",
+  "license": "MIT",
+  "author": "Konstantin Kireyev <https://github.com/knst0>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knst0/rebase-ui.git",
+    "directory": "packages/solid"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#prehydration/slider/thumb": {
+      "browser": "./src/internals/prehydration-script/prehydrationScript.stub.ts",
+      "default": "./src/slider/thumb/prehydrationScript.min.ts"
+    },
+    "#prehydration/tabs/indicator": {
+      "browser": "./src/internals/prehydration-script/prehydrationScript.stub.ts",
+      "default": "./src/tabs/indicator/prehydrationScript.min.ts"
+    },
+    "#test-utils": "./test/index.ts",
+    "#utils/*": "./src/internals/utils/*.ts"
+  },
+  "exports": {
+    "./accordion": "./src/accordion/index.ts",
+    "./alert-dialog": "./src/alert-dialog/index.ts",
+    "./avatar": "./src/avatar/index.ts",
+    "./button": "./src/button/index.ts",
+    "./checkbox": "./src/checkbox/index.ts",
+    "./checkbox-group": "./src/checkbox-group/index.ts",
+    "./collapsible": "./src/collapsible/index.ts",
+    "./combobox": "./src/combobox/index.ts",
+    "./dialog": "./src/dialog/index.ts",
+    "./drawer": "./src/drawer/index.ts",
+    "./field": "./src/field/index.ts",
+    "./fieldset": "./src/fieldset/index.ts",
+    "./form": "./src/form/index.ts",
+    "./input": "./src/input/index.ts",
+    "./menu": "./src/menu/index.ts",
+    "./meter": "./src/meter/index.ts",
+    "./number-field": "./src/number-field/index.ts",
+    "./otp-field": "./src/otp-field/index.ts",
+    "./popover": "./src/popover/index.ts",
+    "./preview-card": "./src/preview-card/index.ts",
+    "./radio": "./src/radio/index.ts",
+    "./radio-group": "./src/radio-group/index.ts",
+    "./scroll-area": "./src/scroll-area/index.ts",
+    "./select": "./src/select/index.ts",
+    "./separator": "./src/separator/index.ts",
+    "./slider": "./src/slider/index.ts",
+    "./switch": "./src/switch/index.ts",
+    "./tabs": "./src/tabs/index.ts",
+    "./toast": "./src/toast/index.ts",
+    "./toggle": "./src/toggle/index.ts",
+    "./toggle-group": "./src/toggle-group/index.ts",
+    "./tooltip": "./src/tooltip/index.ts"
+  },
+  "publishConfig": {
+    "imports": {
+      "#prehydration/slider/thumb": {
+        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.js",
+        "default": "./dist/slider/thumb/prehydrationScript.min.js"
+      },
+      "#prehydration/tabs/indicator": {
+        "browser": "./dist/internals/prehydration-script/prehydrationScript.stub.js",
+        "default": "./dist/tabs/indicator/prehydrationScript.min.js"
+      }
+    },
+    "exports": {
+      "./accordion": {
+        "types": "./dist/accordion/index.d.ts",
+        "default": "./dist/accordion/index.js"
+      },
+      "./alert-dialog": {
+        "types": "./dist/alert-dialog/index.d.ts",
+        "default": "./dist/alert-dialog/index.js"
+      },
+      "./avatar": {
+        "types": "./dist/avatar/index.d.ts",
+        "default": "./dist/avatar/index.js"
+      },
+      "./button": {
+        "types": "./dist/button/index.d.ts",
+        "default": "./dist/button/index.js"
+      },
+      "./checkbox": {
+        "types": "./dist/checkbox/index.d.ts",
+        "default": "./dist/checkbox/index.js"
+      },
+      "./checkbox-group": {
+        "types": "./dist/checkbox-group/index.d.ts",
+        "default": "./dist/checkbox-group/index.js"
+      },
+      "./collapsible": {
+        "types": "./dist/collapsible/index.d.ts",
+        "default": "./dist/collapsible/index.js"
+      },
+      "./combobox": {
+        "types": "./dist/combobox/index.d.ts",
+        "default": "./dist/combobox/index.js"
+      },
+      "./dialog": {
+        "types": "./dist/dialog/index.d.ts",
+        "default": "./dist/dialog/index.js"
+      },
+      "./drawer": {
+        "types": "./dist/drawer/index.d.ts",
+        "default": "./dist/drawer/index.js"
+      },
+      "./field": {
+        "types": "./dist/field/index.d.ts",
+        "default": "./dist/field/index.js"
+      },
+      "./fieldset": {
+        "types": "./dist/fieldset/index.d.ts",
+        "default": "./dist/fieldset/index.js"
+      },
+      "./form": {
+        "types": "./dist/form/index.d.ts",
+        "default": "./dist/form/index.js"
+      },
+      "./input": {
+        "types": "./dist/input/index.d.ts",
+        "default": "./dist/input/index.js"
+      },
+      "./menu": {
+        "types": "./dist/menu/index.d.ts",
+        "default": "./dist/menu/index.js"
+      },
+      "./meter": {
+        "types": "./dist/meter/index.d.ts",
+        "default": "./dist/meter/index.js"
+      },
+      "./number-field": {
+        "types": "./dist/number-field/index.d.ts",
+        "default": "./dist/number-field/index.js"
+      },
+      "./otp-field": {
+        "types": "./dist/otp-field/index.d.ts",
+        "default": "./dist/otp-field/index.js"
+      },
+      "./popover": {
+        "types": "./dist/popover/index.d.ts",
+        "default": "./dist/popover/index.js"
+      },
+      "./preview-card": {
+        "types": "./dist/preview-card/index.d.ts",
+        "default": "./dist/preview-card/index.js"
+      },
+      "./radio": {
+        "types": "./dist/radio/index.d.ts",
+        "default": "./dist/radio/index.js"
+      },
+      "./radio-group": {
+        "types": "./dist/radio-group/index.d.ts",
+        "default": "./dist/radio-group/index.js"
+      },
+      "./scroll-area": {
+        "types": "./dist/scroll-area/index.d.ts",
+        "default": "./dist/scroll-area/index.js"
+      },
+      "./select": {
+        "types": "./dist/select/index.d.ts",
+        "default": "./dist/select/index.js"
+      },
+      "./separator": {
+        "types": "./dist/separator/index.d.ts",
+        "default": "./dist/separator/index.js"
+      },
+      "./slider": {
+        "types": "./dist/slider/index.d.ts",
+        "default": "./dist/slider/index.js"
+      },
+      "./switch": {
+        "types": "./dist/switch/index.d.ts",
+        "default": "./dist/switch/index.js"
+      },
+      "./tabs": {
+        "types": "./dist/tabs/index.d.ts",
+        "default": "./dist/tabs/index.js"
+      },
+      "./toast": {
+        "types": "./dist/toast/index.d.ts",
+        "default": "./dist/toast/index.js"
+      },
+      "./toggle": {
+        "types": "./dist/toggle/index.d.ts",
+        "default": "./dist/toggle/index.js"
+      },
+      "./toggle-group": {
+        "types": "./dist/toggle-group/index.d.ts",
+        "default": "./dist/toggle-group/index.js"
+      },
+      "./tooltip": {
+        "types": "./dist/tooltip/index.d.ts",
+        "default": "./dist/tooltip/index.js"
+      }
+    },
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "bundle:check": "node ./scripts/measure-bundle.mjs --compare",
+    "bundle:report": "node ./scripts/measure-bundle.mjs --format html --out ./bundle-report.html",
+    "bundle:size": "node ./scripts/measure-bundle.mjs --format table",
+    "bundle:update-baseline": "node ./scripts/measure-bundle.mjs --update-baseline",
+    "inline-scripts": "node ./scripts/inline-scripts.mjs",
+    "prepack": "tsdown"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "@floating-ui/utils": "^0.2.12"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^1.0.0-beta.3",
+    "@solidjs/vite-plugin": "3.0.0-next.44",
+    "@solidjs/web": "^2.0.0-rc.9",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/user-event": "^14.6.7",
+    "jsdom": "^30.1.0",
+    "oxc-minify": "^0.150.0",
+    "solid-js": "^2.0.0-rc.9",
+    "tsdown": "^0.23.0"
+  },
+  "peerDependencies": {
+    "@solidjs/web": ">=2.0.0-rc.0 || >=2",
+    "solid-js": ">=2.0.0-rc.0 || >=2"
+  }
+}

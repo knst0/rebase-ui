@@ -1,0 +1,152 @@
+import type { ValidComponent } from "@solidjs/web";
+import { type Accessor, createSignal, createUniqueId, untrack } from "solid-js";
+
+import type { CollapsibleRootChangeEventDetails } from "../../collapsible/root/CollapsibleRoot";
+import { CollapsibleRootContext } from "../../collapsible/root/CollapsibleRootContext";
+import { createCollapsibleRoot, type CreateCollapsibleRootParameters } from "../../collapsible/root/createCollapsibleRoot";
+import { useCompositeListItem } from "../../internals/composite";
+import { REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
+import { accessBoolean } from "../../internals/maybeAccessor";
+import { mergeRefs } from "../../internals/mergeRefs";
+import { RenderElement } from "../../internals/render-element";
+import { split } from "../../internals/split";
+import type { RebaseUIComponentProps } from "../../internals/types";
+import type { AccordionRootState } from "../root/AccordionRoot";
+import { useAccordionRootContext } from "../root/AccordionRootContext";
+import { AccordionItemContext } from "./AccordionItemContext";
+import { accordionStateAttributesMapping } from "./stateAttributesMapping";
+
+/**
+ * Groups an accordion header with the corresponding panel.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Rebase UI Collapsible](https://rebase-ui.knst.dev/components/accordion)
+ */
+export function AccordionItem<T extends ValidComponent = "div">(props: AccordionItem.Props<T>) {
+  const [local, elementProps] = split(props as AccordionItem.Props, { default: defaultProps }, ["as", "disabled", "onOpenChange", "value"]);
+
+  const as = untrack(() => local.as);
+
+  const rootContext = useAccordionRootContext();
+
+  const { ref: listItemRef, index } = useCompositeListItem();
+
+  const fallbackValue = createUniqueId();
+
+  const value = () => local.value ?? fallbackValue;
+
+  const disabled = () => accessBoolean(local.disabled) || rootContext.disabled();
+
+  const isOpen = () => rootContext.value().includes(value());
+
+  const onOpenChange = (nextOpen: boolean, eventDetails: CollapsibleRootChangeEventDetails) => {
+    local.onOpenChange?.(nextOpen, eventDetails);
+
+    if (eventDetails.isCanceled) {
+      return;
+    }
+
+    rootContext.handleValueChange(value(), nextOpen, eventDetails);
+  };
+
+  const [triggerId, setTriggerId] = createSignal(createUniqueId());
+
+  const collapsible = createCollapsibleRoot({
+    disabled,
+    onOpenChange,
+    open: isOpen,
+  });
+
+  const collapsibleState = {
+    open: collapsible.open,
+    disabled: collapsible.disabled,
+    transitionStatus: collapsible.transitionStatus,
+  };
+
+  const collapsibleContext = {
+    ...collapsible,
+    onOpenChange,
+    state: collapsibleState,
+  };
+
+  const state: AccordionItemState = {
+    ...rootContext.state,
+    disabled,
+    hidden: () => !isOpen() && !collapsible.mounted(),
+    index,
+    open: isOpen,
+  };
+
+  const accordionItemContext: AccordionItemContext = {
+    open: isOpen,
+    state,
+    setTriggerId,
+    triggerId,
+  };
+
+  const refProps = (externalProps: Record<string, any>) => ({
+    ref: mergeRefs<HTMLElement>(externalProps.ref, listItemRef),
+  });
+
+  return (
+    <CollapsibleRootContext value={collapsibleContext}>
+      <AccordionItemContext value={accordionItemContext}>
+        <RenderElement as={as} state={state} props={[elementProps, refProps]} stateAttributesMapping={accordionStateAttributesMapping} />
+      </AccordionItemContext>
+    </CollapsibleRootContext>
+  );
+}
+
+const defaultProps = Object.freeze({
+  as: "div",
+} satisfies Partial<AccordionItem.Props>);
+
+export interface AccordionItemState extends AccordionRootState {
+  /**
+   * Whether the accordion item's panel is currently hidden.
+   */
+  hidden: Accessor<boolean>;
+  /**
+   * The item index.
+   */
+  index: Accessor<number>;
+  /**
+   * Whether the component is open.
+   */
+  open: Accessor<boolean>;
+}
+
+export interface AccordionItemOwnProps extends Partial<Pick<CreateCollapsibleRootParameters, "disabled">> {
+  /**
+   * A unique value that identifies this accordion item.
+   * If no value is provided, a unique ID will be generated automatically.
+   * Use when controlling the accordion programmatically, or to set an initial
+   * open state.
+   * @example
+   * ```tsx
+   * <Accordion.Root value={['a']}>
+   *   <Accordion.Item value="a" /> // initially open
+   *   <Accordion.Item value="b" /> // initially closed
+   * </Accordion.Root>
+   * ```
+   */
+  value?: any;
+  /**
+   * Event handler called when the panel is opened or closed.
+   */
+  onOpenChange?: ((open: boolean, eventDetails: AccordionItemChangeEventDetails) => void) | undefined;
+}
+
+export type AccordionItemProps<T extends ValidComponent = "div"> = AccordionItemOwnProps & RebaseUIComponentProps<T, AccordionItemState>;
+
+export type AccordionItemChangeEventReason = typeof REASONS.triggerPress | typeof REASONS.none;
+
+export type AccordionItemChangeEventDetails = RebaseUIChangeEventDetails<AccordionItemChangeEventReason>;
+
+export namespace AccordionItem {
+  export type State = AccordionItemState;
+  export type Props<T extends ValidComponent = "div"> = AccordionItemProps<T>;
+  export type OwnProps = AccordionItemOwnProps;
+  export type ChangeEventReason = AccordionItemChangeEventReason;
+  export type ChangeEventDetails = AccordionItemChangeEventDetails;
+}

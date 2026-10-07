@@ -1,0 +1,45 @@
+{
+  "name": "@rebase-ui/monorepo",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter @rebase-ui/solid build",
+    "changeset": "changeset",
+    "fmt": "oxfmt",
+    "lint": "oxlint --type-aware --type-check",
+    "test": "pnpm test:chromium",
+    "test:browsers": "cross-env VITEST_ENV=all-browsers pnpm test:unit",
+    "test:chromium": "cross-env VITEST_ENV=chromium pnpm test:unit",
+    "test:ci": "cross-env VITEST_ENV=chromium vitest run --project @rebase-ui/solid --project @rebase-ui/docs",
+    "test:firefox": "cross-env VITEST_ENV=firefox pnpm test:unit",
+    "test:package": "pnpm build && vitest run --project @rebase-ui/solid-package",
+    "test:unit": "vitest --project @rebase-ui/solid",
+    "test:webkit": "cross-env VITEST_ENV=webkit pnpm test:unit",
+    "typecheck": "tsc --noEmit -p packages/solid/tsconfig.json && tsc --noEmit -p docs/tsconfig.json",
+    "version": "changeset version"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@rebase-ui/monorepo-tests": "workspace:*",
+    "@solidjs/diagnostics": "2.0.0-rc.2",
+    "@types/node": "^26.6.2",
+    "@vitest/browser-playwright": "^5.0.1",
+    "cross-env": "^10.1.0",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "playwright": "^1.63.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.3.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "packageManager": "pnpm@12.3.0"
+}

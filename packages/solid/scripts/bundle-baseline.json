@@ -1,0 +1,198 @@
+{
+  "generatedAt": "2026-09-14T12:06:40.923Z",
+  "gitSha": "3aad311",
+  "entries": {
+    "combobox": {
+      "raw": 383606,
+      "min": 182036,
+      "gzip": 81537,
+      "brotli": 64592
+    },
+    "menu": {
+      "raw": 348466,
+      "min": 165305,
+      "gzip": 76897,
+      "brotli": 59045
+    },
+    "select": {
+      "raw": 310067,
+      "min": 147721,
+      "gzip": 67480,
+      "brotli": 54844
+    },
+    "popover": {
+      "raw": 272504,
+      "min": 125781,
+      "gzip": 61536,
+      "brotli": 48692
+    },
+    "tooltip": {
+      "raw": 220096,
+      "min": 100410,
+      "gzip": 50187,
+      "brotli": 39808
+    },
+    "preview-card": {
+      "raw": 206455,
+      "min": 93745,
+      "gzip": 47312,
+      "brotli": 37662
+    },
+    "drawer": {
+      "raw": 213304,
+      "min": 92930,
+      "gzip": 45540,
+      "brotli": 37030
+    },
+    "toast": {
+      "raw": 144733,
+      "min": 69378,
+      "gzip": 33787,
+      "brotli": 27781
+    },
+    "slider": {
+      "raw": 98571,
+      "min": 48981,
+      "gzip": 23234,
+      "brotli": 19939
+    },
+    "tabs": {
+      "raw": 93846,
+      "min": 45837,
+      "gzip": 21818,
+      "brotli": 18813
+    },
+    "number-field": {
+      "raw": 92228,
+      "min": 45997,
+      "gzip": 21743,
+      "brotli": 18505
+    },
+    "alert-dialog": {
+      "raw": 80972,
+      "min": 39287,
+      "gzip": 17761,
+      "brotli": 15354
+    },
+    "dialog": {
+      "raw": 79564,
+      "min": 38888,
+      "gzip": 17498,
+      "brotli": 15197
+    },
+    "field": {
+      "raw": 74208,
+      "min": 36568,
+      "gzip": 16242,
+      "brotli": 14136
+    },
+    "otp-field": {
+      "raw": 65336,
+      "min": 33283,
+      "gzip": 15443,
+      "brotli": 13455
+    },
+    "accordion": {
+      "raw": 68495,
+      "min": 33274,
+      "gzip": 14866,
+      "brotli": 13086
+    },
+    "radio-group": {
+      "raw": 62136,
+      "min": 30057,
+      "gzip": 14793,
+      "brotli": 12851
+    },
+    "checkbox": {
+      "raw": 61952,
+      "min": 30747,
+      "gzip": 14718,
+      "brotli": 12760
+    },
+    "radio": {
+      "raw": 59961,
+      "min": 29929,
+      "gzip": 14587,
+      "brotli": 12626
+    },
+    "scroll-area": {
+      "raw": 58557,
+      "min": 26843,
+      "gzip": 12782,
+      "brotli": 11213
+    },
+    "collapsible": {
+      "raw": 55223,
+      "min": 26385,
+      "gzip": 12422,
+      "brotli": 10985
+    },
+    "switch": {
+      "raw": 49243,
+      "min": 25032,
+      "gzip": 11978,
+      "brotli": 10418
+    },
+    "toggle-group": {
+      "raw": 41828,
+      "min": 20114,
+      "gzip": 10154,
+      "brotli": 8915
+    },
+    "checkbox-group": {
+      "raw": 38092,
+      "min": 18434,
+      "gzip": 9296,
+      "brotli": 8210
+    },
+    "toggle": {
+      "raw": 36769,
+      "min": 18044,
+      "gzip": 9177,
+      "brotli": 8112
+    },
+    "input": {
+      "raw": 30945,
+      "min": 15630,
+      "gzip": 7916,
+      "brotli": 6961
+    },
+    "avatar": {
+      "raw": 30729,
+      "min": 14771,
+      "gzip": 7499,
+      "brotli": 6622
+    },
+    "meter": {
+      "raw": 26087,
+      "min": 12861,
+      "gzip": 6472,
+      "brotli": 5684
+    },
+    "form": {
+      "raw": 22477,
+      "min": 10707,
+      "gzip": 6167,
+      "brotli": 5413
+    },
+    "button": {
+      "raw": 23667,
+      "min": 11229,
+      "gzip": 5818,
+      "brotli": 5187
+    },
+    "fieldset": {
+      "raw": 18820,
+      "min": 9066,
+      "gzip": 4904,
+      "brotli": 4318
+    },
+    "separator": {
+      "raw": 14888,
+      "min": 6920,
+      "gzip": 3988,
+      "brotli": 3536
+    }
+  }
+}

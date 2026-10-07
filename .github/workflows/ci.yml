@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "packages/**"
+      - "docs/**"
+      - "test/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig*.json"
+      - "vitest.config.mts"
+      - "vitest.shared.mts"
+      - "oxfmt.config.ts"
+      - "oxlint.config.ts"
+      - ".changeset/**"
+      - ".github/actions/**"
+      - ".github/scripts/**"
+      - ".github/workflows/**"
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Verify
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check.yml

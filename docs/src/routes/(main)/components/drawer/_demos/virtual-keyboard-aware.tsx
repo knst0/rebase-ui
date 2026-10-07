@@ -1,0 +1,82 @@
+import { Drawer } from "@rebase-ui/solid/drawer";
+import { For } from "solid-js";
+
+const fields = [
+  ["Name", "Ada Lovelace"],
+  ["Phone", "+1 (555) 123-4567"],
+  ["Street address", "12 Computing Way"],
+  ["Apartment", "Unit 4B"],
+  ["City", "San Francisco"],
+  ["Postal code", "94107"],
+  ["Delivery window", "After 6 PM"],
+  ["Backup contact", "Grace Hopper"],
+];
+
+export default function ExampleDrawerVirtualKeyboardAware() {
+  return (
+    <Drawer.Root>
+      <Drawer.Trigger class="flex h-8 items-center justify-center gap-2 border border-neutral-950 bg-white px-3 text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:bg-neutral-200 disabled:border-neutral-500 disabled:text-neutral-500 data-disabled:border-neutral-500 data-disabled:text-neutral-500 dark:border-white dark:bg-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:bg-neutral-700 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400">
+        Open keyboard-aware drawer
+      </Drawer.Trigger>
+      <Drawer.VirtualKeyboardProvider>
+        <Drawer.Portal>
+          <Drawer.Backdrop class="fixed inset-0 min-h-dvh bg-black opacity-[calc(var(--backdrop-opacity)*(1-var(--drawer-swipe-progress)))] transition-opacity duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] [--backdrop-opacity:0.2] [--bleed:3rem] data-ending-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] data-starting-style:opacity-0 data-swiping:duration-0 supports-[-webkit-touch-callout:none]:absolute dark:[--backdrop-opacity:0.7]" />
+          <Drawer.Viewport class="fixed inset-0 flex touch-none items-end justify-center [--bleed:3rem] after:pointer-events-none after:fixed after:inset-x-0 after:bottom-0 after:h-[var(--bleed)] after:bg-white after:content-[''] has-[[data-swiping]]:after:opacity-0 data-closed:after:opacity-0 dark:after:bg-neutral-950">
+            <Drawer.Popup class="relative z-1 -mb-[var(--bleed)] flex h-[calc(100%-1rem+var(--bleed))] max-h-[calc(100%-1rem+var(--bleed))] w-full [transform:translateY(var(--drawer-swipe-movement-y))] touch-none flex-col overflow-visible border-t border-neutral-950 bg-white text-neutral-950 shadow-[0.25rem_0.25rem_0] shadow-black/12 transition-[transform,box-shadow] duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform outline-none [--bleed:3rem] [--footer-reserved-height:calc(5.25rem+var(--bleed))] data-ending-style:[transform:translateY(calc(100%-var(--bleed)+2px))] data-ending-style:shadow-[0.25rem_0.25rem_0] data-ending-style:shadow-black/0 data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] data-starting-style:[transform:translateY(calc(100%-var(--bleed)+2px))] data-starting-style:shadow-[0.25rem_0.25rem_0] data-starting-style:shadow-black/0 data-swiping:select-none dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none">
+              <div class="relative shrink-0 touch-none border-b border-neutral-300 px-6 py-4 select-none dark:border-neutral-700">
+                <div class="absolute top-2 left-1/2 h-1 w-12 shrink-0 -translate-x-1/2 bg-neutral-300 dark:bg-neutral-700" />
+                <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                  <Drawer.Close class="flex h-8 min-w-0 items-center justify-center gap-2 justify-self-start border border-neutral-950 bg-white px-3 text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:bg-neutral-200 disabled:border-neutral-500 disabled:text-neutral-500 data-disabled:border-neutral-500 data-disabled:text-neutral-500 dark:border-white dark:bg-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:bg-neutral-700 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400">
+                    Cancel
+                  </Drawer.Close>
+                  <Drawer.Title class="cursor-default text-center text-base font-bold">Delivery details</Drawer.Title>
+                  <Drawer.Close class="flex h-8 min-w-0 items-center justify-center gap-2 justify-self-end border border-neutral-950 bg-white px-3 text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:bg-neutral-200 disabled:border-neutral-500 disabled:text-neutral-500 data-disabled:border-neutral-500 data-disabled:text-neutral-500 dark:border-white dark:bg-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:bg-neutral-700 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400">
+                    Save
+                  </Drawer.Close>
+                </div>
+              </div>
+
+              <Drawer.Content class="min-h-0 flex-1 touch-auto overflow-y-auto overscroll-contain px-6 pt-4 pb-6">
+                <div class="mx-auto grid w-full max-w-90 gap-3">
+                  <For each={fields}>
+                    {([label, placeholder]) => (
+                      <label class="flex w-full flex-col items-start gap-1">
+                        <span class="text-sm font-bold text-neutral-950 dark:text-white">{label}</span>
+                        <input
+                          class="h-8 w-full border border-neutral-950 bg-white px-2 text-sm font-normal text-neutral-950 placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-400 dark:focus:outline-white any-pointer-coarse:text-base"
+                          placeholder={placeholder}
+                          type="text"
+                        />
+                      </label>
+                    )}
+                  </For>
+
+                  <label class="flex w-full flex-col items-start gap-1">
+                    <span class="text-sm font-bold text-neutral-950 dark:text-white">Instructions</span>
+                    <textarea
+                      class="min-h-22 w-full resize-y border border-neutral-950 bg-white px-2 py-2 text-sm font-normal text-neutral-950 placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-400 dark:focus:outline-white any-pointer-coarse:text-base"
+                      placeholder="Gate code, drop-off spot, or anything else the driver should know"
+                    />
+                  </label>
+                </div>
+              </Drawer.Content>
+
+              <div class="relative min-h-[var(--footer-reserved-height)] shrink-0 transition-[min-height] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] focus-within:min-h-[calc(var(--footer-reserved-height)+var(--drawer-keyboard-inset,0px))] motion-reduce:transition-none">
+                <div class="absolute right-0 bottom-0 left-0 z-1 border-t border-neutral-950 bg-white px-6 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom,0px)+var(--bleed))] transition-[bottom,padding-bottom] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[bottom,padding-bottom] focus-within:fixed focus-within:bottom-0 focus-within:z-3 focus-within:[transform:translate3d(0,0,0)] focus-within:pb-[calc(0.625rem+env(safe-area-inset-bottom,0px)+var(--bleed)+var(--drawer-keyboard-inset,0px))] motion-reduce:transition-none dark:border-white dark:bg-neutral-950">
+                  <label class="mx-auto flex w-full max-w-90 flex-col gap-1">
+                    <span class="text-sm font-bold text-neutral-950 dark:text-white">Delivery note</span>
+                    <input
+                      class="h-10 w-full border border-neutral-950 bg-white px-2.5 text-sm font-normal text-neutral-950 placeholder:text-neutral-500 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:border-white dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-400 dark:focus:outline-white any-pointer-coarse:text-base"
+                      placeholder="Add a note for the driver"
+                      type="text"
+                    />
+                  </label>
+                </div>
+              </div>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer.VirtualKeyboardProvider>
+    </Drawer.Root>
+  );
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client", "znaki/client"]
+  },
+  "include": [
+    "src",
+    "plugins",
+    "vite.config.mts",
+    "vitest.config.mts",
+    "znaki.d.ts",
+    "file-routes.d.ts",
+    "../packages/solid/src/global.d.ts"
+  ]
+}

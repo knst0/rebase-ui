@@ -1,0 +1,67 @@
+---
+title: Switch
+description: A high-quality, unstyled Solid.js switch component that is easy to customize.
+---
+
+# Switch
+
+A control that indicates whether a setting is on or off.
+
+<Demo hero />
+
+## Usage guidelines
+
+- **Form controls must have an accessible name**: It can be created using a `<label>` element or the `Field` component. See [Labeling a switch](#labeling-a-switch).
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Switch } from "@rebase-ui/solid/switch";
+
+<Switch.Root>
+  <Switch.Thumb />
+</Switch.Root>;
+```
+
+## Examples
+
+### Labeling a switch
+
+An enclosing `<label>` is the simplest labeling pattern:
+
+```tsx title="Wrapping a label around a switch"
+<label>
+  <Switch.Root />
+  Notifications
+</label>
+```
+
+### Rendering as a native button
+
+By default, `<Switch.Root>` renders a `<span>` element to support enclosing labels. Prefer rendering the switch as a native button when using sibling labels (`for`/`id`).
+
+```tsx title="Sibling label pattern with a native button"
+<div>
+  <label for="notifications-switch">Notifications</label>
+  <Switch.Root id="notifications-switch" nativeButton as="button">
+    <Switch.Thumb />
+  </Switch.Root>
+</div>
+```
+
+### Form integration
+
+Use [Field](/components/field) to handle label associations and form integration:
+
+```tsx title="Using Switch in a form"
+<Form>
+  <Field.Root name="notifications">
+    <Field.Label>
+      <Switch.Root />
+      Notifications
+    </Field.Label>
+  </Field.Root>
+</Form>
+```

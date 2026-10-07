@@ -1,0 +1,149 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Bump and verify, but do not publish or tag"
+        required: false
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
+      sha: ${{ steps.meta.outputs.sha }}
+      branch: ${{ steps.bump.outputs.branch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: ./.github/actions/setup-node
+
+      - id: bump
+        name: Bump the version on a release branch
+        run: |
+          status=$(.github/scripts/changeset.sh status)
+          echo "$status"
+          version=$(printf '%s\n' "$status" |
+            sed -n 's/^[0-9]* changeset(s): .* -> \([0-9][0-9.]*\).*/\1/p' | head -n1)
+          [ -n "$version" ] || { echo "::error::no pending changesets; nothing to release"; exit 1; }
+
+          branch="release/v${version}"
+          git switch -c "$branch"
+
+          bumped=$(.github/scripts/changeset.sh version | tail -n1)
+          [ "$bumped" = "$version" ] ||
+            { echo "::error::version mismatch: expected ${version}, got ${bumped}"; exit 1; }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): v${version}"
+
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+      - id: meta
+        name: Resolve version and guard the tag
+        run: .github/scripts/version.sh
+
+      - name: Release notes
+        run: .github/scripts/release-notes.sh | tee RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-notes
+          path: RELEASE_NOTES.md
+          if-no-files-found: error
+
+      - name: Push the release branch
+        run: git push --force-with-lease --set-upstream origin "${{ steps.bump.outputs.branch }}"
+
+  verify:
+    name: Verify the release commit
+    needs: prepare
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+
+  publish:
+    name: Publish
+    needs: [prepare, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: ./.github/actions/setup-node
+        with:
+          registry-url: https://registry.npmjs.org
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-notes
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to npm
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: .github/scripts/npm-publish.sh
+
+      - name: Tag and create the GitHub release
+        if: ${{ !inputs.dry-run }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: .github/scripts/github-release.sh
+
+  sync-pr:
+    name: Sync PR into main
+    needs: [prepare, publish]
+    if: ${{ !inputs.dry-run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-notes
+
+      - name: Open or update the sync PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ needs.prepare.outputs.branch }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: .github/scripts/sync-pr.sh

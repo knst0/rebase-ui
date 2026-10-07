@@ -1,0 +1,35 @@
+---
+title: Number Field
+description: A high-quality, unstyled Solid number field component with increment and decrement buttons, and a scrub area.
+---
+
+# Number Field
+
+A numeric input element with increment and decrement buttons, and a scrub area.
+
+<Demo hero />
+
+## Usage guidelines
+
+- **Form controls must have an accessible name**: It can be created using a `<label>` element or the `Field` component. See the [forms guide](https://base-ui.com/react/handbook/forms).
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { NumberField } from "@rebase-ui/solid/number-field";
+
+<NumberField.Root>
+  <NumberField.ScrubArea>
+    <NumberField.ScrubAreaCursor />
+  </NumberField.ScrubArea>
+  <NumberField.Group>
+    <NumberField.Decrement />
+    <NumberField.Input />
+    <NumberField.Increment />
+  </NumberField.Group>
+</NumberField.Root>;
+```
+
+<ApiReference slug="number-field" />

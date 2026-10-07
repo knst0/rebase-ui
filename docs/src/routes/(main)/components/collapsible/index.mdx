@@ -1,0 +1,43 @@
+---
+title: Collapsible
+description: A collapsible panel controlled by a button.
+---
+
+# Collapsible
+
+A collapsible panel controlled by a button.
+
+<Demo hero />
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Collapsible } from "@rebase-ui/solid/collapsible";
+
+<Collapsible.Root>
+  <Collapsible.Trigger />
+  <Collapsible.Panel />
+</Collapsible.Root>;
+```
+
+## Examples
+
+### Hidden until found
+
+The `hiddenUntilFound` prop hides the closed panel with `hidden="until-found"` so the browser can search its contents with find-in-page—Ctrl+F (Cmd+F on macOS)—and reveal the panel when a match is found. The closed panel always remains mounted in the DOM, which also makes its contents indexable by search engines.
+
+Older browsers that don’t support `hidden="until-found"` keep the panel hidden until its trigger opens it, and find-in-page skips over the contents.
+
+```jsx title="Searchable hidden panel"
+import { Collapsible } from "@rebase-ui/solid/collapsible";
+
+<Collapsible.Root>
+  <Collapsible.Trigger>Shipping details</Collapsible.Trigger>
+  {/* @highlight-text "hiddenUntilFound" */}
+  <Collapsible.Panel hiddenUntilFound>Standard shipping takes 3–5 business days.</Collapsible.Panel>
+</Collapsible.Root>;
+```
+
+See the [Accordion example](/components/accordion#hidden-until-found) for an interactive demo.

@@ -1,0 +1,111 @@
+---
+title: Checkbox Group
+description: A high-quality, unstyled Solid.js checkbox group component that provides a shared state for a series of checkboxes.
+---
+
+# Checkbox Group
+
+Provides shared state to a series of checkboxes.
+
+<Demo hero />
+
+## Usage guidelines
+
+- **Form controls must have an accessible name**: It can be created using `<label>` elements, or the `Field` and `Fieldset` components. See [Labeling a checkbox group](#labeling-a-checkbox-group).
+
+## Anatomy
+
+Checkbox Group is composed together with [Checkbox](/components/checkbox). Import the components and place them together:
+
+```jsx title="Anatomy"
+import { Checkbox } from "@rebase-ui/solid/checkbox";
+import { CheckboxGroup } from "@rebase-ui/solid/checkbox-group";
+
+<CheckboxGroup>
+  <Checkbox.Root />
+</CheckboxGroup>;
+```
+
+## Examples
+
+### Labeling a checkbox group
+
+Label the group with `aria-labelledby` and a sibling label element:
+
+```tsx title="Using aria-labelledby to label a checkbox group"
+<div id="protocols-label">Allowed network protocols</div>
+<CheckboxGroup aria-labelledby="protocols-label">{/* ... */}</CheckboxGroup>
+```
+
+An enclosing `<label>` is the simplest labeling pattern for each checkbox:
+
+```tsx title="Using an enclosing label to label a checkbox"
+<label>
+  <Checkbox.Root value="http" />
+  HTTP
+</label>
+```
+
+### Rendering as a native button
+
+By default, `<Checkbox.Root>` renders a `<span>` element to support enclosing labels. Prefer rendering each checkbox as a native button when using sibling labels (`for`/`id`).
+
+```tsx title="Sibling label pattern with a native button"
+<div id="protocols-label">Allowed network protocols</div>
+<CheckboxGroup aria-labelledby="protocols-label">
+  <div>
+    <label for="protocol-http">HTTP</label>
+    <Checkbox.Root id="protocol-http" value="http" nativeButton as="button">
+      <Checkbox.Indicator />
+    </Checkbox.Root>
+  </div>
+</CheckboxGroup>
+```
+
+### Form integration
+
+Use [Field](/components/field) and [Fieldset](/components/fieldset) for group labeling and form integration:
+
+```tsx title="Using Checkbox Group in a form"
+<Form>
+  <Field.Root name="allowedNetworkProtocols">
+    <Fieldset.Root as={CheckboxGroup}>
+      <Fieldset.Legend>Allowed network protocols</Fieldset.Legend>
+      <Field.Item>
+        <Field.Label>
+          <Checkbox.Root value="http" />
+          HTTP
+        </Field.Label>
+      </Field.Item>
+      <Field.Item>
+        <Field.Label>
+          <Checkbox.Root value="https" />
+          HTTPS
+        </Field.Label>
+      </Field.Item>
+      <Field.Item>
+        <Field.Label>
+          <Checkbox.Root value="ssh" />
+          SSH
+        </Field.Label>
+      </Field.Item>
+    </Fieldset.Root>
+  </Field.Root>
+</Form>
+```
+
+### Parent checkbox
+
+A checkbox that controls other checkboxes within a `<CheckboxGroup>` can be created:
+
+1. Make `<CheckboxGroup>` a controlled component
+2. Pass an array of all the child checkbox values to the `allValues` prop on the `<CheckboxGroup>` component
+3. Add the `parent` boolean prop to the parent `<Checkbox.Root>`
+
+The group controls the parent checkbox's `indeterminate` state when some, but not all, child checkboxes are checked.
+
+<Demo parent />
+
+### Nested parent checkbox
+
+<Demo nested />
