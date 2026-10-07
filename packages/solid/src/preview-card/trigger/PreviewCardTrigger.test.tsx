@@ -47,7 +47,7 @@ describe("<PreviewCard.Trigger />", () => {
   it("opens on focus", async () => {
     const trigger = renderTrigger();
 
-    fireEvent.focus(trigger);
+    trigger.focus();
     await sleep(10);
     flush();
 

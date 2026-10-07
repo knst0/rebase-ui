@@ -108,7 +108,7 @@ describe("<Tooltip.Root />", () => {
   it("opens on focus and marks the trigger open", async () => {
     const { trigger, popup } = renderTooltip();
 
-    fireEvent.focus(trigger);
+    trigger.focus();
     flush();
     await nextFrames();
 

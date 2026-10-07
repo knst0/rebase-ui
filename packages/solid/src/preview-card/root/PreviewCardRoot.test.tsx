@@ -131,6 +131,6 @@ describe("<PreviewCard.Root />", () => {
     flush();
     await nextFrames();
 
-    expect(handle.isOpen).toBe(false);
+    await vi.waitFor(() => expect(handle.isOpen).toBe(false));
   });
 });
