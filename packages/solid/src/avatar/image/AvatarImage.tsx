@@ -26,9 +26,8 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
 
   const as = untrack(() => local.as);
 
-  const { setImageLoadingStatus } = useAvatarRootContext();
+  const { imageLoadingStatus: status, setImageLoadingStatus: setStatus } = useAvatarRootContext();
 
-  const [status, setStatus] = createSignal<ImageLoadingStatus>("idle", { ownedWrite: true });
   const [element, setElement] = createSignal<HTMLImageElement | undefined>(undefined);
 
   if (!isServer) {
@@ -65,15 +64,12 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
   }
 
   createEffect(status, (value) => {
-    if (value !== "idle") {
-      local.onLoadingStatusChange?.(value);
-      setImageLoadingStatus(value);
-    }
+    if (value !== "idle") local.onLoadingStatusChange?.(value);
   });
 
   onCleanup(() => {
     if (isServer) return;
-    setImageLoadingStatus("idle");
+    setStatus("idle");
   });
 
   const isVisible = () => status() === "loaded";
