@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +8,7 @@ const packageDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(readFileSync(join(packageDir, "package.json"), "utf8")) as {
   exports: Record<string, string>;
   publishConfig: {
-    exports: Record<string, { types: string; default: string }>;
+    exports: Record<string, { types: string; solid: string; default: string }>;
     imports?: Record<string, Record<string, string>>;
   };
 };
@@ -30,6 +30,7 @@ describe("package export map", () => {
     for (const [subpath, target] of Object.entries(manifest.exports)) {
       expect(published[subpath].default).toBe(target.replace(/^\.\/src\//, "./dist/").replace(/\.ts$/, ".js"));
       expect(published[subpath].types).toBe(target.replace(/^\.\/src\//, "./dist/").replace(/\.ts$/, ".d.ts"));
+      expect(published[subpath].solid).toBe(target.replace(/^\.\/src\//, "./dist/solid/").replace(/\.ts$/, ".jsx"));
     }
   });
 
@@ -39,6 +40,18 @@ describe("package export map", () => {
       .map(([subpath]) => subpath);
 
     expect(missing).toEqual([]);
+  });
+
+  it("ships uncompiled JSX under the solid condition", () => {
+    const missing = Object.entries(manifest.publishConfig.exports)
+      .filter(([, target]) => !existsSync(join(packageDir, target.solid)))
+      .map(([subpath]) => subpath);
+    const compiled = readdirSync(join(packageDir, "dist/solid"), { recursive: true, encoding: "utf8" })
+      .filter((file) => file.endsWith(".jsx"))
+      .filter((file) => /\btemplate\(/.test(readFileSync(join(packageDir, "dist/solid", file), "utf8")));
+
+    expect(missing).toEqual([]);
+    expect(compiled).toEqual([]);
   });
 });
 

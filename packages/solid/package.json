@@ -84,130 +84,162 @@
     "exports": {
       "./accordion": {
         "types": "./dist/accordion/index.d.ts",
+        "solid": "./dist/solid/accordion/index.jsx",
         "default": "./dist/accordion/index.js"
       },
       "./alert-dialog": {
         "types": "./dist/alert-dialog/index.d.ts",
+        "solid": "./dist/solid/alert-dialog/index.jsx",
         "default": "./dist/alert-dialog/index.js"
       },
       "./avatar": {
         "types": "./dist/avatar/index.d.ts",
+        "solid": "./dist/solid/avatar/index.jsx",
         "default": "./dist/avatar/index.js"
       },
       "./button": {
         "types": "./dist/button/index.d.ts",
+        "solid": "./dist/solid/button/index.jsx",
         "default": "./dist/button/index.js"
       },
       "./checkbox": {
         "types": "./dist/checkbox/index.d.ts",
+        "solid": "./dist/solid/checkbox/index.jsx",
         "default": "./dist/checkbox/index.js"
       },
       "./checkbox-group": {
         "types": "./dist/checkbox-group/index.d.ts",
+        "solid": "./dist/solid/checkbox-group/index.jsx",
         "default": "./dist/checkbox-group/index.js"
       },
       "./collapsible": {
         "types": "./dist/collapsible/index.d.ts",
+        "solid": "./dist/solid/collapsible/index.jsx",
         "default": "./dist/collapsible/index.js"
       },
       "./combobox": {
         "types": "./dist/combobox/index.d.ts",
+        "solid": "./dist/solid/combobox/index.jsx",
         "default": "./dist/combobox/index.js"
       },
       "./dialog": {
         "types": "./dist/dialog/index.d.ts",
+        "solid": "./dist/solid/dialog/index.jsx",
         "default": "./dist/dialog/index.js"
       },
       "./drawer": {
         "types": "./dist/drawer/index.d.ts",
+        "solid": "./dist/solid/drawer/index.jsx",
         "default": "./dist/drawer/index.js"
       },
       "./field": {
         "types": "./dist/field/index.d.ts",
+        "solid": "./dist/solid/field/index.jsx",
         "default": "./dist/field/index.js"
       },
       "./fieldset": {
         "types": "./dist/fieldset/index.d.ts",
+        "solid": "./dist/solid/fieldset/index.jsx",
         "default": "./dist/fieldset/index.js"
       },
       "./form": {
         "types": "./dist/form/index.d.ts",
+        "solid": "./dist/solid/form/index.jsx",
         "default": "./dist/form/index.js"
       },
       "./input": {
         "types": "./dist/input/index.d.ts",
+        "solid": "./dist/solid/input/index.jsx",
         "default": "./dist/input/index.js"
       },
       "./menu": {
         "types": "./dist/menu/index.d.ts",
+        "solid": "./dist/solid/menu/index.jsx",
         "default": "./dist/menu/index.js"
       },
       "./meter": {
         "types": "./dist/meter/index.d.ts",
+        "solid": "./dist/solid/meter/index.jsx",
         "default": "./dist/meter/index.js"
       },
       "./number-field": {
         "types": "./dist/number-field/index.d.ts",
+        "solid": "./dist/solid/number-field/index.jsx",
         "default": "./dist/number-field/index.js"
       },
       "./otp-field": {
         "types": "./dist/otp-field/index.d.ts",
+        "solid": "./dist/solid/otp-field/index.jsx",
         "default": "./dist/otp-field/index.js"
       },
       "./popover": {
         "types": "./dist/popover/index.d.ts",
+        "solid": "./dist/solid/popover/index.jsx",
         "default": "./dist/popover/index.js"
       },
       "./preview-card": {
         "types": "./dist/preview-card/index.d.ts",
+        "solid": "./dist/solid/preview-card/index.jsx",
         "default": "./dist/preview-card/index.js"
       },
       "./radio": {
         "types": "./dist/radio/index.d.ts",
+        "solid": "./dist/solid/radio/index.jsx",
         "default": "./dist/radio/index.js"
       },
       "./radio-group": {
         "types": "./dist/radio-group/index.d.ts",
+        "solid": "./dist/solid/radio-group/index.jsx",
         "default": "./dist/radio-group/index.js"
       },
       "./scroll-area": {
         "types": "./dist/scroll-area/index.d.ts",
+        "solid": "./dist/solid/scroll-area/index.jsx",
         "default": "./dist/scroll-area/index.js"
       },
       "./select": {
         "types": "./dist/select/index.d.ts",
+        "solid": "./dist/solid/select/index.jsx",
         "default": "./dist/select/index.js"
       },
       "./separator": {
         "types": "./dist/separator/index.d.ts",
+        "solid": "./dist/solid/separator/index.jsx",
         "default": "./dist/separator/index.js"
       },
       "./slider": {
         "types": "./dist/slider/index.d.ts",
+        "solid": "./dist/solid/slider/index.jsx",
         "default": "./dist/slider/index.js"
       },
       "./switch": {
         "types": "./dist/switch/index.d.ts",
+        "solid": "./dist/solid/switch/index.jsx",
         "default": "./dist/switch/index.js"
       },
       "./tabs": {
         "types": "./dist/tabs/index.d.ts",
+        "solid": "./dist/solid/tabs/index.jsx",
         "default": "./dist/tabs/index.js"
       },
       "./toast": {
         "types": "./dist/toast/index.d.ts",
+        "solid": "./dist/solid/toast/index.jsx",
         "default": "./dist/toast/index.js"
       },
       "./toggle": {
         "types": "./dist/toggle/index.d.ts",
+        "solid": "./dist/solid/toggle/index.jsx",
         "default": "./dist/toggle/index.js"
       },
       "./toggle-group": {
         "types": "./dist/toggle-group/index.d.ts",
+        "solid": "./dist/solid/toggle-group/index.jsx",
         "default": "./dist/toggle-group/index.js"
       },
       "./tooltip": {
         "types": "./dist/tooltip/index.d.ts",
+        "solid": "./dist/solid/tooltip/index.jsx",
         "default": "./dist/tooltip/index.js"
       }
     },
