@@ -25,10 +25,13 @@ export default defineConfig([
   {
     // The `solid` export condition: JSX left intact so the consumer's Solid
     // compiler emits the server, hydratable, or DOM output its build needs.
+    // Bundled per subpath with shared chunks: Vite never pre-bundles
+    // `solid`-condition packages, so an unbundled tree costs a dev request
+    // per internal module.
     entry: ["src/*/index.ts"],
     outDir: "dist/solid",
     platform: "neutral",
-    unbundle: true,
+    unbundle: false,
     external: [/^#prehydration\//],
     define,
     dts: false,
