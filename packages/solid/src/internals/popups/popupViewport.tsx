@@ -1,4 +1,4 @@
-import type { JSX } from "@solidjs/web";
+import { isServer, type JSX } from "@solidjs/web";
 import { createEffect, createSignal, flush, onCleanup, untrack } from "solid-js";
 
 import { adaptiveOrigin } from "../anchor-positioning/adaptiveOrigin";
@@ -70,6 +70,7 @@ export function createPopupViewport(options: CreatePopupViewportOptions): Create
   // offsets while a viewport is mounted.
   store.set("adaptiveOrigin", adaptiveOrigin);
   onCleanup(() => {
+    if (isServer) return;
     untrack(() => {
       store.set("adaptiveOrigin", undefined);
     });

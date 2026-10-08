@@ -1,4 +1,4 @@
-import type { ValidComponent } from "@solidjs/web";
+import { isServer, type ValidComponent } from "@solidjs/web";
 import { createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
 
 import { REASONS } from "../../internals/event-details";
@@ -301,10 +301,12 @@ function MenuSubmenuTriggerInteractions(props: {
     stickIfOpen: false,
   }).reference();
 
-  props.onInteractions(click, hover ?? undefined);
-  onCleanup(() => {
-    props.onInteractions(undefined, undefined);
-  });
+  if (!isServer) {
+    props.onInteractions(click, hover ?? undefined);
+    onCleanup(() => {
+      props.onInteractions(undefined, undefined);
+    });
+  }
 
   return null;
 }

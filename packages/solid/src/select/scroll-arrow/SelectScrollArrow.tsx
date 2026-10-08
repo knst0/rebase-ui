@@ -1,4 +1,4 @@
-import type { ValidComponent } from "@solidjs/web";
+import { isServer, type ValidComponent } from "@solidjs/web";
 import { type Accessor, onCleanup, untrack } from "solid-js";
 
 import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
@@ -58,6 +58,7 @@ export function SelectScrollArrow<T extends ValidComponent = "div">(props: Selec
   store.set("hasScrollArrows", true);
 
   onCleanup(() => {
+    if (isServer) return;
     store.context.scrollArrowsMountedCountRef.current = Math.max(0, store.context.scrollArrowsMountedCountRef.current - 1);
     if (store.context.scrollArrowsMountedCountRef.current === 0) {
       store.set("hasScrollArrows", false);

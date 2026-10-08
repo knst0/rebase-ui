@@ -1,5 +1,5 @@
 import { isElement } from "@floating-ui/utils/dom";
-import type { ValidComponent } from "@solidjs/web";
+import { isServer, type ValidComponent } from "@solidjs/web";
 import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
 
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
@@ -458,10 +458,12 @@ function TooltipTriggerInteractions(props: {
 
   const focus = createFocus(floatingContext, { enabled: untrack(() => !props.disabled()) }).reference();
 
-  props.onInteractions(hover ?? undefined, focus);
-  onCleanup(() => {
-    props.onInteractions(undefined, undefined);
-  });
+  if (!isServer) {
+    props.onInteractions(hover ?? undefined, focus);
+    onCleanup(() => {
+      props.onInteractions(undefined, undefined);
+    });
+  }
 
   return null;
 }

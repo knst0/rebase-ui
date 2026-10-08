@@ -1,4 +1,4 @@
-import type { ValidComponent } from "@solidjs/web";
+import { isServer, type ValidComponent } from "@solidjs/web";
 import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
 
 import { safePolygon } from "../../internals/floating";
@@ -246,10 +246,12 @@ function PreviewCardTriggerInteractions(props: {
 
   const focus = createFocus(floatingContext, { delay: props.delay }).reference();
 
-  props.onInteractions(hover ?? undefined, focus);
-  onCleanup(() => {
-    props.onInteractions(undefined, undefined);
-  });
+  if (!isServer) {
+    props.onInteractions(hover ?? undefined, focus);
+    onCleanup(() => {
+      props.onInteractions(undefined, undefined);
+    });
+  }
 
   return null;
 }

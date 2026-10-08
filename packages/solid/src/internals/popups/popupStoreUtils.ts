@@ -1,4 +1,4 @@
-import type { JSX } from "@solidjs/web";
+import { isServer, type JSX } from "@solidjs/web";
 import { type Accessor, createEffect, createUniqueId, onCleanup, onSettled, untrack } from "solid-js";
 import { flush } from "solid-js";
 
@@ -591,6 +591,7 @@ export function syncPopupInteractionProps(
     },
   );
 
+  if (isServer) return;
   onCleanup(() => {
     untrack(() => {
       store.update({

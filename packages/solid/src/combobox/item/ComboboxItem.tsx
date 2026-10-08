@@ -1,4 +1,4 @@
-import type { ValidComponent } from "@solidjs/web";
+import { isServer, type ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, onCleanup, untrack } from "solid-js";
 
 import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
@@ -128,6 +128,7 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
   }
 
   onCleanup(() => {
+    if (isServer) return;
     setItemElement(null);
   });
 

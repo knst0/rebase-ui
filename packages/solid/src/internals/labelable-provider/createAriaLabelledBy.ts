@@ -1,3 +1,4 @@
+import { isServer } from "@solidjs/web";
 import { type Accessor, createRenderEffect, createSignal, createUniqueId } from "solid-js";
 
 export type LabelSource = HTMLElement & { labels?: NodeListOf<HTMLLabelElement> | null | undefined };
@@ -30,6 +31,7 @@ export function createAriaLabelledBy(params: CreateAriaLabelledByParameters): Ac
       generatedLabelId: generatedLabelId(),
     }),
     ({ explicit, labelId, enableFallback, labelSource, generatedLabelId: generated }) => {
+      if (isServer) return;
       const nextAriaLabelledBy = explicit || labelId || !enableFallback ? undefined : getAriaLabelledBy(labelSource, generated);
 
       setFallbackAriaLabelledBy(nextAriaLabelledBy);

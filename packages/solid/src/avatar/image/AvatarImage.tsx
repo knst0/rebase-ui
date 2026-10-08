@@ -72,6 +72,7 @@ export function AvatarImage<T extends ValidComponent = "img">(props: AvatarImage
   });
 
   onCleanup(() => {
+    if (isServer) return;
     setImageLoadingStatus("idle");
   });
 

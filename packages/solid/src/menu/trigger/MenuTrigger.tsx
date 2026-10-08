@@ -1,4 +1,4 @@
-import type { ValidComponent } from "@solidjs/web";
+import { isServer, type ValidComponent } from "@solidjs/web";
 import { createEffect, createSignal, createUniqueId, onCleanup, Show, untrack } from "solid-js";
 
 import { createButton } from "../../internals/create-button";
@@ -468,10 +468,12 @@ function MenuTriggerInteractions(props: {
       })
     : undefined;
 
-  props.onInteractions(click, hover ?? undefined);
-  onCleanup(() => {
-    props.onInteractions(undefined, undefined);
-  });
+  if (!isServer) {
+    props.onInteractions(click, hover ?? undefined);
+    onCleanup(() => {
+      props.onInteractions(undefined, undefined);
+    });
+  }
 
   return null;
 }
