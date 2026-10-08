@@ -1,6 +1,6 @@
 {
   "name": "@rebase-ui/solid",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "Headless, accessible UI primitives for Solid.js, ported from Base UI.",
   "keywords": [
     "accessible",
