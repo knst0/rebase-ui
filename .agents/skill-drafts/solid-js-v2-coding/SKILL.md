@@ -13,11 +13,11 @@ Source: `next` branch `documentation/solid-2.0/MIGRATION.md`. If memory conflict
 Write 2.0 import paths directly:
 
 ```ts
-import { render, hydrate } from "@solidjs/web";
-import { createStore, reconcile, snapshot, storePath } from "solid-js";
 import h from "@solidjs/h";
 import html from "@solidjs/html";
 import { createRenderer } from "@solidjs/universal";
+import { render, hydrate } from "@solidjs/web";
+import { createStore, reconcile, snapshot, storePath } from "solid-js";
 ```
 
 Never write `solid-js/web`, `solid-js/store`, `solid-js/h`, `solid-js/html`, or `solid-js/universal`.

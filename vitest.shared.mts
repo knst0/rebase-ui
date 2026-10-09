@@ -2,8 +2,8 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import viteConfig from "@rebase-ui/monorepo-tests/vite.shared.config.ts";
-import { playwright } from "@vitest/browser-playwright";
-import type { UserWorkspaceConfig } from "vitest/node";
+import { playwright } from "vite-plus/test/browser-playwright";
+import type { UserWorkspaceConfig } from "vite-plus/test/node";
 
 const CURRENT_DIR = dirname(fileURLToPath(import.meta.url));
 const WORKSPACE_ROOT = resolve(CURRENT_DIR, "./");

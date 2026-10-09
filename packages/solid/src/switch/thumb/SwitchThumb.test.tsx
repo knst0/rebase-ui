@@ -1,5 +1,5 @@
 import { render } from "@solidjs/testing-library";
-import { expect, it } from "vitest";
+import { expect, it } from "vite-plus/test";
 
 import { describeConformance } from "#test-utils";
 

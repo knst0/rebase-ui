@@ -246,13 +246,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "vp pack",
     "bundle:check": "node ./scripts/measure-bundle.mjs --compare",
     "bundle:report": "node ./scripts/measure-bundle.mjs --format html --out ./bundle-report.html",
     "bundle:size": "node ./scripts/measure-bundle.mjs --format table",
     "bundle:update-baseline": "node ./scripts/measure-bundle.mjs --update-baseline",
     "inline-scripts": "node ./scripts/inline-scripts.mjs",
-    "prepack": "tsdown"
+    "prepack": "vp pack"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.8.0",
@@ -269,7 +269,8 @@
     "jsdom": "^30.1.0",
     "oxc-minify": "^0.150.0",
     "solid-js": "^2.0.0-rc.9",
-    "tsdown": "^0.23.0"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@solidjs/web": ">=2.0.0-rc.0 || >=2",

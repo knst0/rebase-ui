@@ -1,6 +1,6 @@
 import { render, screen } from "@solidjs/testing-library";
 import { flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { INITIAL_LIVE_REGION_TEXT_MUTATION_RESET_DELAY, useInitialLiveRegionTextMutation } from "./useInitialLiveRegionTextMutation";
 

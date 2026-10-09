@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
 import { flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
-import { userEvent as browserUser } from "vitest/browser";
+import { describe, expect, it, vi } from "vite-plus/test";
+import { userEvent as browserUser } from "vite-plus/test/browser";
 
 import { nextFrames } from "#test-utils";
 

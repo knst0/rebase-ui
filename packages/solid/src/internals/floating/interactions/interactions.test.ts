@@ -1,5 +1,5 @@
 import { createRoot, createSignal, flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createFloating } from "../createFloating";
 import { createClick } from "./createClick";

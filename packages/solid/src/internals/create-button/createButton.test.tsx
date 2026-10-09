@@ -3,7 +3,7 @@ import { cleanup, fireEvent, screen, render } from "@solidjs/testing-library";
 import type { JSX } from "@solidjs/web";
 import userEvent from "@testing-library/user-event";
 import { flush, omit } from "solid-js";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { isJSDOM } from "#test-utils";
 

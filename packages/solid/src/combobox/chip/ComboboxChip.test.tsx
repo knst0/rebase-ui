@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
 import type { JSX } from "@solidjs/web";
 import { flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { ComboboxChips } from "../chips/ComboboxChips";
 import { ComboboxInput } from "../input/ComboboxInput";

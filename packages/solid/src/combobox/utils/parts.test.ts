@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import type { ComboboxStore } from "../store/ComboboxStore";
 import { clickHighlightedItem, getChipNavigationKeys, getIndexAfterChipRemoval } from "./parts";

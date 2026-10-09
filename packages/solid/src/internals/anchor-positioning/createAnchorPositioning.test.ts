@@ -1,6 +1,6 @@
 import { autoUpdate as realAutoUpdate } from "@floating-ui/dom";
 import { createRoot, createSignal, flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "#test-utils";
 

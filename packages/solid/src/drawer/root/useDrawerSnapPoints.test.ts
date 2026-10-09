@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getDisplacement } from "../utils/createSwipeDismiss";
 import { closestSnapPointIndex, getSnapPointSwipeMovement } from "./useDrawerSnapPoints";

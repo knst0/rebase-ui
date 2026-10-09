@@ -1,5 +1,5 @@
 import { defaultItemEquality } from "@rebase-ui/core/itemEquality";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createComboboxItems } from "./createItems";
 import { findCollectionItem } from "./itemCollection";

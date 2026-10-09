@@ -3,7 +3,7 @@ import { render, screen } from "@solidjs/testing-library";
 import type { JSX } from "@solidjs/web";
 import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "#test-utils";
 

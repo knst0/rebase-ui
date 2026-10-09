@@ -1,6 +1,6 @@
 import { render, screen } from "@solidjs/testing-library";
 import { flush } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { countCalls, countLayoutReads, isJSDOM, median, nextFrames, withRealAnimations } from "#test-utils";
 

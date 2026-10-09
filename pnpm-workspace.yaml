@@ -4,3 +4,29 @@ packages:
   - test
   - test/*
 minimumReleaseAge: 0
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.1.0
+  vitest: 5.0.3
+  vite-plus: 1.1.0
+  "@vitest/browser-playwright": 5.0.3
+overrides:
+  vite@*: "catalog:"
+  vitest@*: "catalog:"
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"
+minimumReleaseAgeExclude:
+  - vite-plus
+  - "@voidzero-dev/*"
+  - oxlint
+  - "@oxlint/*"
+  - oxlint-tsgolint
+  - "@oxlint-tsgolint/*"
+  - oxfmt
+  - "@oxfmt/*"
+  - vitest
+  - "@vitest/*"

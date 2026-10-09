@@ -1,6 +1,6 @@
 import { render } from "@solidjs/testing-library";
 import { createSignal, flush, Show } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { createLabelableId } from "./createLabelableId";
 import { useLabelableContext } from "./LabelableContext";

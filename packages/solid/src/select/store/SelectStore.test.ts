@@ -1,5 +1,5 @@
 import { createEffect, createRoot, flush } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import { PopupTriggerMap } from "../../internals/floating/triggerMap";

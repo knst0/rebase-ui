@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, screen } from "@solidjs/testing-library";
 import { flush } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { createRenderer, describeConformance } from "#test-utils";
 

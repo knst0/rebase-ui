@@ -1,6 +1,6 @@
 import { render, screen } from "@solidjs/testing-library";
 import { createSignal, flush, For, Show } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { pressKey } from "#test-utils";
 

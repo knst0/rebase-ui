@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { describeConformance } from "#test-utils";
 

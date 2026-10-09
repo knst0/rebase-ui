@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { normalizeScrollOffset, SCROLL_EDGE_TOLERANCE_PX } from "./scrollEdges";
 

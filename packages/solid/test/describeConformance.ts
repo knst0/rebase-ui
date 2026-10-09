@@ -1,6 +1,6 @@
 import { render, screen } from "@solidjs/testing-library";
 import type { ComponentProps, JSX } from "@solidjs/web";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 export type ConformantComponentRender = (props: ComponentProps<any>) => JSX.Element;
 

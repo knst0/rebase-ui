@@ -1,7 +1,7 @@
 import { render } from "@solidjs/testing-library";
 import type { JSX } from "@solidjs/web";
 import { type Accessor, createSignal, flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { EMPTY_OBJECT } from "#utils/empty";
 

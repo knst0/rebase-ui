@@ -1,4 +1,4 @@
-import { defineProject } from "vitest/config";
+import { defineProject } from "vite-plus";
 
 import sharedConfig from "../vitest.shared.mts";
 

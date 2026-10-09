@@ -6,7 +6,7 @@ import { DEFAULT_EXTENSIONS, fileRoutes } from "filesystem-routing/vite";
 import rehypeSlug from "rehype-slug";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
-import { defineConfig } from "vite";
+import { defineConfig, lazyPlugins } from "vite-plus";
 import znaki, { tabler } from "znaki/vite";
 
 import {
@@ -46,7 +46,7 @@ const siteUrl = resolveSiteUrl();
 
 export default defineConfig({
   base,
-  plugins: [
+  plugins: lazyPlugins(() => [
     {
       ...mdx({
         jsx: true,
@@ -84,7 +84,7 @@ export default defineConfig({
       applyToEnvironment: (environment) => environment.name === "client",
     },
     tailwindcss(),
-  ],
+  ]),
   server: {
     port: 3000,
   },

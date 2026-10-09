@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, END, HOME } from "../composite";
 import { gridNavigation } from "./gridNavigation";

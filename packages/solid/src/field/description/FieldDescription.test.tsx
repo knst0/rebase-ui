@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { screen } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { createRenderer, describeConformance } from "#test-utils";
 

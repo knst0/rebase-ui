@@ -1,5 +1,5 @@
 import { createEffect, createRoot, flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createChangeEventDetails } from "../../event-details/createEventDetails";
 import { REASONS } from "../../event-details/reasons";

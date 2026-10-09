@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@solidjs/testing-library";
 import "@testing-library/jest-dom/vitest";
 import { createSignal, flush, OBSERVE } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createRenderer, describeConformance, nextFrames } from "#test-utils";
 
