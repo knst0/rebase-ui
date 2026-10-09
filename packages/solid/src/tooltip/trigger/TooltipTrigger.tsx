@@ -1,6 +1,6 @@
 import { isElement } from "@floating-ui/utils/dom";
 import { isServer, type ValidComponent } from "@solidjs/web";
-import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createEffect, createSignal, createUniqueId, onCleanup, onSettled, untrack } from "solid-js";
 
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { safePolygon } from "../../internals/floating";
@@ -23,6 +23,7 @@ import { getRootFloatingContext, setupTrigger } from "../../internals/popups/pop
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { warnNestedInteractive } from "../../internals/utils/warnNestedInteractive";
 import { useTooltipProviderContext } from "../provider/TooltipProviderContext";
 import { useTooltipRootContext } from "../root/TooltipRootContext";
 import type { TooltipHandle } from "../store/TooltipHandle";
@@ -95,6 +96,12 @@ export function TooltipTrigger<Payload = unknown, T extends ValidComponent = "bu
   // Plain (non-reactive) ref object for interaction creators, which read it in unowned
   // scopes where signal reads warn. Synced from the signal via the element ref callback.
   const triggerElementRef: { current: Element | null } = { current: null };
+
+  if (process.env.NODE_ENV !== "production") {
+    onSettled(() => {
+      warnNestedInteractive(triggerElement());
+    });
+  }
 
   const closeOnClick = () => local.closeOnClick;
   const closeDelayWithDefault = () => local.closeDelay ?? 0;

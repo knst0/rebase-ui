@@ -1,5 +1,5 @@
 import { isServer, type ValidComponent } from "@solidjs/web";
-import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createEffect, createSignal, createUniqueId, onCleanup, onSettled, untrack } from "solid-js";
 
 import { safePolygon } from "../../internals/floating";
 import { createFocus, type FocusReferenceProps } from "../../internals/floating/interactions/createFocus";
@@ -12,6 +12,7 @@ import { getRootFloatingContext, setupTrigger } from "../../internals/popups/pop
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { warnNestedInteractive } from "../../internals/utils/warnNestedInteractive";
 import { usePreviewCardRootContext } from "../root/PreviewCardRootContext";
 import type { PreviewCardHandle } from "../store/PreviewCardHandle";
 import type { PreviewCardStore } from "../store/PreviewCardStore";
@@ -64,6 +65,12 @@ export function PreviewCardTrigger<Payload = unknown, T extends ValidComponent =
   // Plain (non-reactive) ref object for interaction creators, which read it in unowned
   // scopes where signal reads warn. Synced from the signal via the element ref callback.
   const triggerElementRef: { current: Element | null } = { current: null };
+
+  if (process.env.NODE_ENV !== "production") {
+    onSettled(() => {
+      warnNestedInteractive(triggerElement());
+    });
+  }
 
   const { isMountedByTrigger: isMountedByThisTrigger } = setupTrigger({
     triggerId: thisTriggerId,

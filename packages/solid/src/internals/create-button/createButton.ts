@@ -2,6 +2,7 @@ import { createEffect, createSignal, onSettled, untrack } from "solid-js";
 
 import { dispatchClickWithModifiers } from "#utils/dispatchClickWithModifiers";
 import { error } from "#utils/error";
+import { warnNestedInteractive } from "#utils/warnNestedInteractive";
 
 import type { RebaseUIEvent } from "../../types";
 import { useCompositeRootContext } from "../composite";
@@ -242,6 +243,8 @@ export function createButton(parameters: CreateButtonParameters = {}): CreateBut
       if (!element) {
         return;
       }
+
+      warnNestedInteractive(element);
 
       const isButtonTag = isButtonElement(element);
 
