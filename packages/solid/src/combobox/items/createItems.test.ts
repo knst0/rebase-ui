@@ -1,6 +1,6 @@
+import { defaultItemEquality } from "@rebase-ui/core/itemEquality";
 import { describe, expect, it, vi } from "vitest";
 
-import { defaultItemEquality } from "../../select/utils/itemEquality";
 import { createComboboxItems } from "./createItems";
 import { findCollectionItem } from "./itemCollection";
 

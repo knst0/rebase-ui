@@ -1,3 +1,8 @@
+import { clamp } from "@rebase-ui/core/clamp";
+import { formatNumber } from "@rebase-ui/core/formatNumber";
+import { getSliderValue } from "@rebase-ui/core/getSliderValue";
+import { getDecimalPrecision, roundValueToStep } from "@rebase-ui/core/roundValueToStep";
+import { valueToPercent } from "@rebase-ui/core/valueToPercent";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createSignal, createUniqueId, onCleanup, Show, untrack } from "solid-js";
 
@@ -25,17 +30,12 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerWindow } from "../../internals/utils/owner";
-import { valueToPercent } from "../../internals/utils/valueToPercent";
 import type { SliderRootState } from "../root/SliderRoot";
 import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
-import { clamp } from "../utils/clamp";
 import { createIsHydrating } from "../utils/createIsHydrating";
-import { formatNumber } from "../utils/formatNumber";
 import { getMidpoint } from "../utils/getMidpoint";
-import { getSliderValue } from "../utils/getSliderValue";
 import { mergeStyles } from "../utils/mergeStyles";
-import { getDecimalPrecision, roundValueToStep } from "../utils/roundValueToStep";
 
 const ALL_KEYS = new Set([...COMPOSITE_KEYS, PAGE_UP, PAGE_DOWN]);
 

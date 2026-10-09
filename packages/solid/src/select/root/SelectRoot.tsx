@@ -1,3 +1,4 @@
+import { defaultItemEquality } from "@rebase-ui/core/itemEquality";
 import type { JSX } from "@solidjs/web";
 import { For, onSettled, untrack, type Setter } from "solid-js";
 
@@ -8,7 +9,6 @@ import { useFieldRootContext } from "../../internals/field-root-context/FieldRoo
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
-import { defaultItemEquality } from "../utils/itemEquality";
 import { stringifyAsLabel, stringifyAsValue, type SelectItemsInput } from "../utils/resolveValueLabel";
 import { createSelectRoot } from "./createSelectRoot";
 import { SelectFloatingContext, SelectRootContext, SelectRootPropsContext, type SelectRootPropsContextValue } from "./SelectRootContext";

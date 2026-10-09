@@ -1,7 +1,6 @@
+import { serializeValue } from "@rebase-ui/core/serializeValue";
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
-
-import { serializeValue } from "#utils/serializeValue";
 
 import { isEligibleInput } from "../field/root/createFieldValidation";
 import type { FieldRootState } from "../field/root/FieldRoot";

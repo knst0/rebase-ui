@@ -1,4 +1,5 @@
 import { getComputedStyle, getParentNode, isHTMLElement } from "@floating-ui/utils/dom";
+import { clamp } from "@rebase-ui/core/clamp";
 import type { JSX } from "@solidjs/web";
 import { createEffect, untrack } from "solid-js";
 
@@ -6,7 +7,6 @@ import { useDialogRootContext } from "../../dialog/root/DialogRootContext";
 import { activeElement, contains, getTarget, isInteractiveElement } from "../../internals/floating/utils/element";
 import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
 import { addEventListener } from "../../scroll-area/utils/addEventListener";
-import { clamp } from "../../slider/utils/clamp";
 import { getElementAtPoint } from "../utils/getElementAtPoint";
 import { findScrollableTouchTarget } from "../utils/scrollable";
 import * as DrawerViewportCssVars from "../viewport/DrawerViewportCssVars";

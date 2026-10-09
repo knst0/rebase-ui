@@ -1,3 +1,15 @@
+import { formatNumber } from "@rebase-ui/core/formatNumber";
+import {
+  BASE_NON_NUMERIC_SYMBOLS,
+  getFormatParts,
+  getNumberLocaleDetails,
+  MINUS_SIGNS_WITH_ASCII,
+  PERCENTAGES,
+  PERMILLE,
+  PLUS_SIGNS_WITH_ASCII,
+  SPACE_SEPARATOR_RE,
+} from "@rebase-ui/core/parse";
+import { toValidatedNumber } from "@rebase-ui/core/validate";
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createSignal, untrack } from "solid-js";
 
@@ -19,20 +31,8 @@ import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
-import { formatNumber } from "../../slider/utils/formatNumber";
-import {
-  BASE_NON_NUMERIC_SYMBOLS,
-  getFormatParts,
-  getNumberLocaleDetails,
-  MINUS_SIGNS_WITH_ASCII,
-  PERCENTAGES,
-  PERMILLE,
-  PLUS_SIGNS_WITH_ASCII,
-  SPACE_SEPARATOR_RE,
-} from "../utils/parse";
 import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 import type { ChangeEventCustomProperties, EventWithOptionalKeyState, IncrementValueParameters } from "../utils/types";
-import { toValidatedNumber } from "../utils/validate";
 import { NumberFieldRootContext, type InputMode } from "./NumberFieldRootContext";
 
 function isIOS(): boolean {

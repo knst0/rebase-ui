@@ -1,4 +1,4 @@
-import { stringifyLocale } from "../../internals/utils/stringifyLocale";
+import { stringifyLocale } from "./stringifyLocale";
 
 const cache = new Map<string, Intl.NumberFormat>();
 

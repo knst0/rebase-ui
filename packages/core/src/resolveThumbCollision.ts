@@ -1,6 +1,7 @@
-import type { SliderThumbCollisionBehavior } from "../root/SliderRoot";
 import { clamp } from "./clamp";
 import { getPushedThumbValues } from "./getPushedThumbValues";
+
+export type SliderThumbCollisionBehavior = "push" | "swap" | "none";
 
 export interface ResolveThumbCollisionResult {
   value: number | number[];

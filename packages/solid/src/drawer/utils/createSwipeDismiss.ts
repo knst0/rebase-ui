@@ -1,9 +1,9 @@
 import { isElement } from "@floating-ui/utils/dom";
+import { clamp } from "@rebase-ui/core/clamp";
 import { createSignal, type Accessor, untrack } from "solid-js";
 
 import { contains, getTarget } from "../../internals/floating/utils/element";
 import { ownerDocument } from "../../internals/utils/owner";
-import { clamp } from "../../slider/utils/clamp";
 import { getElementAtPoint } from "./getElementAtPoint";
 import { getElementTransform } from "./getElementTransform";
 import { findScrollableTouchTarget, hasScrollableAncestor, type ScrollAxis } from "./scrollable";

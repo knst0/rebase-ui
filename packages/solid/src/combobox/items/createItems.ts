@@ -1,7 +1,8 @@
+import type { ItemEqualityComparer } from "@rebase-ui/core/itemEquality";
+
 import { EMPTY_ARRAY } from "#utils/empty";
 
 import { error } from "../../internals/utils/error";
-import type { ItemEqualityComparer } from "../../select/utils/itemEquality";
 import { flattenLeafItems, stringifyAsLabel } from "../../select/utils/resolveValueLabel";
 import { findCollectionItem, type ComboboxItemCollection } from "./itemCollection";
 

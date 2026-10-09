@@ -1,6 +1,5 @@
+import { serializeValue } from "@rebase-ui/core/serializeValue";
 import type { JSX } from "@solidjs/web";
-
-import { serializeValue } from "../../internals/utils/serializeValue";
 
 export interface Group<Item = any> {
   [key: string]: unknown;

@@ -1,3 +1,15 @@
+import { formatNumber } from "@rebase-ui/core/formatNumber";
+import {
+  ANY_MINUS_DETECT_RE,
+  ANY_MINUS_RE,
+  ANY_PLUS_DETECT_RE,
+  ANY_PLUS_RE,
+  FORMAT_CONTROL_DETECT_RE,
+  getNumberLocaleDetails,
+  isNumeralChar,
+  parseNumber,
+} from "@rebase-ui/core/parse";
+import { hasNumberFormatRoundingOptions, removeFloatingPointErrors } from "@rebase-ui/core/validate";
 import type { ValidComponent } from "@solidjs/web";
 import { createEffect, untrack } from "solid-js";
 
@@ -10,21 +22,9 @@ import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { formatNumber } from "../../slider/utils/formatNumber";
 import type { NumberFieldRootState } from "../root/NumberFieldRoot";
 import { useNumberFieldRootContext } from "../root/NumberFieldRootContext";
-import {
-  ANY_MINUS_DETECT_RE,
-  ANY_MINUS_RE,
-  ANY_PLUS_DETECT_RE,
-  ANY_PLUS_RE,
-  FORMAT_CONTROL_DETECT_RE,
-  getNumberLocaleDetails,
-  isNumeralChar,
-  parseNumber,
-} from "../utils/parse";
 import { stateAttributesMapping } from "../utils/stateAttributesMapping";
-import { hasNumberFormatRoundingOptions, removeFloatingPointErrors } from "../utils/validate";
 
 const NAVIGATE_KEYS = new Set(["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter", "Escape"]);
 

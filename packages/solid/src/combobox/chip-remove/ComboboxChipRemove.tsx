@@ -1,3 +1,4 @@
+import { findItemIndex } from "@rebase-ui/core/itemEquality";
 import type { ValidComponent } from "@solidjs/web";
 import { untrack } from "solid-js";
 
@@ -7,7 +8,6 @@ import { stopEvent } from "../../internals/floating/utils/event";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
-import { findItemIndex } from "../../select/utils/itemEquality";
 import { useComboboxChipContext } from "../chip/ComboboxChipContext";
 import { useComboboxRootContext } from "../root/ComboboxRootContext";
 

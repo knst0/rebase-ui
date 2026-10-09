@@ -1,4 +1,13 @@
 import { getOverflowAncestors } from "@floating-ui/utils/dom";
+import {
+  compareItemEquality,
+  defaultItemEquality,
+  findItemIndex,
+  findSelectionIndex,
+  isSelectedValueDirty,
+  removeItem,
+  selectedValueIncludes,
+} from "@rebase-ui/core/itemEquality";
 import { createEffect, createMemo, createSignal, untrack, type Accessor } from "solid-js";
 
 import { EMPTY_ARRAY, EMPTY_OBJECT, NOOP } from "#utils/empty";
@@ -20,15 +29,6 @@ import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete
 import { stableCallback } from "../../internals/stableCallback";
 import { createTransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import { error } from "../../internals/utils/error";
-import {
-  compareItemEquality,
-  defaultItemEquality,
-  findItemIndex,
-  findSelectionIndex,
-  isSelectedValueDirty,
-  removeItem,
-  selectedValueIncludes,
-} from "../../select/utils/itemEquality";
 import { flattenLeafItems, isGroupedItems, stringifyAsLabel, stringifyAsValue, type Group } from "../../select/utils/resolveValueLabel";
 import type { ItemCollection } from "../items/itemCollection";
 import { findCollectionItem } from "../items/itemCollection";

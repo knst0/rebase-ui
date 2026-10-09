@@ -1,8 +1,8 @@
+import { serializeValue } from "@rebase-ui/core/serializeValue";
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createSignal, createUniqueId, onCleanup, onSettled, untrack } from "solid-js";
 
 import { dispatchClickWithModifiers } from "#utils/dispatchClickWithModifiers";
-import { serializeValue } from "#utils/serializeValue";
 import { visuallyHidden, visuallyHiddenInput } from "#utils/visuallyHidden";
 
 import { useFieldItemContext } from "../../field/item/FieldItemContext";

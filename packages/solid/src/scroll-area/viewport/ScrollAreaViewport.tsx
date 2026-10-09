@@ -1,3 +1,5 @@
+import { clamp } from "@rebase-ui/core/clamp";
+import { normalizeScrollOffset } from "@rebase-ui/core/scrollEdges";
 import type { ValidComponent } from "@solidjs/web";
 import { createEffect, onCleanup, onSettled, untrack } from "solid-js";
 
@@ -9,10 +11,8 @@ import type { HiddenState, ScrollAreaRootState } from "../root/ScrollAreaRoot";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { scrollAreaStateAttributesMapping } from "../root/stateAttributesMapping";
 import { scrollAreaThumbHeight, scrollAreaThumbWidth } from "../scrollbar/ScrollAreaScrollbarCssVars";
-import { clamp } from "../utils/clamp";
 import { DISABLE_SCROLLBAR_CLASS_NAME } from "../utils/disableScrollbar";
 import { getOffset } from "../utils/getOffset";
-import { normalizeScrollOffset } from "../utils/scrollEdges";
 import { createTimeout } from "../utils/timeout";
 import { ScrollAreaViewportContext } from "./ScrollAreaViewportContext";
 import {

@@ -1,3 +1,9 @@
+import { areArraysEqual } from "@rebase-ui/core/areArraysEqual";
+import { asc } from "@rebase-ui/core/asc";
+import { clamp } from "@rebase-ui/core/clamp";
+import { getSliderValue } from "@rebase-ui/core/getSliderValue";
+import type { SliderThumbCollisionBehavior } from "@rebase-ui/core/resolveThumbCollision";
+import { validateMinimumDistance } from "@rebase-ui/core/validateMinimumDistance";
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createSignal, createUniqueId, untrack } from "solid-js";
 
@@ -21,11 +27,6 @@ import { stableCallback } from "../../internals/stableCallback";
 import type { Orientation, RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
 import type { ThumbMetadata } from "../thumb/SliderThumb";
-import { areArraysEqual } from "../utils/areArraysEqual";
-import { asc } from "../utils/asc";
-import { clamp } from "../utils/clamp";
-import { getSliderValue } from "../utils/getSliderValue";
-import { validateMinimumDistance } from "../utils/validateMinimumDistance";
 import { SliderRootContext } from "./SliderRootContext";
 import { sliderStateAttributesMapping } from "./stateAttributesMapping";
 
@@ -543,7 +544,7 @@ export interface SliderRootOwnProps<Value extends number | readonly number[] = n
   onValueCommitted?: ((value: Value extends number ? number : Value, eventDetails: SliderRoot.CommitEventDetails) => void) | undefined;
 }
 
-export type SliderThumbCollisionBehavior = "push" | "swap" | "none";
+export type { SliderThumbCollisionBehavior };
 
 export interface SliderRootChangeEventCustomProperties {
   /**

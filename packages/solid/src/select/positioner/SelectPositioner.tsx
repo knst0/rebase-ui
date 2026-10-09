@@ -1,4 +1,5 @@
 import type { Padding, VirtualElement } from "@floating-ui/dom";
+import { findItemIndex } from "@rebase-ui/core/itemEquality";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createEffect, createSignal, Show, untrack } from "solid-js";
 
@@ -20,7 +21,6 @@ import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { clearStyles } from "../popup/utils";
 import { useSelectRootContext } from "../root/SelectRootContext";
-import { findItemIndex } from "../utils/itemEquality";
 import { selectPositionerStateMapping } from "../utils/stateAttributesMapping";
 import { InternalBackdrop } from "./InternalBackdrop";
 import { SelectPositionerContext } from "./SelectPositionerContext";

@@ -1,3 +1,4 @@
+import { compareItemEquality, removeItem, resolveSelectedIndex } from "@rebase-ui/core/itemEquality";
 import type { ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createSignal, onCleanup, untrack } from "solid-js";
 
@@ -12,7 +13,6 @@ import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
 import type { SelectStore } from "../store/SelectStore";
-import { compareItemEquality, removeItem, resolveSelectedIndex } from "../utils/itemEquality";
 import { SelectItemContext } from "./SelectItemContext";
 import * as SelectItemDataAttributes from "./SelectItemDataAttributes";
 

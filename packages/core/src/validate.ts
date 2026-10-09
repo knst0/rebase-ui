@@ -1,5 +1,5 @@
-import { clamp } from "../../slider/utils/clamp";
-import { getFormatter } from "../../slider/utils/formatNumber";
+import { clamp } from "./clamp";
+import { getFormatter } from "./formatNumber";
 import { parseNumber } from "./parse";
 
 // A relative factor scaled by the step size when snapping (`stepSize * STEP_EPSILON_FACTOR`).

@@ -1,3 +1,4 @@
+import { formatNumber } from "@rebase-ui/core/formatNumber";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createMemo, untrack } from "solid-js";
 
@@ -7,7 +8,6 @@ import type { RebaseUIComponentProps } from "../../internals/types";
 import type { SliderRootState } from "../root/SliderRoot";
 import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
-import { formatNumber } from "../utils/formatNumber";
 
 /**
  * Displays the current value of the slider as text.

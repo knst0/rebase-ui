@@ -1,10 +1,10 @@
+import { valueToPercent } from "@rebase-ui/core/valueToPercent";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createMemo, untrack } from "solid-js";
 
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { valueToPercent } from "../../internals/utils/valueToPercent";
 import type { SliderRootState } from "../root/SliderRoot";
 import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";

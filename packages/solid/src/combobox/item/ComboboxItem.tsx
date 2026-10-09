@@ -1,3 +1,4 @@
+import { compareItemEquality, findItemIndex, resolveSelectedIndex } from "@rebase-ui/core/itemEquality";
 import { isServer, type ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, onCleanup, untrack } from "solid-js";
 
@@ -10,7 +11,6 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
-import { compareItemEquality, findItemIndex, resolveSelectedIndex } from "../../select/utils/itemEquality";
 import { useComboboxDerivedItemsContext, useComboboxHasItemsContext, useComboboxRootContext } from "../root/ComboboxRootContext";
 import { useComboboxRowContext } from "../row/ComboboxRowContext";
 import type { ComboboxStore } from "../store/ComboboxStore";

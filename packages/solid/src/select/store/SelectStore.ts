@@ -1,3 +1,5 @@
+import { compareItemEquality } from "@rebase-ui/core/itemEquality";
+import { defaultItemEquality } from "@rebase-ui/core/itemEquality";
 import { type Accessor, createEffect, createSignal, type Setter } from "solid-js";
 
 import { EMPTY_OBJECT } from "#utils/empty";
@@ -6,8 +8,6 @@ import type { Side } from "../../internals/anchor-positioning/createAnchorPositi
 import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import type { SelectRoot } from "../root/SelectRoot";
-import { compareItemEquality } from "../utils/itemEquality";
-import { defaultItemEquality } from "../utils/itemEquality";
 import { hasNullItemLabel, stringifyAsValue } from "../utils/resolveValueLabel";
 import type { SelectItemsInput } from "../utils/resolveValueLabel";
 

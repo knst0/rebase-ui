@@ -1,3 +1,4 @@
+import { compareItemEquality } from "@rebase-ui/core/itemEquality";
 import { type Accessor, createEffect, createSignal, type Setter } from "solid-js";
 
 import { EMPTY_OBJECT } from "#utils/empty";
@@ -5,7 +6,6 @@ import { EMPTY_OBJECT } from "#utils/empty";
 import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
 import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
-import { compareItemEquality } from "../../select/utils/itemEquality";
 import { hasNullItemLabel } from "../../select/utils/resolveValueLabel";
 import type { AriaCombobox } from "../root/AriaCombobox";
 

@@ -1,3 +1,4 @@
+import { getMaxScrollOffset, normalizeScrollOffset, SCROLL_EDGE_TOLERANCE_PX } from "@rebase-ui/core/scrollEdges";
 import { isServer, type ValidComponent } from "@solidjs/web";
 import { type Accessor, onCleanup, untrack } from "solid-js";
 
@@ -10,7 +11,6 @@ import { createTransitionStatus, type TransitionStatus, transitionStatusMapping 
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useSelectRootContext } from "../root/SelectRootContext";
 import type { SelectInteractionType } from "../store/SelectStore";
-import { getMaxScrollOffset, normalizeScrollOffset, SCROLL_EDGE_TOLERANCE_PX } from "../utils/scrollEdges";
 /**
  * Shared implementation for the select scroll arrows.
  * @internal

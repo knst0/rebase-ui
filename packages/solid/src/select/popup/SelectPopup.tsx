@@ -1,5 +1,7 @@
 import type { ClientRectObject } from "@floating-ui/dom";
 import { rectToClientRect } from "@floating-ui/utils";
+import { clamp } from "@rebase-ui/core/clamp";
+import { getMaxScrollOffset } from "@rebase-ui/core/scrollEdges";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createEffect, untrack } from "solid-js";
 
@@ -17,7 +19,6 @@ import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
 import { useSelectPositionerContext } from "../positioner/SelectPositionerContext";
 import { transformOrigin as transformOriginVar } from "../positioner/SelectPositionerCssVars";
 import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
-import { clamp, getMaxScrollOffset } from "../utils/scrollEdges";
 import { selectPopupStateMapping } from "../utils/stateAttributesMapping";
 import { clearStyles, LIST_FUNCTIONAL_STYLES } from "./utils";
 

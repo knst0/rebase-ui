@@ -1,8 +1,8 @@
+import { clamp } from "@rebase-ui/core/clamp";
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
 import type { CreateDialogRootReturnValue } from "../../dialog/root/createDialogRoot";
 import { ownerDocument } from "../../internals/utils/owner";
-import { clamp } from "../../slider/utils/clamp";
 import { useDrawerRootContext, type DrawerSnapPoint } from "./DrawerRootContext";
 
 export interface ResolvedDrawerSnapPoint {

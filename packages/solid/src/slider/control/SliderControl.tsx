@@ -1,4 +1,8 @@
 import { isElement } from "@floating-ui/utils/dom";
+import { clamp } from "@rebase-ui/core/clamp";
+import { resolveThumbCollision } from "@rebase-ui/core/resolveThumbCollision";
+import { roundValueToStep } from "@rebase-ui/core/roundValueToStep";
+import { validateMinimumDistance } from "@rebase-ui/core/validateMinimumDistance";
 import type { ValidComponent } from "@solidjs/web";
 import { createEffect, onCleanup, untrack } from "solid-js";
 
@@ -11,11 +15,7 @@ import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
 import type { SliderRootState } from "../root/SliderRoot";
 import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
-import { clamp } from "../utils/clamp";
 import { getMidpoint } from "../utils/getMidpoint";
-import { resolveThumbCollision } from "../utils/resolveThumbCollision";
-import { roundValueToStep } from "../utils/roundValueToStep";
-import { validateMinimumDistance } from "../utils/validateMinimumDistance";
 
 const INTENTIONAL_DRAG_COUNT_THRESHOLD = 2;
 

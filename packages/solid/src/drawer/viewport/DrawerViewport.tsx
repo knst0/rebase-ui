@@ -1,4 +1,5 @@
 import { isElement } from "@floating-ui/utils/dom";
+import { clamp } from "@rebase-ui/core/clamp";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, createMemo, createSignal, onSettled, untrack } from "solid-js";
 
@@ -12,7 +13,6 @@ import type { TransitionStatus } from "../../internals/transition-status";
 import { endingStyle as endingStyleAttribute } from "../../internals/transition-status/TransitionStatusDataAttributes";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
-import { clamp } from "../../slider/utils/clamp";
 import * as DrawerBackdropCssVars from "../backdrop/DrawerBackdropCssVars";
 import { DRAWER_CONTENT_ATTRIBUTE } from "../content/drawerContentAttribute";
 import * as DrawerPopupCssVars from "../popup/DrawerPopupCssVars";

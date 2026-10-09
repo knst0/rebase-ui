@@ -1,4 +1,4 @@
-import { areArraysEqual } from "../../slider/utils/areArraysEqual";
+import { areArraysEqual } from "./areArraysEqual";
 
 export type ItemEqualityComparer<Item = any, Value = Item> = (itemValue: Item, selectedValue: Value) => boolean;
 

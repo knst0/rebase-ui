@@ -1,4 +1,5 @@
-import { compareItemEquality, defaultItemEquality, type ItemEqualityComparer } from "../../select/utils/itemEquality";
+import { compareItemEquality, defaultItemEquality, type ItemEqualityComparer } from "@rebase-ui/core/itemEquality";
+
 import type { Group } from "../../select/utils/resolveValueLabel";
 
 export function findCollectionItem<Item, Value>(

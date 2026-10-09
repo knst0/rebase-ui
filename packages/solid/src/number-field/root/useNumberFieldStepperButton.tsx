@@ -1,3 +1,4 @@
+import { parseNumber } from "@rebase-ui/core/parse";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createEffect, onCleanup, untrack } from "solid-js";
 
@@ -7,7 +8,6 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { CHANGE_VALUE_TICK_DELAY, START_AUTO_CHANGE_DELAY } from "../utils/constants";
-import { parseNumber } from "../utils/parse";
 import { stateAttributesMapping } from "../utils/stateAttributesMapping";
 import type { DirectionalChangeReason, EventWithOptionalKeyState } from "../utils/types";
 import type { NumberFieldRootState } from "./NumberFieldRoot";

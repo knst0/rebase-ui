@@ -1,13 +1,13 @@
+import { clamp } from "@rebase-ui/core/clamp";
+import { formatNumber } from "@rebase-ui/core/formatNumber";
+import { valueToPercent } from "@rebase-ui/core/valueToPercent";
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { createMemo, createSignal, untrack } from "solid-js";
 
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { valueToPercent } from "../../internals/utils/valueToPercent";
 import { visuallyHidden } from "../../internals/utils/visuallyHidden";
-import { clamp } from "../../slider/utils/clamp";
-import { formatNumber } from "../../slider/utils/formatNumber";
 import { MeterRootContext } from "./MeterRootContext";
 
 /**

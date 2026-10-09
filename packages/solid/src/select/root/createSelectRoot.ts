@@ -1,3 +1,5 @@
+import { findSelectionIndex, isSelectedValueDirty } from "@rebase-ui/core/itemEquality";
+import { getMaxScrollOffset, normalizeScrollOffset } from "@rebase-ui/core/scrollEdges";
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
 import { EMPTY_ARRAY, NOOP } from "#utils/empty";
@@ -25,9 +27,7 @@ import {
   type SelectInteractionType,
   type SelectStoreState,
 } from "../store/SelectStore";
-import { findSelectionIndex, isSelectedValueDirty } from "../utils/itemEquality";
 import { stringifyAsValue } from "../utils/resolveValueLabel";
-import { getMaxScrollOffset, normalizeScrollOffset } from "../utils/scrollEdges";
 import type { SelectRoot } from "./SelectRoot";
 
 export interface CreateSelectRootParameters {
