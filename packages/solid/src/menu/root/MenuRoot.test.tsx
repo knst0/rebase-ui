@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@solidjs/testing-library";
+import { fireEvent, render, screen } from "@solidjs/testing-library";
 import type { ValidComponent } from "@solidjs/web";
 import userEvent from "@testing-library/user-event";
 import { flush, omit } from "solid-js";
@@ -369,5 +369,133 @@ describe("<Menu.Root />", () => {
       warnSpy.mockRestore();
       errorSpy.mockRestore();
     }
+  });
+
+  describe("prop: onItemHighlighted", () => {
+    function HighlightMenu(props: { onItemHighlighted: Menu.Root.Props["onItemHighlighted"] }) {
+      return (
+        <Menu.Root onItemHighlighted={props.onItemHighlighted}>
+          <Menu.Trigger>Toggle</Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner>
+              <Menu.Popup>
+                <Menu.Item>One</Menu.Item>
+                <Menu.Item>Two</Menu.Item>
+                <Menu.SubmenuRoot>
+                  <Menu.SubmenuTrigger>Three</Menu.SubmenuTrigger>
+                  <Menu.Portal>
+                    <Menu.Positioner>
+                      <Menu.Popup>
+                        <Menu.Item>Nested</Menu.Item>
+                      </Menu.Popup>
+                    </Menu.Positioner>
+                  </Menu.Portal>
+                </Menu.SubmenuRoot>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      );
+    }
+
+    async function openViaKeyboard(trigger: HTMLElement) {
+      const user = userEvent.setup();
+      trigger.focus();
+      await user.keyboard("{Enter}");
+      flush();
+      await nextFrames();
+      return user;
+    }
+
+    it("passes the keydown event for keyboard highlights", async () => {
+      const onItemHighlighted = vi.fn();
+      render(() => <HighlightMenu onItemHighlighted={onItemHighlighted} />);
+
+      const user = await openViaKeyboard(screen.getByRole("button", { name: "Toggle" }));
+      expect(screen.getByRole("menuitem", { name: "One" })).toHaveAttribute("data-highlighted", "");
+
+      await user.keyboard("{ArrowDown}");
+      flush();
+      await nextFrames();
+
+      const second = screen.getByRole("menuitem", { name: "Two" });
+      expect(second).toHaveAttribute("data-highlighted", "");
+
+      const details = onItemHighlighted.mock.lastCall?.[1];
+      expect(onItemHighlighted).toHaveBeenLastCalledWith(second, expect.anything());
+      expect(details.reason).toBe("keyboard");
+      expect(details.event).toBeInstanceOf(KeyboardEvent);
+      expect(details.event.key).toBe("ArrowDown");
+      expect(details.label).toBe("Two");
+    });
+
+    it("passes the keydown event for typeahead highlights", async () => {
+      const onItemHighlighted = vi.fn();
+      render(() => <HighlightMenu onItemHighlighted={onItemHighlighted} />);
+
+      const user = await openViaKeyboard(screen.getByRole("button", { name: "Toggle" }));
+      expect(screen.getByRole("menuitem", { name: "One" })).toHaveAttribute("data-highlighted", "");
+
+      await user.keyboard("t");
+      flush();
+      await nextFrames();
+
+      const second = screen.getByRole("menuitem", { name: "Two" });
+      expect(second).toHaveAttribute("data-highlighted", "");
+
+      const details = onItemHighlighted.mock.lastCall?.[1];
+      expect(details.reason).toBe("keyboard");
+      expect(details.event).toBeInstanceOf(KeyboardEvent);
+      expect(details.event.key).toBe("t");
+    });
+
+    it("passes native mouse and pointer events for pointer highlights", async () => {
+      const onItemHighlighted = vi.fn();
+      render(() => <HighlightMenu onItemHighlighted={onItemHighlighted} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Toggle" }));
+      flush();
+      await nextFrames();
+
+      const item = screen.getByRole("menuitem", { name: "Two" });
+      const hoverEvent = new MouseEvent("mousemove", { bubbles: true });
+      fireEvent(item, hoverEvent);
+      flush();
+      await nextFrames();
+
+      expect(onItemHighlighted).toHaveBeenLastCalledWith(item, expect.anything());
+      const details = onItemHighlighted.mock.lastCall?.[1];
+      expect(details.reason).toBe("pointer");
+      expect(details.event).toBeInstanceOf(MouseEvent);
+      expect(details.event).toBe(hoverEvent);
+      expect(details.event).not.toBeInstanceOf(PointerEvent);
+
+      const leaveEvent = new PointerEvent("pointerleave", { bubbles: true, pointerType: "mouse" });
+      fireEvent(item, leaveEvent);
+      flush();
+      await nextFrames();
+
+      expect(onItemHighlighted).toHaveBeenLastCalledWith(undefined, expect.objectContaining({ reason: "pointer", event: leaveEvent }));
+      expect(onItemHighlighted.mock.lastCall?.[1].event).toBe(leaveEvent);
+    });
+
+    it("passes the mouse event when a submenu trigger is hovered", async () => {
+      const onItemHighlighted = vi.fn();
+      render(() => <HighlightMenu onItemHighlighted={onItemHighlighted} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Toggle" }));
+      flush();
+      await nextFrames();
+
+      const submenuTrigger = screen.getByRole("menuitem", { name: "Three" });
+      fireEvent.mouseEnter(submenuTrigger);
+      flush();
+      await nextFrames();
+
+      expect(onItemHighlighted).toHaveBeenLastCalledWith(submenuTrigger, expect.anything());
+      const details = onItemHighlighted.mock.lastCall?.[1];
+      expect(details.reason).toBe("pointer");
+      expect(details.event).toBeInstanceOf(MouseEvent);
+    });
   });
 });

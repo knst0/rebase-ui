@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
+import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { userEvent as browserUser } from "vite-plus/test/browser";
@@ -227,5 +228,48 @@ describe("<Popover.Trigger />", () => {
     await nextFrames();
 
     expect(screen.queryByText("Content")).toBeInTheDocument();
+  });
+
+  it("moves focus to the element preceding the trigger when tabbing backward from the trigger while open", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <div>
+        <button>Before</button>
+        <Popover.Root>
+          <Popover.Trigger>Toggle</Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner>
+              <Popover.Popup>
+                <button>Inside</button>
+              </Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      </div>
+    ));
+    flush();
+
+    const trigger = screen.getByRole("button", { name: "Toggle" });
+    await user.click(trigger);
+    flush();
+    await nextFrames();
+    expect(screen.getByRole("button", { name: "Inside" })).toHaveFocus();
+
+    // Focus the trigger while the popover stays open.
+    trigger.focus();
+    flush();
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+    // Shift+Tab from the trigger closes the popover and continues to the preceding element.
+    await user.tab({ shift: true });
+    flush();
+    await nextFrames();
+
+    expect(screen.getByRole("button", { name: "Before" })).toHaveFocus();
+    expect(screen.queryByRole("dialog")).toBe(null);
+
+    // Return focus must not steal the tab destination back after the close settles.
+    await nextFrames();
+    expect(screen.getByRole("button", { name: "Before" })).toHaveFocus();
   });
 });

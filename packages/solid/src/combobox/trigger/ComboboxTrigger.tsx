@@ -5,6 +5,7 @@ import type { FieldRootState } from "../../field/root/FieldRoot";
 import { createButton } from "../../internals/create-button";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { fieldValidityMapping } from "../../internals/field-constants";
+import { createSetFieldFocused } from "../../internals/field-root-context/createSetFieldFocused";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import type { Side } from "../../internals/floating/types";
 import { contains, getTarget } from "../../internals/floating/utils/element";
@@ -93,6 +94,7 @@ export function ComboboxTrigger<T extends ValidComponent = "button">(props: Comb
   const [pressed, setPressed] = createSignal(false);
 
   let triggerElement: HTMLButtonElement | null = null;
+  const setFocused = createSetFieldFocused(disabled, () => triggerElement);
   let focusTimeout: ReturnType<typeof setTimeout> | undefined;
   let typeaheadTimeout: ReturnType<typeof setTimeout> | undefined;
   let typeaheadBuffer = "";
@@ -142,7 +144,7 @@ export function ComboboxTrigger<T extends ValidComponent = "button">(props: Comb
   }
 
   function handleFocus() {
-    field.setFocused(true);
+    setFocused(true);
 
     if (disabled()) {
       return;
@@ -161,7 +163,7 @@ export function ComboboxTrigger<T extends ValidComponent = "button">(props: Comb
     }
 
     field.setTouched(true);
-    field.setFocused(false);
+    setFocused(false);
 
     if (field.validationMode === "onBlur") {
       const selectionMode = store.peek("selectionMode") as string;

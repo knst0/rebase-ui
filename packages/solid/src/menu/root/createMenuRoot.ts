@@ -2,7 +2,7 @@ import { createEffect, createUniqueId, onCleanup, untrack } from "solid-js";
 
 import { EMPTY_ARRAY } from "#utils/empty";
 
-import { REASONS } from "../../internals/event-details";
+import { createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { createDismiss } from "../../internals/floating/interactions/createDismiss";
 import { Timeout } from "../../internals/floating/interactions/createHoverInteractionSharedState";
 import { createListNavigation } from "../../internals/floating/interactions/createListNavigation";
@@ -18,8 +18,10 @@ import {
   trackOpenStateTransitions,
 } from "../../internals/popups/popupStoreUtils";
 import { stableCallback } from "../../internals/stableCallback";
+import { getHighlightReason } from "../../internals/utils/getHighlightReason";
 import { MenuStore, type MenuInteractionType, type MenuParent } from "../store/MenuStore";
 import { useMenuSubmenuRootContext } from "../submenu-root/MenuSubmenuRootContext";
+import { isKeyboardClick, isKeyboardOpen } from "../utils/isKeyboardOpen";
 import type { MenuRoot } from "./MenuRoot";
 
 export interface CreateMenuRootParameters {
@@ -31,9 +33,13 @@ export interface CreateMenuRootParameters {
   orientation: () => MenuRoot.Orientation;
   highlightItemOnHover: () => boolean;
   closeParentOnEsc: () => boolean;
+  virtualFocus: () => boolean;
+  allowEscape: () => boolean;
+  resetOnPointerLeave: () => boolean;
   triggerId: () => string | null | undefined;
   onOpenChange: (open: boolean, eventDetails: MenuRoot.ChangeEventDetails) => void;
   onOpenChangeComplete: (open: boolean) => void;
+  onItemHighlighted: (highlightedItem: HTMLElement | undefined, eventDetails: MenuRoot.HighlightEventDetails) => void;
 }
 
 export interface CreateMenuRootReturnValue<Payload> {
@@ -138,6 +144,7 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     const nativeEvent = eventDetails.event as Event | undefined;
     if (
       nextOpen === false &&
+      reason !== REASONS.itemPress &&
       nativeEvent?.type === "click" &&
       (nativeEvent as PointerEvent).pointerType === "touch" &&
       !allowTouchToCloseRef.current
@@ -156,9 +163,6 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
       allowTouchToCloseTimeout.clear();
     }
 
-    // Keyboard and assistive-technology activations produce `detail === 0` clicks;
-    // mouse-gesture clicks carry `detail >= 1`.
-    const isKeyboardClick = (reason === REASONS.triggerPress || reason === REASONS.itemPress) && (nativeEvent as MouseEvent).detail === 0;
     const isDismissClose = !nextOpen && (reason === REASONS.escapeKey || reason == null);
 
     const popupOpenState = createPopupOpenState(
@@ -169,12 +173,16 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     ) as ReturnType<typeof createPopupOpenState> & {
       openChangeReason: MenuRoot.ChangeEventReason;
       instantType: "dismiss" | "click" | "group" | "trigger-change" | undefined;
+      keyboardOpen: boolean;
     };
 
     popupOpenState.openChangeReason = reason as MenuRoot.ChangeEventReason;
+    popupOpenState.keyboardOpen = nextOpen && isKeyboardOpen(reason as string | null, nativeEvent);
 
-    if (isKeyboardClick || isDismissClose) {
-      popupOpenState.instantType = isKeyboardClick ? "click" : "dismiss";
+    if (isKeyboardClick(reason as string | null, nativeEvent)) {
+      popupOpenState.instantType = "click";
+    } else if (isDismissClose) {
+      popupOpenState.instantType = "dismiss";
     } else {
       popupOpenState.instantType = undefined;
     }
@@ -234,29 +242,15 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     rootId,
   }));
 
-  // A submenu always supplies its own tree IDs, synchronously: the positioner's `FloatingNode`
-  // reads the id once (untracked) when it renders, so an effect would come too late.
-  if (submenuContext !== undefined) {
-    store.update({
-      floatingNodeId,
-      floatingParentNodeId: floatingParentNodeIdFromContext,
-    });
-  }
-
-  // Without an active trigger, the root supplies its own tree IDs.
-  // A trigger can register after render, before this effect runs, so read the store here.
-  createEffect(
-    () => store.select("activeTriggerElement") as Element | null,
-    (activeTriggerElement) => {
-      if (submenuContext !== undefined || !activeTriggerElement) {
-        store.update({
-          floatingNodeId,
-          floatingParentNodeId: floatingParentNodeIdFromContext,
-        });
-      }
-      return undefined;
-    },
-  );
+  // The root always supplies its own tree IDs, synchronously: the positioner's
+  // `FloatingNode` reads the id once (untracked) when it renders, and the open-change
+  // broadcast attributes by node id, so an effect would come too late for an
+  // initially open menu — its first broadcast would carry no node id and the
+  // sibling-open coordination would close the menu as its own sibling.
+  store.update({
+    floatingNodeId,
+    floatingParentNodeId: floatingParentNodeIdFromContext,
+  });
 
   trackImplicitActiveTrigger(store);
   const { forceUnmount } = trackOpenStateTransitions(open, store, () => {
@@ -341,35 +335,53 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     externalTree: nested ? floatingTreeRoot : undefined,
   });
 
-  function setActiveIndex(index: number | null) {
-    if (store.peek("activeIndex") === index) {
-      return;
-    }
-    store.set("activeIndex", index);
-  }
+  const virtualFocus = untrack(parameters.virtualFocus);
+  const allowEscape = untrack(parameters.allowEscape);
+  const resetOnPointerLeave = untrack(parameters.resetOnPointerLeave);
+  const orientation = untrack(parameters.orientation);
+  const loopFocus = untrack(parameters.loopFocus);
+  const listNested = !virtualFocus && parent.type !== undefined;
 
   const listNavigation = createListNavigation(floatingContext, {
     enabled: !setupDisabled,
     listRef: store.context.itemDomElements,
     activeIndex: () => store.select("activeIndex") as number | null,
-    nested: parent.type !== undefined,
-    loopFocus: untrack(parameters.loopFocus),
-    orientation: untrack(parameters.orientation),
+    virtual: virtualFocus,
+    nested: listNested,
+    loopFocus,
+    // Filtered menus keep DOM focus on the input, while keyboard and virtual opens initially
+    // highlight an item as ordinary menus do. The input stays in the arrow-key loop unless the
+    // filter highlights automatically.
+    focusItemOnOpen: virtualFocus ? () => store.select("keyboardOpen") as boolean : undefined,
+    allowEscape: virtualFocus && loopFocus && allowEscape,
+    orientation,
+    // A virtual-focus list can navigate on either axis, but its trigger always opens on the
+    // vertical one.
+    triggerOrientation: virtualFocus ? "vertical" : orientation,
     rtl: false,
     disabledIndices: EMPTY_ARRAY as Array<number>,
-    onNavigate: setActiveIndex,
-    openOnArrowKeyDown: true,
+    onNavigate(nextActiveIndex, event) {
+      store.setActiveIndex(nextActiveIndex, getHighlightReason(event), event);
+    },
+    // A virtual-focus submenu's keyboard opening is orchestrated by its navigation wrapper based
+    // on both menus' orientations; the generic arrow-key opening would also react to the parent's
+    // forwarded cross-axis keys while closed.
+    openOnArrowKeyDown: !(virtualFocus && parent.type === "menu"),
+    externalTree: !virtualFocus && nested ? floatingTreeRoot : undefined,
+    nestedReturnFocusRef: parent.type === "menu" ? parent.store.context.virtualFocusRef : undefined,
     focusItemOnHover: untrack(parameters.highlightItemOnHover),
+    resetOnPointerLeave,
   });
 
   const typeahead = createTypeahead(floatingContext, {
-    enabled: !setupDisabled,
+    // Under virtual focus the input owns typing, so typeahead would race the filter query.
+    enabled: !setupDisabled && !virtualFocus,
     listRef: store.context.itemLabels,
     elementsRef: store.context.itemDomElements,
     activeIndex: () => store.select("activeIndex") as number | null,
-    onMatch: (index) => {
+    onMatch: (index, event) => {
       if (store.peek("open") && index !== (store.peek("activeIndex") as number | null)) {
-        store.set("activeIndex", index);
+        store.setActiveIndex(index, REASONS.keyboard, event);
       }
     },
     onTyping: (nextTyping) => {
@@ -377,12 +389,80 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     },
   });
 
+  const onItemHighlighted = parameters.onItemHighlighted;
+  let lastHighlightIndex = -1;
+
+  // Runs when `activeIndex` commits and again when the item registry settles, since an index
+  // can come to point at a different element while its value stays the same.
+  function syncHighlightedItem() {
+    const index = store.peek("activeIndex") as number | null;
+    const item = index === null ? undefined : (store.context.itemDomElements.current[index] ?? undefined);
+    // An item removed in this commit stays registered until the list flushes, which calls back
+    // here with the settled registry.
+    if (item?.isConnected === false) {
+      return;
+    }
+
+    const itemIndex = item === undefined ? -1 : (index as number);
+    if (lastHighlightIndex === itemIndex && store.context.reportedItem === item) {
+      return;
+    }
+
+    lastHighlightIndex = itemIndex;
+    store.context.reportedItem = item;
+    // Only virtual focus renders from the highlighted element. Publishing it in every menu would
+    // notify each item's subscription on every highlight change.
+    if (virtualFocus) {
+      store.set("highlightedItem", item);
+    }
+    // The tag left by the write that produced this committed value.
+    const { highlightReason, highlightEvent } = store.context;
+    store.context.highlightReason = REASONS.none;
+    store.context.highlightEvent = undefined;
+    // One-shot callback read: the effect apply scopes that reach this emitter
+    // must not subscribe to the handler identity, so read it untracked.
+    untrack(() =>
+      onItemHighlighted(
+        item,
+        createGenericEventDetails(highlightReason, highlightEvent, {
+          label: item === undefined ? undefined : (store.context.itemLabels.current[itemIndex] ?? undefined),
+        }),
+      ),
+    );
+  }
+  store.context.syncHighlightedItem = syncHighlightedItem;
+
+  createEffect(
+    () => store.select("activeIndex") as number | null,
+    () => {
+      syncHighlightedItem();
+      return undefined;
+    },
+  );
+
+  // Under virtual focus an element inside the popup holds real focus, so it takes the
+  // navigation's reference props (`aria-activedescendant` and the key handling) and the trigger
+  // keeps only the props that open the menu.
+  function getOpenTriggerProps(): Record<string, unknown> {
+    if (!virtualFocus) {
+      return { ...listNavigation.reference() };
+    }
+    // Focusing the trigger while the menu is open must not seed the virtual highlight. This can
+    // happen before a pointer press closes the menu in Safari.
+    const { onFocus: _onFocus, ...rest } = listNavigation.trigger() as unknown as Record<string, unknown>;
+    return rest;
+  }
+
+  store.useSyncedValue("inputProps", () =>
+    virtualFocus ? ((listNavigation.reference() as unknown as Record<string, unknown>) ?? {}) : {},
+  );
+
   const itemProps = { ...listNavigation.item() };
 
   function getActiveTriggerProps(): Record<string, unknown> {
     return mergeInteractionProps(
       { ...typeahead.reference() },
-      { ...listNavigation.reference() },
+      getOpenTriggerProps(),
       { ...dismiss.reference() },
       {
         onMouseMove() {
@@ -406,14 +486,16 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
 
   function getPopupProps(): Record<string, unknown> {
     const activeTriggerElement = store.select("activeTriggerElement") as Element | null;
+    const hasList = (store.select("listElement") as HTMLElement | null) != null;
     return mergeInteractionProps(
       { ...FOCUSABLE_POPUP_PROPS },
       {
         id: floatingId,
-        role: "menu" as const,
+        // A rendered `Menu.List` carries the `menu` semantics instead.
+        role: (hasList ? "presentation" : "menu") as "presentation" | "menu",
         // `menu` is implicitly vertical, so only the non-default value needs to be rendered.
-        "aria-orientation": untrack(parameters.orientation) === "horizontal" ? "horizontal" : undefined,
-        "aria-labelledby": activeTriggerElement?.id ?? undefined,
+        "aria-orientation": !hasList && untrack(parameters.orientation) === "horizontal" ? "horizontal" : undefined,
+        "aria-labelledby": hasList ? undefined : (activeTriggerElement?.id ?? undefined),
         onMouseMove() {
           store.set("allowMouseEnter", true);
           if (parent.type === "menu") {

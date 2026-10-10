@@ -362,7 +362,9 @@ export async function collectApi(root: string, options: ApiReferenceOptions): Pr
   const components: Record<string, ApiComponent> = {};
 
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name === "internals" || entry.name === "types") continue;
+    // `filter-dropdown` is `@internal` (no barrel, like `internals`): its parts are documented
+    // through the menu that hosts them.
+    if (!entry.isDirectory() || entry.name === "internals" || entry.name === "types" || entry.name === "filter-dropdown") continue;
 
     const slug = entry.name;
     const componentName = pascalFromSlug(slug);

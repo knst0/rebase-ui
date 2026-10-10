@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import * as Field from "../../field/index.parts";
@@ -126,6 +126,26 @@ async function dragFirstThumbTo85(thumb0: HTMLElement) {
   await flushEffects();
   fireEvent.pointerUp(document.body, { clientX: 170 });
   await flushEffects();
+}
+
+function touch(target: Element, identifier: number, clientX: number, clientY = 10) {
+  return { changedTouches: [new Touch({ identifier, target, clientX, clientY })] };
+}
+
+function renderCancelTestSlider() {
+  const changes: Array<[unknown, string]> = [];
+  const commits: Array<[unknown, string]> = [];
+  const result = renderSingleSlider({
+    defaultValue: 20,
+    onValueChange: (value, details) => {
+      changes.push([value, details.reason]);
+    },
+    onValueCommitted: (value, details) => {
+      commits.push([value, details.reason]);
+    },
+  });
+
+  return { ...result, changes, commits };
 }
 
 describe("<Slider /> interactions", () => {
@@ -405,5 +425,303 @@ describe("<Slider /> interactions", () => {
 
     expect(validate).toHaveBeenCalledWith(26, expect.anything());
     expect(input).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("preserves single-element array values on track press", async () => {
+    const changes: Array<[unknown, string]> = [];
+    const commits: Array<[unknown, string]> = [];
+    const { control } = renderSingleSlider({
+      defaultValue: [25],
+      onValueChange: (value: number | number[], details: SliderRoot.ChangeEventDetails) => {
+        changes.push([value, details.reason]);
+      },
+      onValueCommitted: (value: number | readonly number[], details: SliderRoot.CommitEventDetails) => {
+        commits.push([value, details.reason]);
+      },
+    } as unknown as Partial<SliderRoot.Props<number>>);
+
+    fireEvent.pointerDown(control, { clientX: 100, button: 0 });
+    await flushEffects();
+    fireEvent.pointerUp(document.body, { clientX: 100 });
+    await flushEffects();
+
+    expect(changes).toEqual([[[50], "track-press"]]);
+    expect(commits).toEqual([[[50], "track-press"]]);
+  });
+
+  it.each(["touch", "pen"] as const)("commits a %s track tap", async (pointerType) => {
+    const commits: Array<[unknown, string]> = [];
+    const [value, setValue] = createSignal(0);
+    render(() => (
+      <SliderRoot
+        value={value()}
+        onValueChange={(next) => setValue(next as number)}
+        onValueCommitted={(next, details) => commits.push([next, details.reason])}
+      >
+        <SliderControl data-testid="control">
+          <SliderTrack>
+            <SliderIndicator />
+            <SliderThumb aria-label="Volume" />
+          </SliderTrack>
+        </SliderControl>
+      </SliderRoot>
+    ));
+
+    const control = screen.getByTestId("control");
+    (control as any).hasPointerCapture = () => false;
+    (control as any).releasePointerCapture = () => {};
+    (control as any).setPointerCapture = () => {};
+    mockRect(control, { left: 0, right: 200 });
+
+    // Browsers fire pointer events before the compatibility touch events, including for Apple Pencil.
+    fireEvent.pointerDown(control, { pointerType, pointerId: 1, button: 0, buttons: 1, clientX: 100 });
+    await flushEffects();
+    fireEvent.touchStart(control, touch(control, 1, 100));
+    await flushEffects();
+    fireEvent.pointerUp(control, { pointerType, pointerId: 1, clientX: 100 });
+    await flushEffects();
+    fireEvent.touchEnd(document.body, touch(control, 1, 100));
+    await flushEffects();
+
+    expect(commits).toEqual([[50, "track-press"]]);
+  });
+
+  it.each(["mouse", "pen", "touch"] as const)("handles a touch press normally after a cancelled %s gesture", async (pointerType) => {
+    const changes: Array<[unknown, string]> = [];
+    const commits: Array<[unknown, string]> = [];
+    let preventPointerDown = false;
+    render(() => (
+      <SliderRoot
+        defaultValue={0}
+        onValueChange={(next, details) => changes.push([next, details.reason])}
+        onValueCommitted={(next, details) => commits.push([next, details.reason])}
+      >
+        <SliderControl
+          data-testid="control"
+          onPointerDown={(event) => {
+            if (preventPointerDown) {
+              event.preventDefault();
+            }
+          }}
+        >
+          <SliderTrack>
+            <SliderIndicator />
+            <SliderThumb aria-label="Volume" />
+          </SliderTrack>
+        </SliderControl>
+      </SliderRoot>
+    ));
+
+    const control = screen.getByTestId("control");
+    (control as any).hasPointerCapture = () => false;
+    (control as any).releasePointerCapture = () => {};
+    (control as any).setPointerCapture = () => {};
+    mockRect(control, { left: 0, right: 200 });
+
+    fireEvent.pointerDown(control, { pointerType, pointerId: 1, button: 0, buttons: 1, clientX: 100 });
+    await flushEffects();
+    if (pointerType === "touch") {
+      fireEvent.touchStart(control, touch(control, 1, 100));
+      await flushEffects();
+    }
+    expect(changes.at(-1)).toEqual([50, "track-press"]);
+    fireEvent.pointerCancel(control, { pointerType, pointerId: 1 });
+    await flushEffects();
+    if (pointerType === "touch") {
+      fireEvent.touchCancel(document.body, touch(control, 1, 100));
+      await flushEffects();
+    }
+    commits.length = 0;
+
+    // Harness only: a prevented pointerdown still resets the flag but leaves the press to the
+    // touch handler. Whether touch should respect the prevented pointerdown isn't pinned here.
+    preventPointerDown = true;
+    fireEvent.pointerDown(control, { pointerType: "touch", pointerId: 2, button: 0, buttons: 1, clientX: 60 });
+    await flushEffects();
+    fireEvent.touchStart(control, touch(control, 2, 60));
+    await flushEffects();
+    expect(changes.at(-1)).toEqual([30, "track-press"]);
+
+    fireEvent.pointerUp(control, { pointerType: "touch", pointerId: 2, clientX: 60 });
+    await flushEffects();
+    fireEvent.touchEnd(document.body, touch(control, 2, 60));
+    await flushEffects();
+    expect(commits).toEqual([[30, "track-press"]]);
+  });
+
+  it.each(["touch", "pen"] as const)("does not change the value on a %s tap on the thumb", async (pointerType) => {
+    const changes: Array<[unknown, string]> = [];
+    const { thumb } = renderSingleSlider({
+      defaultValue: 100,
+      step: 3,
+      onValueChange: (value, details) => {
+        changes.push([value, details.reason]);
+      },
+    });
+    mockRect(thumb, { left: 190, right: 200 });
+
+    fireEvent.pointerDown(thumb, { pointerType, pointerId: 1, button: 0, buttons: 1, clientX: 195 });
+    await flushEffects();
+    fireEvent.touchStart(thumb, touch(thumb, 1, 195));
+    await flushEffects();
+    fireEvent.pointerUp(thumb, { pointerType, pointerId: 1, clientX: 195 });
+    await flushEffects();
+    fireEvent.touchEnd(document.body, touch(thumb, 1, 195));
+    await flushEffects();
+
+    expect(changes).toEqual([]);
+  });
+
+  describe("cancelled gestures", () => {
+    it.each(["touchEnd", "touchCancel"] as const)("ignores %s from another finger during a touch drag", async (eventName) => {
+      const { control, container, changes, commits } = renderCancelTestSlider();
+      const elsewhere = container as HTMLElement;
+      const pointer = { pointerId: 1, pointerType: "touch" };
+
+      fireEvent.pointerDown(control, { ...pointer, button: 0, buttons: 1, clientX: 80 });
+      await flushEffects();
+      fireEvent.touchStart(control, touch(control, 1, 80));
+      await flushEffects();
+      fireEvent.touchMove(document.body, touch(control, 1, 140));
+      await flushEffects();
+      fireEvent.touchStart(elsewhere, touch(elsewhere, 2, 180));
+      fireEvent[eventName](elsewhere, touch(elsewhere, 2, 180));
+      await flushEffects();
+
+      expect(commits).toEqual([]);
+      expect(control).toHaveAttribute("data-dragging", "");
+
+      fireEvent.touchMove(document.body, touch(control, 1, 160));
+      await flushEffects();
+      expect(changes.at(-1)).toEqual([80, "drag"]);
+
+      fireEvent.touchCancel(document.body, touch(control, 1, 160));
+      await flushEffects();
+      expect(commits).toEqual([[80, "drag"]]);
+      expect(control).not.toHaveAttribute("data-dragging");
+    });
+
+    it.each(["mouse", "pen"] as const)(
+      "ends a cancelled %s drag after disabling and re-enabling during a touch drag",
+      async (pointerType) => {
+        const changes: Array<[unknown, string]> = [];
+        const commits: Array<[unknown, string]> = [];
+        const [disabled, setDisabled] = createSignal(false);
+        const { container } = render(() => (
+          <SliderRoot
+            defaultValue={20}
+            disabled={disabled()}
+            onValueChange={(next, details) => changes.push([next, details.reason])}
+            onValueCommitted={(next, details) => commits.push([next, details.reason])}
+          >
+            <SliderControl data-testid="control">
+              <SliderTrack>
+                <SliderIndicator />
+                <SliderThumb aria-label="Volume" />
+              </SliderTrack>
+            </SliderControl>
+          </SliderRoot>
+        ));
+        const elsewhere = container as HTMLElement;
+
+        const control = screen.getByTestId("control");
+        (control as any).hasPointerCapture = () => false;
+        (control as any).releasePointerCapture = () => {};
+        (control as any).setPointerCapture = () => {};
+        mockRect(control, { left: 0, right: 200 });
+
+        fireEvent.pointerDown(control, { pointerId: 1, pointerType: "touch", button: 0, buttons: 1, clientX: 80 });
+        await flushEffects();
+        fireEvent.touchStart(control, touch(control, 1, 80));
+        await flushEffects();
+        setDisabled(true);
+        await flushEffects();
+        fireEvent.touchCancel(document.body, touch(control, 1, 80));
+        await flushEffects();
+        expect(commits).toEqual([]);
+        setDisabled(false);
+        await flushEffects();
+
+        const pointer = { pointerId: 7, pointerType };
+        fireEvent.pointerDown(control, { ...pointer, button: 0, buttons: 1, clientX: 100 });
+        await flushEffects();
+        fireEvent.pointerMove(document.body, { ...pointer, buttons: 1, clientX: 140 });
+        await flushEffects();
+        fireEvent.pointerCancel(document.body, pointer);
+        await flushEffects();
+
+        expect(commits).toEqual([[70, "drag"]]);
+        expect(control).not.toHaveAttribute("data-dragging");
+
+        changes.length = 0;
+        fireEvent.pointerMove(elsewhere, { ...pointer, buttons: 1, clientX: 180 });
+        fireEvent.pointerUp(elsewhere, { ...pointer, buttons: 0, clientX: 180 });
+        await flushEffects();
+        expect(changes).toEqual([]);
+        expect(commits).toHaveLength(1);
+      },
+    );
+
+    it.each(["mouse", "pen"] as const)("commits and ends a %s drag on pointercancel", async (pointerType) => {
+      const { control, container, changes, commits } = renderCancelTestSlider();
+      const elsewhere = container as HTMLElement;
+      const pointer = { pointerId: 7, pointerType };
+
+      fireEvent.pointerDown(control, { ...pointer, button: 0, buttons: 1, clientX: 80 });
+      await flushEffects();
+      fireEvent.pointerMove(document.body, { ...pointer, buttons: 1, clientX: 140 });
+      await flushEffects();
+      expect(control).toHaveAttribute("data-dragging", "");
+
+      fireEvent.pointerCancel(document.body, pointer);
+      await flushEffects();
+
+      expect(commits).toEqual([[70, "drag"]]);
+      expect(control).not.toHaveAttribute("data-dragging");
+
+      changes.length = 0;
+      fireEvent.pointerDown(elsewhere, { ...pointer, button: 0, buttons: 1, clientX: 180 });
+      fireEvent.pointerMove(elsewhere, { ...pointer, buttons: 1, clientX: 180 });
+      fireEvent.pointerUp(elsewhere, { ...pointer, buttons: 0, clientX: 180 });
+      await flushEffects();
+
+      expect(changes).toEqual([]);
+      expect(commits).toHaveLength(1);
+    });
+
+    it("keeps a touch drag going after pointercancel and commits and ends it on touchcancel", async () => {
+      const { control, container, changes, commits } = renderCancelTestSlider();
+      const elsewhere = container as HTMLElement;
+      const pointer = { pointerId: 1, pointerType: "touch" };
+
+      fireEvent.pointerDown(control, { ...pointer, button: 0, buttons: 1, clientX: 80 });
+      await flushEffects();
+      fireEvent.touchStart(control, touch(control, 1, 80));
+      await flushEffects();
+      // Without `touch-action: none`, the browser cancels the pointer once it starts panning.
+      fireEvent.pointerCancel(document.body, pointer);
+      await flushEffects();
+      fireEvent.touchMove(document.body, touch(control, 1, 140));
+      await flushEffects();
+
+      expect(changes.at(-1)).toEqual([70, "drag"]);
+
+      fireEvent.touchCancel(document.body, touch(control, 1, 140));
+      await flushEffects();
+
+      expect(commits).toEqual([[70, "drag"]]);
+      expect(control).not.toHaveAttribute("data-dragging");
+
+      changes.length = 0;
+      fireEvent.pointerDown(elsewhere, { pointerId: 2, pointerType: "touch", button: 0, buttons: 1 });
+      fireEvent.touchStart(elsewhere, touch(elsewhere, 2, 180));
+      fireEvent.touchMove(document.body, touch(elsewhere, 2, 180));
+      fireEvent.pointerUp(elsewhere, { pointerId: 2, pointerType: "touch", buttons: 0 });
+      fireEvent.touchEnd(document.body, touch(elsewhere, 2, 180));
+      await flushEffects();
+
+      expect(changes).toEqual([]);
+      expect(commits).toHaveLength(1);
+    });
   });
 });

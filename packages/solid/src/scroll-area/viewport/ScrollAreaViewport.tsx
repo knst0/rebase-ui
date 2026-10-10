@@ -6,6 +6,8 @@ import { createEffect, onCleanup, onSettled, untrack } from "solid-js";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { NOOP } from "../../internals/utils/empty";
+import { getFiniteAnimations } from "../../internals/utils/getFiniteAnimations";
 import { MIN_THUMB_SIZE } from "../constants";
 import type { HiddenState, ScrollAreaRootState } from "../root/ScrollAreaRoot";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
@@ -316,7 +318,7 @@ export function ScrollAreaViewport<T extends ValidComponent = "div">(props: Scro
         return;
       }
 
-      const animations = viewport.getAnimations({ subtree: true });
+      const animations = getFiniteAnimations(viewport, { subtree: true });
       if (animations.length === 0) {
         return;
       }
@@ -324,7 +326,8 @@ export function ScrollAreaViewport<T extends ValidComponent = "div">(props: Scro
       // `allSettled` never rejects, but `computeThumbPosition` can still run against a
       // torn-down tree once the animations resolve. Swallow instead of leaking an unhandled
       // rejection; `void` alone would only silence the floating-promise lint.
-      Promise.allSettled(animations.map((animation) => animation.finished))
+      // Discard fulfilled Animation values so unfinished animations cannot retain their targets.
+      Promise.allSettled(animations.map((animation) => animation.finished.then(NOOP)))
         .then(computeThumbPosition)
         .catch(() => {});
     });
@@ -393,7 +396,6 @@ export function ScrollAreaViewport<T extends ValidComponent = "div">(props: Scro
         state={viewportState}
         props={[
           {
-            role: "presentation",
             get tabindex() {
               // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
               // Keep non-scrollable viewports out of tab order.

@@ -5,6 +5,7 @@ import type { FieldRootState } from "../../field/root/FieldRoot";
 import { createButton } from "../../internals/create-button";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { fieldValidityMapping } from "../../internals/field-constants";
+import { createSetFieldFocused } from "../../internals/field-root-context/createSetFieldFocused";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import type { Side } from "../../internals/floating/types";
 import { contains, getFloatingFocusElement } from "../../internals/floating/utils/element";
@@ -17,7 +18,7 @@ import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument } from "../../internals/utils/owner";
 import type { SelectRoot } from "../root/SelectRoot";
-import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
+import { useSelectRootContext } from "../root/SelectRootContext";
 import * as SelectTriggerDataAttributes from "./SelectTriggerDataAttributes";
 
 const SELECTED_DELAY = 400;
@@ -68,9 +69,8 @@ export function SelectTrigger<T extends ValidComponent = "button">(props: Select
   const field = useFieldRootContext();
   const { labelId: fieldLabelId } = useLabelableContext();
   const store = useSelectRootContext();
-  const rootProps = useSelectRootPropsContext();
 
-  const disabled = () => rootProps.disabled || local.disabled === true;
+  const disabled = () => (store.select("disabled") as boolean) || local.disabled === true;
 
   // Registers an explicit trigger id so field labels point at the trigger.
   // Without one, the root id (already registered by the root) stays in effect.
@@ -80,6 +80,7 @@ export function SelectTrigger<T extends ValidComponent = "button">(props: Select
   const [pressed, setPressed] = createSignal(false);
 
   let triggerElement: HTMLButtonElement | null = null;
+  const setFocused = createSetFieldFocused(disabled, () => triggerElement);
   let focusTimeout: ReturnType<typeof setTimeout> | undefined;
   let mouseDownTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -125,7 +126,7 @@ export function SelectTrigger<T extends ValidComponent = "button">(props: Select
   }
 
   function handleFocus(event: FocusEvent): void {
-    field.setFocused(true);
+    setFocused(true);
 
     // The popup element shouldn't obscure the focused trigger.
     if (store.peek("open") && store.context.alignItemWithTriggerActiveRef.current) {
@@ -147,7 +148,7 @@ export function SelectTrigger<T extends ValidComponent = "button">(props: Select
     }
 
     field.setTouched(true);
-    field.setFocused(false);
+    setFocused(false);
     setPressed(false);
 
     if (field.validationMode === "onBlur") {
@@ -219,10 +220,10 @@ export function SelectTrigger<T extends ValidComponent = "button">(props: Select
       return disabled;
     },
     get readOnly() {
-      return rootProps.readOnly;
+      return store.select("readOnly") as boolean;
     },
     get required() {
-      return rootProps.required;
+      return store.select("required") as boolean;
     },
     get value() {
       return store.select("value");
@@ -267,10 +268,10 @@ export function SelectTrigger<T extends ValidComponent = "button">(props: Select
         return ids.length > 0 ? ids.join(" ") : undefined;
       },
       get "aria-readonly"() {
-        return rootProps.readOnly ? "true" : undefined;
+        return (store.select("readOnly") as boolean) ? "true" : undefined;
       },
       get "aria-required"() {
-        return rootProps.required ? "true" : undefined;
+        return (store.select("required") as boolean) ? "true" : undefined;
       },
       onFocus: (event: FocusEvent) => {
         callHandler(fromStore.onFocus as EventHandlerValue, event);

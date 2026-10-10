@@ -11,13 +11,13 @@ import {
   type OffsetFunction,
   type Side,
 } from "../../internals/anchor-positioning/createAnchorPositioning";
-import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { REASONS } from "../../internals/event-details";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { createScrollLock } from "../../internals/scroll-lock";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { useTriggerSwitchTransition } from "../../internals/useTriggerSwitchTransition";
 import { usePopoverPortalContext } from "../portal/PopoverPortalContext";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { popoverPositionerStateMapping } from "../utils/stateAttributesMapping";
@@ -84,32 +84,13 @@ export function PopoverPositioner<T extends ValidComponent = "div">(props: Popov
     },
   });
 
-  const runOnceAnimationsFinish = createAnimationsFinishedRunner(() => store.select("positionerElement") as HTMLElement | null);
-
-  // When the current trigger element changes, enable transitions on the
-  // positioner temporarily.
   const floatingRootContext = untrack(() => store.select("floatingRootContext"));
-  const [previousTriggerElement, setPreviousTriggerElement] = createSignal<Element | null>(null, { ownedWrite: true });
-  createEffect(
-    () => floatingRootContext.select("domReferenceElement") as Element | null,
-    (currentTriggerElement) => {
-      const previousTriggerElementValue = untrack(previousTriggerElement);
-      if (currentTriggerElement) {
-        setPreviousTriggerElement(currentTriggerElement);
-      }
-      if (previousTriggerElementValue && currentTriggerElement && currentTriggerElement !== previousTriggerElementValue) {
-        store.set("instantType", undefined);
-        const controller = new AbortController();
-        runOnceAnimationsFinish(() => {
-          store.set("instantType", "trigger-change");
-        }, controller.signal);
-        return () => {
-          controller.abort();
-        };
-      }
-      return undefined;
-    },
-  );
+  useTriggerSwitchTransition({
+    store,
+    domReference: () => floatingRootContext.select("domReferenceElement") as Element | null,
+    positionerElement: () => store.select("positionerElement") as HTMLElement | null,
+    open: () => store.select("open") as boolean,
+  });
 
   const isModalNonHover = () =>
     (store.select("modal") as boolean | "trap-focus") === true &&

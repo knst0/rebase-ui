@@ -61,6 +61,24 @@ describe("<Tabs.Root />", () => {
     expect(tab2).toHaveAttribute("aria-selected", "true");
   });
 
+  it("supports a function as the default value", () => {
+    const functionValue = () => 1;
+
+    render(() => (
+      <Tabs.Root defaultValue={functionValue}>
+        <Tabs.List>
+          <Tabs.Tab value={0}>One</Tabs.Tab>
+          <Tabs.Tab value={functionValue}>Two</Tabs.Tab>
+        </Tabs.List>
+      </Tabs.Root>
+    ));
+
+    const [tab1, tab2] = screen.getAllByRole("tab");
+
+    expect(tab1).toHaveAttribute("aria-selected", "false");
+    expect(tab2).toHaveAttribute("aria-selected", "true");
+  });
+
   it("selects no tab when the value is null", () => {
     render(() => (
       <Tabs.Root value={null}>

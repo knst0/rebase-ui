@@ -6,7 +6,7 @@ import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { LIST_FUNCTIONAL_STYLES } from "../popup/utils";
 import { useSelectPositionerContext } from "../positioner/SelectPositionerContext";
-import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
+import { useSelectRootContext } from "../root/SelectRootContext";
 
 /**
  * A container for the select items.
@@ -20,7 +20,6 @@ export function SelectList<T extends ValidComponent = "div">(props: SelectList.P
   const as = untrack(() => local.as);
 
   const store = useSelectRootContext();
-  const rootProps = useSelectRootPropsContext();
   const positioner = useSelectPositionerContext();
 
   const listProps = {
@@ -29,10 +28,10 @@ export function SelectList<T extends ValidComponent = "div">(props: SelectList.P
     },
     role: "listbox" as const,
     get "aria-multiselectable"() {
-      return rootProps.multiple ? "true" : undefined;
+      return (store.select("multiple") as boolean) ? "true" : undefined;
     },
     get "aria-readonly"() {
-      return rootProps.readOnly ? "true" : undefined;
+      return (store.select("readOnly") as boolean) ? "true" : undefined;
     },
     onScroll(event: Event) {
       store.context.scrollHandlerRef.current?.(event.currentTarget as HTMLDivElement);

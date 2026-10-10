@@ -113,7 +113,45 @@ describe("<Collapsible.Trigger />", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("does not toggle when disabled but remains focusable", async () => {
+  it("renders the disabled attribute when disabled", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <Collapsible.Root disabled>
+        <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+      </Collapsible.Root>
+    ));
+
+    const trigger = screen.getByRole("button", { name: "Trigger" });
+
+    expect(trigger).toBeDisabled();
+    expect(trigger).not.toHaveAttribute("aria-disabled");
+
+    await clickTrigger(user, trigger);
+
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("removes a disabled non-native trigger from the tab order", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <Collapsible.Root disabled>
+        <Collapsible.Trigger nativeButton={false} as="span">
+          Trigger
+        </Collapsible.Trigger>
+      </Collapsible.Root>
+    ));
+
+    const trigger = screen.getByRole("button", { name: "Trigger" });
+
+    expect(trigger).toHaveAttribute("aria-disabled", "true");
+    expect(trigger).toHaveAttribute("tabindex", "-1");
+    expect(trigger).not.toHaveAttribute("disabled");
+
+    await user.keyboard("[Tab]");
+    expect(trigger).not.toHaveFocus();
+  });
+
+  it("does not toggle when disabled", async () => {
     const user = userEvent.setup();
     render(() => (
       <Collapsible.Root>
@@ -124,7 +162,7 @@ describe("<Collapsible.Trigger />", () => {
 
     const trigger = screen.getByRole("button");
 
-    expect(trigger).not.toHaveAttribute("disabled");
+    expect(trigger).toBeDisabled();
 
     await clickTrigger(user, trigger);
 

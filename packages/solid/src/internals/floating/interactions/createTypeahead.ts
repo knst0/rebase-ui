@@ -11,7 +11,7 @@ export interface CreateTypeaheadProps {
   /** Active item index; accepts an accessor to stay reactive. @default null */
   activeIndex?: number | null | (() => number | null) | undefined;
   /** Callback invoked with the matching index as the user types. */
-  onMatch?: ((index: number) => void) | undefined;
+  onMatch?: ((index: number, event: KeyboardEvent) => void) | undefined;
   /** Item elements corresponding to `listRef` indices; hidden/disabled ones are skipped. */
   elementsRef?: { current: Array<HTMLElement | null> } | undefined;
   /** Indices to skip while matching (same shape as list navigation). */
@@ -164,7 +164,7 @@ export function createTypeahead(context: FloatingContext, props: CreateTypeahead
       const index = getMatchingIndex(listContent, buffer, startIndex);
 
       if (index !== -1) {
-        props.onMatch?.(index);
+        props.onMatch?.(index, event);
         matchIndex = index;
       } else if (event.key !== " ") {
         buffer = "";
@@ -192,6 +192,7 @@ export function createTypeahead(context: FloatingContext, props: CreateTypeahead
       matchIndex = null;
       if (buffer !== "") {
         buffer = "";
+        props.onTyping?.(false);
       }
     },
   );

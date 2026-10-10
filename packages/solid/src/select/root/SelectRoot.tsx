@@ -11,7 +11,7 @@ import { RenderElement } from "../../internals/render-element";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
 import { stringifyAsLabel, stringifyAsValue, type SelectItemsInput } from "../utils/resolveValueLabel";
 import { createSelectRoot } from "./createSelectRoot";
-import { SelectFloatingContext, SelectRootContext, SelectRootPropsContext, type SelectRootPropsContextValue } from "./SelectRootContext";
+import { SelectFloatingContext, SelectRootContext } from "./SelectRootContext";
 
 /**
  * Groups all parts of the select.
@@ -22,9 +22,9 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
 
   const defaultValue = untrack((): any => {
     if (props.multiple) {
-      return (props.defaultValue as SelectValueType<Value, Multiple> | null | undefined) ?? EMPTY_ARRAY;
+      return (props.defaultValue as SelectInputValue<Value, Multiple> | null | undefined) ?? EMPTY_ARRAY;
     }
-    return (props.defaultValue as SelectValueType<Value, Multiple> | null | undefined) ?? null;
+    return (props.defaultValue as SelectInputValue<Value, Multiple> | null | undefined) ?? null;
   });
 
   const root = createSelectRoot({
@@ -49,7 +49,6 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
       (props.onValueChange as ((value: any, eventDetails: SelectRoot.ChangeEventDetails) => void) | undefined)?.(value, eventDetails),
     onOpenChange: (open, eventDetails) => props.onOpenChange?.(open, eventDetails),
     onOpenChangeComplete: (open) => props.onOpenChangeComplete?.(open),
-    hasActionsRef: untrack(() => props.actionsRef) !== undefined,
   });
 
   const field = useFieldRootContext();
@@ -59,32 +58,13 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
     // Delivering the actions is a signal write, so it happens outside the
     // component's owned scope once rendering has settled.
     onSettled(() => {
-      actionsRef({ unmount: root.forceUnmount });
+      actionsRef({ unmount: root.forceUnmount, close: root.close });
 
       return () => {
         actionsRef(null);
       };
     });
   }
-
-  const propsContextValue: SelectRootPropsContextValue = {
-    get disabled() {
-      return root.disabled();
-    },
-    get readOnly() {
-      return props.readOnly ?? false;
-    },
-    get required() {
-      return props.required ?? false;
-    },
-    get multiple() {
-      return props.multiple ?? false;
-    },
-    get highlightItemOnHover() {
-      return props.highlightItemOnHover ?? true;
-    },
-    itemProps: root.itemProps,
-  };
 
   const mergedInputRef = mergeRefs(
     untrack(() => props.inputRef),
@@ -157,11 +137,9 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
 
   return (
     <SelectRootContext value={root.store}>
-      <SelectRootPropsContext value={propsContextValue}>
-        <SelectFloatingContext value={untrack(() => root.store.peek("floatingRootContext"))}>
-          {untrack(() => props.children) as JSX.Element}
-        </SelectFloatingContext>
-      </SelectRootPropsContext>
+      <SelectFloatingContext value={untrack(() => root.store.peek("floatingRootContext"))}>
+        {untrack(() => props.children) as JSX.Element}
+      </SelectFloatingContext>
       <RenderElement
         as="input"
         props={[
@@ -220,7 +198,9 @@ export function SelectRoot<Value, Multiple extends boolean | undefined = false>(
   );
 }
 
-type SelectValueType<Value, Multiple extends boolean | undefined> = Multiple extends true ? Value[] : Value;
+type SelectInputValue<Value, Multiple extends boolean | undefined> = Multiple extends true ? readonly Value[] : Value;
+
+type SelectOutputValue<Value, Multiple extends boolean | undefined> = Multiple extends true ? Value[] : Value;
 
 export interface SelectRootProps<Value, Multiple extends boolean | undefined = false> {
   children?: JSX.Element | undefined;
@@ -282,7 +262,7 @@ export interface SelectRootProps<Value, Multiple extends boolean | undefined = f
   /**
    * Event handler called when the select popup is opened or closed.
    */
-  onOpenChange?: ((open: boolean, eventDetails: SelectRoot.ChangeEventDetails) => void) | undefined;
+  onOpenChange?: ((open: boolean, eventDetails: SelectRoot.OpenChangeEventDetails) => void) | undefined;
   /**
    * Event handler called after any animations complete when the select popup is opened or closed.
    */
@@ -303,7 +283,9 @@ export interface SelectRootProps<Value, Multiple extends boolean | undefined = f
   /**
    * A signal setter that receives the imperative actions.
    * - `unmount`: Manually unmounts the select.
-   * Call this after any externally controlled closing animation finishes.
+   * Call `preventUnmountOnClose()` in `onOpenChange` to manually control unmounting,
+   * then call this action after any externally controlled closing animation finishes.
+   * - `close`: Closes the select.
    */
   actionsRef?: Setter<SelectRootActions | null> | undefined;
   /**
@@ -341,17 +323,17 @@ export interface SelectRootProps<Value, Multiple extends boolean | undefined = f
    *
    * To render a controlled select, use the `value` prop instead.
    */
-  defaultValue?: SelectValueType<Value, Multiple> | null | undefined;
+  defaultValue?: SelectInputValue<Value, Multiple> | null | undefined;
   /**
    * The value of the select. Use when controlled.
    */
-  value?: SelectValueType<Value, Multiple> | null | undefined;
+  value?: SelectInputValue<Value, Multiple> | null | undefined;
   /**
    * Event handler called when the value of the select changes.
    */
   onValueChange?:
     | ((
-        value: SelectValueType<Value, Multiple> | (Multiple extends true ? never : null),
+        value: SelectOutputValue<Value, Multiple> | (Multiple extends true ? never : null),
         eventDetails: SelectRoot.ChangeEventDetails,
       ) => void)
     | undefined;
@@ -361,6 +343,7 @@ export interface SelectRootState {}
 
 export interface SelectRootActions {
   unmount: () => void;
+  close: () => void;
 }
 
 export type SelectRootChangeEventReason =
@@ -372,9 +355,23 @@ export type SelectRootChangeEventReason =
   | typeof REASONS.focusOut
   | typeof REASONS.listNavigation
   | typeof REASONS.cancelOpen
+  | typeof REASONS.imperativeAction
   | typeof REASONS.none;
 
 export type SelectRootChangeEventDetails = RebaseUIChangeEventDetails<SelectRootChangeEventReason>;
+
+export type SelectRootOpenChangeEventReason = SelectRootChangeEventReason;
+
+export type SelectRootOpenChangeEventDetails = RebaseUIChangeEventDetails<
+  SelectRootOpenChangeEventReason,
+  {
+    /**
+     * Prevents the select popup from unmounting when the close completes.
+     * When used, call the actions ref `unmount` function manually once the popup can unmount.
+     */
+    preventUnmountOnClose(): void;
+  }
+>;
 
 export namespace SelectRoot {
   export type Props<Value, Multiple extends boolean | undefined = false> = SelectRootProps<Value, Multiple>;
@@ -382,4 +379,6 @@ export namespace SelectRoot {
   export type Actions = SelectRootActions;
   export type ChangeEventReason = SelectRootChangeEventReason;
   export type ChangeEventDetails = SelectRootChangeEventDetails;
+  export type OpenChangeEventReason = SelectRootOpenChangeEventReason;
+  export type OpenChangeEventDetails = SelectRootOpenChangeEventDetails;
 }

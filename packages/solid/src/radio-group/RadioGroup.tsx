@@ -88,34 +88,49 @@ export function RadioGroup<Value, T extends ValidComponent = "div">(props: Radio
 
   let groupInputRef: HTMLInputElement | null = null;
   let firstEnabledInputRef: HTMLInputElement | null = null;
+  let currentInputRef = untrack(() => local.inputRef);
+  let lastAppliedInputRef = currentInputRef;
 
   // Only forwards the public `inputRef` and tracks the current representative for that forwarding.
   // The registry (`validation.registeredInputs`) is authoritative for validation and form-value
   // projection, so the group must not write `validation.inputRef`: a stale, unmounted radio left
   // there would become the Field's fallback once the registry empties and keep blocking submission.
   function setInputRef(hiddenInput: HTMLInputElement | null) {
-    let cleanup: void | (() => void) | undefined;
-
-    if (local.inputRef) {
-      cleanup = local.inputRef(hiddenInput);
+    if (groupInputRef === hiddenInput && lastAppliedInputRef === currentInputRef) {
+      return;
     }
 
+    lastAppliedInputRef = currentInputRef;
     groupInputRef = hiddenInput;
-
-    return cleanup;
+    currentInputRef?.(hiddenInput);
   }
 
+  // Re-apply the current representative input when the `inputRef` prop identity changes.
+  // Unlike React's ref cleanup, the previous callback is never invoked with `null`: it
+  // simply stops receiving updates while the new one takes over the current input.
+  createEffect(
+    () => local.inputRef,
+    (inputRef) => {
+      currentInputRef = inputRef ?? undefined;
+      setInputRef(groupInputRef);
+    },
+  );
+
   const registerInputRef = (input: HTMLInputElement | null) => {
-    if (!input || input.disabled) {
+    if (!input) {
       return undefined;
     }
 
-    if (!firstEnabledInputRef) {
-      firstEnabledInputRef = input;
-    }
+    if (!input.disabled) {
+      if (!firstEnabledInputRef) {
+        firstEnabledInputRef = input;
+      }
 
-    const currentInput = groupInputRef;
-    const cleanup = input.checked || currentInput == null || currentInput.disabled ? setInputRef(input) : undefined;
+      const currentInput = groupInputRef;
+      if (input.checked || currentInput == null || currentInput.disabled) {
+        setInputRef(input);
+      }
+    }
 
     // Detach when this input unmounts while still forwarded, so consumers don't
     // keep holding a disconnected node. The input may have become the forwarded
@@ -125,14 +140,7 @@ export function RadioGroup<Value, T extends ValidComponent = "div">(props: Radio
         firstEnabledInputRef = null;
       }
       if (groupInputRef === input) {
-        if (cleanup) {
-          cleanup();
-          groupInputRef = null;
-        } else {
-          setInputRef(null);
-        }
-      } else {
-        cleanup?.();
+        setInputRef(null);
       }
     };
   };
@@ -193,7 +201,6 @@ export function RadioGroup<Value, T extends ValidComponent = "div">(props: Radio
 
       const fallbackInput = firstEnabledInputRef;
       if (next == null && fallbackInput && !fallbackInput.disabled) {
-        // Imperative re-point outside the ref lifecycle; the ref-callback cleanup isn't tracked here.
         setInputRef(fallbackInput);
       }
     },
@@ -242,7 +249,6 @@ export function RadioGroup<Value, T extends ValidComponent = "div">(props: Radio
   function onKeyDownCapture(event: KeyboardEvent) {
     if (event.key.startsWith("Arrow")) {
       setTouched(true);
-      setFocused(true);
     }
   }
 
@@ -269,15 +275,11 @@ export function RadioGroup<Value, T extends ValidComponent = "div">(props: Radio
     const target: Record<string, any> = {};
 
     for (const key in externalProps) {
-      if (key === "onFocus" || key === "onBlur") {
+      if (key === "onBlur") {
         continue;
       }
       Object.defineProperty(target, key, { enumerable: true, configurable: true, get: () => externalProps[key] });
     }
-
-    chainHandler("onFocus", () => {
-      setFocused(true);
-    });
 
     chainHandler("onBlur", (event: FocusEvent) => {
       const currentTarget = event.currentTarget as HTMLElement | null;

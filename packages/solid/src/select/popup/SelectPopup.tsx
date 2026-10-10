@@ -18,7 +18,7 @@ import type { RebaseUIComponentProps } from "../../internals/types";
 import { ownerDocument, ownerWindow } from "../../internals/utils/owner";
 import { useSelectPositionerContext } from "../positioner/SelectPositionerContext";
 import { transformOrigin as transformOriginVar } from "../positioner/SelectPositionerCssVars";
-import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
+import { useSelectRootContext } from "../root/SelectRootContext";
 import { selectPopupStateMapping } from "../utils/stateAttributesMapping";
 import { clearStyles, LIST_FUNCTIONAL_STYLES } from "./utils";
 
@@ -36,7 +36,6 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
   const as = untrack(() => local.as);
 
   const store = useSelectRootContext();
-  const rootProps = useSelectRootPropsContext();
   const positioner = useSelectPositionerContext();
 
   let reachedMaxHeight = false;
@@ -208,7 +207,7 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
       alignActive: positioner.alignItemWithTriggerActive(),
       isPositioned: positioner.isPositioned(),
       listElement: store.select("listElement") as HTMLElement | null,
-      highlightItemOnHover: rootProps.highlightItemOnHover,
+      highlightItemOnHover: store.select("highlightItemOnHover"),
       transitionStatus: store.select("transitionStatus"),
     }),
     (deps) => {
@@ -421,10 +420,10 @@ export function SelectPopup<T extends ValidComponent = "div">(props: SelectPopup
       return store.select("listElement") ? "presentation" : "listbox";
     },
     get "aria-multiselectable"(): boolean | undefined {
-      return !store.select("listElement") && rootProps.multiple ? true : undefined;
+      return !store.select("listElement") && store.select("multiple") ? true : undefined;
     },
     get "aria-readonly"(): boolean | undefined {
-      return !store.select("listElement") && rootProps.readOnly ? true : undefined;
+      return !store.select("listElement") && store.select("readOnly") ? true : undefined;
     },
     get id(): string | undefined {
       return store.select("listElement") ? undefined : `${store.select("id")}-list`;

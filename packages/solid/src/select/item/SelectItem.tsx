@@ -11,7 +11,7 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
-import { useSelectRootContext, useSelectRootPropsContext } from "../root/SelectRootContext";
+import { useSelectRootContext } from "../root/SelectRootContext";
 import type { SelectStore } from "../store/SelectStore";
 import { SelectItemContext } from "./SelectItemContext";
 import * as SelectItemDataAttributes from "./SelectItemDataAttributes";
@@ -78,10 +78,9 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
   const as = untrack(() => local.as);
 
   const store = useSelectRootContext();
-  const rootProps = useSelectRootPropsContext();
-  const floatItemProps = rootProps.itemProps as unknown as ListNavigationItemProps;
+  const floatItemProps = store.peek("itemProps") as unknown as ListNavigationItemProps;
 
-  const disabled = () => rootProps.disabled || local.disabled;
+  const disabled = () => (store.select("disabled") as boolean) || local.disabled;
 
   const textRef: { current: HTMLElement | null } = { current: null };
 
@@ -130,7 +129,7 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
       value: local.value ?? null,
       label: local.label as string | undefined,
       selectedValue: store.select("value"),
-      multiple: rootProps.multiple,
+      multiple: store.select("multiple"),
       comparer: store.select("isItemEqualToValue"),
     }),
     ({ itemIndex, value, selectedValue, multiple, comparer }) => {
@@ -185,14 +184,14 @@ export function SelectItem<T extends ValidComponent = "div">(props: SelectItem.P
   function commitSelection(event: MouseEvent | KeyboardEvent | PointerEvent) {
     // A forced-open select (`open`/`defaultOpen`) can still receive item activations even
     // when the root is disabled or read-only, so guard the commit here too.
-    if (rootProps.disabled || rootProps.readOnly) {
+    if ((store.peek("disabled") as boolean) || (store.peek("readOnly") as boolean)) {
       return;
     }
 
     const currentValue = store.peek("value");
     const comparer = store.peek("isItemEqualToValue");
     const value = local.value ?? null;
-    if (rootProps.multiple) {
+    if (store.peek("multiple")) {
       const currentArray = Array.isArray(currentValue) ? currentValue : [];
       const isSelected = store.peek("isSelected", value) as boolean;
       const nextValue = isSelected ? removeItem(currentArray, value, comparer) : [...currentArray, value];

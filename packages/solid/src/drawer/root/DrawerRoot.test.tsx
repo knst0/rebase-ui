@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "#test-utils";
 
@@ -268,5 +268,151 @@ describe("<Drawer.Root />", () => {
     expect(screen.queryByTestId("outer-popup")).toBeInTheDocument();
     expect(screen.queryByTestId("inner-popup")).toBeInTheDocument();
     expect(screen.queryByTestId("outer-popup")).toHaveAttribute("data-nested-drawer-open", "");
+  });
+
+  describe("CloseWatcher", () => {
+    class CloseWatcherStub extends EventTarget {
+      static instances: CloseWatcherStub[] = [];
+      active = true;
+
+      constructor() {
+        super();
+        CloseWatcherStub.instances.push(this);
+      }
+
+      destroy() {
+        this.active = false;
+      }
+
+      // Mirrors the browser: `cancel` fires first and can only be prevented while the page has
+      // history-action activation; otherwise the watcher is destroyed before `close` fires.
+      requestClose(cancelable: boolean) {
+        if (!this.active) {
+          return;
+        }
+
+        const cancelEvent = new Event("cancel", { cancelable });
+        this.dispatchEvent(cancelEvent);
+        if (cancelEvent.defaultPrevented) {
+          return;
+        }
+
+        this.destroy();
+        this.dispatchEvent(new Event("close"));
+      }
+    }
+
+    const win = window as Window & { CloseWatcher?: unknown };
+    const originalCloseWatcher = win.CloseWatcher;
+
+    beforeEach(() => {
+      CloseWatcherStub.instances = [];
+      win.CloseWatcher = CloseWatcherStub;
+      vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+      );
+    });
+
+    afterEach(() => {
+      win.CloseWatcher = originalCloseWatcher;
+      vi.restoreAllMocks();
+    });
+
+    function TestDrawer(props: Omit<Drawer.Root.Props, "children">) {
+      return (
+        <Drawer.Root {...props}>
+          <Drawer.Portal>
+            <Drawer.Viewport>
+              <Drawer.Popup>Drawer</Drawer.Popup>
+            </Drawer.Viewport>
+          </Drawer.Portal>
+        </Drawer.Root>
+      );
+    }
+
+    function currentWatcher() {
+      return CloseWatcherStub.instances[CloseWatcherStub.instances.length - 1]!;
+    }
+
+    async function renderOpenDrawer(props: Omit<Drawer.Root.Props, "children"> = {}) {
+      const result = render(() => <TestDrawer defaultOpen {...props} />);
+      flush();
+      await nextFrames();
+      return result;
+    }
+
+    async function requestClose(cancelable = true) {
+      currentWatcher().requestClose(cancelable);
+      flush();
+      await nextFrames();
+    }
+
+    it("closes when the watcher requests a close", async () => {
+      const handleOpenChange = vi.fn();
+      await renderOpenDrawer({ onOpenChange: handleOpenChange });
+
+      await requestClose();
+
+      expect(handleOpenChange).toHaveBeenCalledTimes(1);
+      expect(handleOpenChange).toHaveBeenCalledWith(false, expect.objectContaining({ reason: "close-watcher" }));
+      expect(screen.queryByRole("dialog")).toBe(null);
+      expect(currentWatcher().active).toBe(false);
+    });
+
+    it("keeps the same watcher active when a cancelable close request is canceled", async () => {
+      let shouldCancel = true;
+      const handleOpenChange = vi.fn((_open: boolean, details: Drawer.Root.ChangeEventDetails) => {
+        if (shouldCancel) {
+          details.cancel();
+        }
+      });
+      await renderOpenDrawer({ onOpenChange: handleOpenChange });
+      const watcher = currentWatcher();
+      const instanceCount = CloseWatcherStub.instances.length;
+
+      await requestClose();
+
+      expect(handleOpenChange).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("dialog")).not.toBe(null);
+      expect(CloseWatcherStub.instances).toHaveLength(instanceCount);
+      expect(watcher.active).toBe(true);
+
+      shouldCancel = false;
+      await requestClose();
+
+      expect(handleOpenChange).toHaveBeenCalledTimes(2);
+      expect(screen.queryByRole("dialog")).toBe(null);
+      expect(watcher.active).toBe(false);
+    });
+
+    it("closes on a close request that cannot be prevented even if onOpenChange cancels it", async () => {
+      const handleOpenChange = vi.fn((_open: boolean, details: Drawer.Root.ChangeEventDetails) => {
+        details.cancel();
+      });
+      await renderOpenDrawer({ onOpenChange: handleOpenChange });
+
+      await requestClose(false);
+
+      expect(handleOpenChange).toHaveBeenCalledTimes(1);
+      const details = handleOpenChange.mock.calls[0][1] as Drawer.Root.ChangeEventDetails;
+      expect(details.event.cancelable).toBe(false);
+      expect(details.isCanceled).toBe(false);
+      expect(screen.queryByRole("dialog")).toBe(null);
+      expect(currentWatcher().active).toBe(false);
+    });
+
+    it("destroys the watcher on unmount", async () => {
+      const handleOpenChange = vi.fn((_open: boolean, details: Drawer.Root.ChangeEventDetails) => {
+        details.cancel();
+      });
+      const { unmount } = await renderOpenDrawer({ onOpenChange: handleOpenChange });
+      const watcher = currentWatcher();
+
+      await requestClose();
+      expect(watcher.active).toBe(true);
+
+      unmount();
+      expect(watcher.active).toBe(false);
+    });
   });
 });

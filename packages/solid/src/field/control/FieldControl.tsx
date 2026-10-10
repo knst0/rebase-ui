@@ -4,7 +4,7 @@ import { createEffect, createMemo, untrack } from "solid-js";
 import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { fieldValidityMapping } from "../../internals/field-constants";
 import { createRegisterFieldControl } from "../../internals/field-register-control";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createSetFieldFocused, useFieldRootContext } from "../../internals/field-root-context";
 import { useFormContext } from "../../internals/form-context";
 import { createLabelableId, useLabelableContext } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
@@ -41,7 +41,6 @@ export function FieldControl<T extends ValidComponent = "input">(props: FieldCon
     setTouched,
     setDirty,
     validityData,
-    setFocused,
     setFilled,
     validationMode,
     validation,
@@ -59,28 +58,24 @@ export function FieldControl<T extends ValidComponent = "input">(props: FieldCon
 
   let inputElement: HTMLElement | null = null;
 
+  const setFocused = createSetFieldFocused(disabled, () => inputElement);
+
   const ref = mergeRefs((element: HTMLElement) => {
     inputElement = element;
     validation.inputElement = element as HTMLInputElement;
   });
 
   createEffect(
-    () => local.value,
-    (valueProp) => {
-      const hasExternalValue = valueProp != null;
-      if (validation.inputElement?.value || (hasExternalValue && valueProp !== "")) {
-        setFilled(true);
-      } else if (hasExternalValue && valueProp === "") {
-        setFilled(false);
-      }
-    },
-  );
-
-  createEffect(
-    () => local.autoFocus,
-    (autoFocus) => {
-      if (autoFocus && inputElement != null && inputElement.ownerDocument.activeElement === inputElement) {
-        setFocused(true);
+    // `defaultValue` is tracked too: changing it updates the input's DOM value while the input
+    // is unedited, so the filled state must resync. (There is no controlled/uncontrolled warning
+    // to suppress in Solid, unlike upstream's `useControlled`.)
+    () => ({ valueProp: local.value, defaultValue: local.defaultValue }),
+    ({ valueProp }) => {
+      // The DOM value is always a string, so the controlled value must be serialized.
+      const serializedValue = valueProp == null ? undefined : String(valueProp);
+      const currentValue = serializedValue ?? validation.inputElement?.value;
+      if (currentValue !== undefined) {
+        setFilled(currentValue !== "");
       }
     },
   );

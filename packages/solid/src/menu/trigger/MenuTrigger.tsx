@@ -274,11 +274,16 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
     const root = getRootTriggerProps()[key] as ((event: any) => void) | undefined;
     const localHandler = localHandlers[key] as ((event: any) => void) | undefined;
     const user = (userHandlers as Record<string, unknown>)[key] as ((event: any) => void) | undefined;
+    // Published by a filter root: dialog semantics, screen reader press tracking, and the relay
+    // of list navigation typed on the trigger to the input.
+    const filter = (store()?.select("filterTriggerProps") as Record<string, unknown> | undefined)?.[key] as
+      | ((event: any) => void)
+      | undefined;
 
     // Execution order mirrors upstream `mergeProps` (right-to-left): the user handler runs
     // first and the click interaction last, so the open-method recording in the root props
     // still observes the closed state and the press-drag-release arming observes it too.
-    const handlers = [user, localHandler, root, hover, click].filter(Boolean) as Array<(event: any) => void>;
+    const handlers = [user, filter, localHandler, root, hover, click].filter(Boolean) as Array<(event: any) => void>;
     if (handlers.length === 0) {
       return undefined;
     }
@@ -316,6 +321,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
   // attach state behind `store()`).
   let guardsCache: { store: MenuStore<any>; guards: TriggerFocusGuards } | undefined;
   let currentGuards: TriggerFocusGuards | undefined;
+  let currentStore: MenuStore<any> | undefined;
   function getGuardsFor(liveStore: MenuStore<any>): TriggerFocusGuards {
     if (guardsCache?.store !== liveStore) {
       guardsCache = { store: liveStore, guards: createTriggerFocusGuards(liveStore, triggerElementRef) };
@@ -325,7 +331,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
 
   const showFocusGuards = () => {
     const liveStore = store();
-    return liveStore !== undefined && isMountedByThisTrigger();
+    return liveStore !== undefined && isOpenedByThisTrigger();
   };
 
   const state: MenuTriggerState = {
@@ -341,7 +347,11 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
     get id() {
       return thisTriggerId;
     },
-    "aria-haspopup": "menu" as const,
+    get "aria-haspopup"() {
+      return ((store()?.select("filterTriggerProps") as Record<string, unknown> | undefined)?.["aria-haspopup"] ?? "menu") as
+        | "menu"
+        | "dialog";
+    },
     get "aria-expanded"() {
       // The root publishes the expanded state on its trigger prop bag; detached triggers
       // without a root report the collapsed state.
@@ -350,7 +360,8 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
     },
     get "aria-controls"() {
       const liveStore = store();
-      return liveStore ? ((liveStore.select("triggerPopupId", thisTriggerId) as string | undefined) ?? undefined) : undefined;
+      // The list when one holds the `menu` role, else the popup.
+      return liveStore ? ((liveStore.select("triggerControlsId", thisTriggerId) as string | undefined) ?? undefined) : undefined;
     },
     get onClick() {
       return chainHandlers("onClick");
@@ -401,13 +412,11 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
       {(() => {
         const liveStore = store();
         currentGuards = liveStore ? getGuardsFor(liveStore) : undefined;
+        currentStore = liveStore;
         return liveStore ? setupInteractions(liveStore) : null;
       })()}
       <Show when={showFocusGuards()}>
-        <FocusGuard
-          guardRef={currentGuards?.preFocusGuardRef as { current: HTMLSpanElement | null }}
-          onFocus={currentGuards?.handlePreFocusGuardFocus}
-        />
+        <FocusGuard guardRef={currentStore?.context.beforeTriggerFocusGuardRef} onFocus={currentGuards?.handlePreFocusGuardFocus} />
       </Show>
       <RenderElement
         as={as}
@@ -415,6 +424,9 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
         props={[triggerProps, elementProps, refProps, getButtonProps]}
         stateAttributesMapping={menuPressableTriggerStateMapping}
       />
+      <Show when={showFocusGuards()}>
+        <FocusGuard guardRef={currentStore?.context.triggerFocusTargetRef} onFocus={currentGuards?.handleFocusTargetFocus} />
+      </Show>
     </>
   );
 }

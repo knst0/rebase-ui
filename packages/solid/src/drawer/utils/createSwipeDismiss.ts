@@ -6,7 +6,7 @@ import { contains, getTarget } from "../../internals/floating/utils/element";
 import { ownerDocument } from "../../internals/utils/owner";
 import { getElementAtPoint } from "./getElementAtPoint";
 import { getElementTransform } from "./getElementTransform";
-import { findScrollableTouchTarget, hasScrollableAncestor, type ScrollAxis } from "./scrollable";
+import { findScrollableAncestor, findScrollableTouchTarget, type ScrollAxis } from "./scrollable";
 
 export type SwipeDirection = "up" | "down" | "left" | "right";
 
@@ -38,8 +38,10 @@ const DEFAULT_SWIPE_THRESHOLD = 40;
 const REVERSE_CANCEL_THRESHOLD = 10;
 const MIN_DRAG_THRESHOLD = 1;
 const MIN_VELOCITY_DURATION_MS = 50;
-const MIN_RELEASE_VELOCITY_DURATION_MS = 16;
+// Under one frame at 240 Hz, so it only damps near-simultaneous samples.
+const MIN_RELEASE_VELOCITY_DURATION_MS = 4;
 const MAX_RELEASE_VELOCITY_AGE_MS = 80;
+const MIN_VELOCITY_SAMPLE_DISTANCE = 1;
 const DEFAULT_IGNORE_SELECTOR = 'button,a,input,select,textarea,label,[role="button"]';
 
 export function getDisplacement(direction: SwipeDirection, deltaX: number, deltaY: number) {
@@ -256,6 +258,7 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
   let swipeThresholdFunction: ((details: { element: HTMLElement; direction: SwipeDirection }) => number) | null = null;
   let swipeStartTime: number | null = null;
   let lastDragSample: { x: number; y: number; time: number } | null = null;
+  let hasStationarySample = false;
   const lastDragVelocity = { x: 0, y: 0 };
   let lastProgressDetails: SwipeProgressDetailsInternal | null = null;
   let isSwipingValue = false;
@@ -359,6 +362,18 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
 
     const lastSample = lastDragSample;
     if (lastSample && timeStamp > lastSample.time) {
+      // Some Android devices emit one effectively stationary move immediately before release.
+      // Keep the last moving sample and its timestamp. Repeated stationary moves still clear
+      // the velocity, and a release after a hold still expires the last moving sample.
+      const stationary =
+        Math.abs(offset.x - lastSample.x) < MIN_VELOCITY_SAMPLE_DISTANCE &&
+        Math.abs(offset.y - lastSample.y) < MIN_VELOCITY_SAMPLE_DISTANCE;
+      const skipSample = stationary && !hasStationarySample;
+      hasStationarySample = stationary;
+      if (skipSample) {
+        return;
+      }
+
       const durationMs = Math.max(timeStamp - lastSample.time, MIN_RELEASE_VELOCITY_DURATION_MS);
 
       lastDragVelocity.x = (offset.x - lastSample.x) / durationMs;
@@ -399,6 +414,7 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
     elementSize.height = 0;
     swipeStartTime = null;
     lastDragSample = null;
+    hasStationarySample = false;
     lastDragVelocity.x = 0;
     lastDragVelocity.y = 0;
     lastProgressDetails = null;
@@ -477,7 +493,7 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
     const element = elementRef.current;
     if (ignoreScrollableAncestors && element && target && scrollAxes.length > 0) {
       const ignoreAncestors = startOptions?.ignoreScrollableAncestors ?? false;
-      if (!ignoreAncestors && hasScrollableAncestor(target, element, scrollAxes)) {
+      if (!ignoreAncestors && scrollAxes.some((axis) => findScrollableAncestor(target, element, axis) != null)) {
         return false;
       }
     }
@@ -489,6 +505,10 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
     dragStartPos.x = position.x;
     dragStartPos.y = position.y;
     swipeStartTime = getValidTimeStamp(event.timeStamp);
+    lastDragSample = null;
+    hasStationarySample = false;
+    lastDragVelocity.x = 0;
+    lastDragVelocity.y = 0;
     swipeCancelBaseline.x = position.x;
     swipeCancelBaseline.y = position.y;
     lastMovePos = position;
@@ -675,6 +695,8 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
         if (moveTime !== null) {
           swipeStartTime = moveTime;
         }
+        lastDragSample = null;
+        hasStationarySample = false;
       }
     }
 
@@ -863,10 +885,10 @@ export function createSwipeDismiss(options: CreateSwipeDismissOptions): CreateSw
         const deltaFromLastSampleY = resolvedDragOffset.y - lastSample.y;
         const sampleVelocityX = deltaFromLastSampleX / sampleDurationMs;
         const sampleVelocityY = deltaFromLastSampleY / sampleDurationMs;
-        if (sampleVelocityX !== 0) {
+        if (Math.abs(deltaFromLastSampleX) >= MIN_VELOCITY_SAMPLE_DISTANCE) {
           releaseVelocityX = sampleVelocityX;
         }
-        if (sampleVelocityY !== 0) {
+        if (Math.abs(deltaFromLastSampleY) >= MIN_VELOCITY_SAMPLE_DISTANCE) {
           releaseVelocityY = sampleVelocityY;
         }
       } else {

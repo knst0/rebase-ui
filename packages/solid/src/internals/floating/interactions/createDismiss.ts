@@ -7,7 +7,7 @@ import {
   isNode,
   isShadowRoot,
 } from "@floating-ui/utils/dom";
-import { createEffect, untrack } from "solid-js";
+import { createEffect, onCleanup, untrack } from "solid-js";
 
 import { createChangeEventDetails } from "../../event-details/createEventDetails";
 import { REASONS } from "../../event-details/reasons";
@@ -157,6 +157,10 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
     dataRef.current.insideReactTree = false;
   });
 
+  // Not cleared in the listener effect's cleanup, which can run mid-press when a dependency
+  // changes. In a closed shadow root, the marker is the only inside-press signal.
+  onCleanup(clearInsideReactTree);
+
   const hasBlockingChild = stableCallback(() => (bubbleKey: "__escapeKeyBubbles" | "__outsidePressBubbles") => {
     const nodeId = dataRef.current.floatingContext?.nodeId;
     const children = tree ? getNodeChildren(tree.nodesRef.current, nodeId) : [];
@@ -187,8 +191,10 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
     }
 
     // Wait until IME is settled. Pressing `Escape` while composing should
-    // close the compose menu, but not the floating element.
-    if (isComposing) {
+    // close the compose menu, but not the floating element. The flag covers
+    // Safari, which fires `compositionend` before `keydown`; `isComposing`
+    // covers compositions that began while closed.
+    if (isComposing || event.isComposing) {
       return;
     }
 
@@ -279,6 +285,7 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
         // dependency changes mid-gesture.
         if (!open) {
           sawPressWhileOpen = false;
+          isComposing = false;
         }
         return clearInsideReactTree;
       }
@@ -296,6 +303,9 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
       function handleCompositionEnd() {
         // Safari fires `compositionend` before `keydown`, so wait until the
         // next tick. Only WebKit needs the 5ms delay; tests stay at 0ms.
+        // Set the flag here too, since closing resets it while a composition
+        // can continue into the next open session.
+        isComposing = true;
         const isWebKit = typeof navigator !== "undefined" && /applewebkit/i.test(navigator.userAgent ?? "");
         clearTimeout(compositionTimer);
         compositionTimer = setTimeout(
@@ -684,11 +694,11 @@ export function createDismiss(context: FloatingContext, props: CreateDismissProp
 
       return () => {
         cleanups.forEach((cleanup) => cleanup());
-        clearTimeout(compositionTimer);
+        // `compositionTimer` outlives effect re-runs (cleared on owner dispose
+        // via `clearAllTimers`) so a pending reset can't leave `isComposing` stuck.
         clearTimeout(preventedPressSuppressionTimer);
         resetPressStartState();
         suppressNextOutsideClick = false;
-        clearInsideReactTree();
       };
     },
   );

@@ -215,6 +215,24 @@ describe("ToastStore", () => {
     expect(store.peek("expanded")).toBe(true);
   });
 
+  it("reports expandedOrOutOfFocus while hovering, focused or window-blurred", () => {
+    const store = createStore();
+    expect(store.peek("expandedOrOutOfFocus")).toBe(false);
+
+    store.set("hovering", true);
+    expect(store.peek("expandedOrOutOfFocus")).toBe(true);
+    store.set("hovering", false);
+    expect(store.peek("expandedOrOutOfFocus")).toBe(false);
+
+    store.set("focused", true);
+    expect(store.peek("expandedOrOutOfFocus")).toBe(true);
+    store.set("focused", false);
+    expect(store.peek("expandedOrOutOfFocus")).toBe(false);
+
+    store.set("isWindowFocused", false);
+    expect(store.peek("expandedOrOutOfFocus")).toBe(true);
+  });
+
   it("pauses timers while expanded and resumes them afterwards", () => {
     const store = createStore({ timeout: 1000 });
     const id = store.addToast({ title: "pausable" });

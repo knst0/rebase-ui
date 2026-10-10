@@ -1,4 +1,4 @@
-import { onCleanup } from "solid-js";
+import { createEffect, onCleanup } from "solid-js";
 
 import { dispatchClickWithModifiers } from "#utils/dispatchClickWithModifiers";
 
@@ -7,7 +7,9 @@ import { useContext } from "../../internals/context";
 import { createButton } from "../../internals/create-button";
 import { REASONS } from "../../internals/event-details";
 import type { FloatingTreeStore } from "../../internals/floating/tree/FloatingTreeStore";
+import { useMenuRootContext } from "../root/MenuRootContext";
 import type { MenuStore } from "../store/MenuStore";
+import { useMenuItemCommonProps } from "./useMenuItemCommonProps";
 
 export type MenuHTMLProps = Record<string, any>;
 
@@ -34,12 +36,28 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
     composite: () => true,
   });
 
+  const rootContext = useMenuRootContext(true);
+  const commonItemProps = rootContext === undefined ? undefined : useMenuItemCommonProps({ highlighted, store, itemMetadata });
+
   const commonProps: MenuHTMLProps = {
     id,
     role: "menuitem",
     get tabIndex() {
+      if (commonItemProps) {
+        return commonItemProps.tabIndex();
+      }
       return (store.select("open") as boolean) && highlighted() ? 0 : -1;
     },
+    get "aria-selected"() {
+      return commonItemProps?.ariaSelected();
+    },
+    // Real focus stays on the input or list that owns virtual navigation.
+    onMouseDown:
+      commonItemProps?.virtualFocus === true
+        ? (event: MouseEvent) => {
+            event.preventDefault();
+          }
+        : undefined,
     onKeyDown(event: KeyboardEvent) {
       if (event.key === " " && typingRef.current) {
         event.preventDefault();
@@ -71,9 +89,12 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
       if (itemElement && store.context.allowMouseUpTriggerRef.current && itemMetadata.type === "regular-item") {
         // This fires whenever the user clicks on the trigger, moves the cursor, and releases it over the item.
         // We trigger the click and override the `closeOnClick` preference to always close the menu.
-        // `detail: 1` marks this as a mouse-gesture click so MenuRoot doesn't
-        // treat it as a keyboard activation (`detail === 0` → `data-instant`).
-        dispatchClickWithModifiers(itemElement, event, { detail: 1 });
+        // `detail: 1` and `pointerType: 'mouse'` mark this as a mouse-gesture click so
+        // MenuRoot and FloatingFocusManager don't treat it as a keyboard activation.
+        dispatchClickWithModifiers(itemElement, event, {
+          detail: 1,
+          pointerType: "mouse",
+        });
       }
     },
   };
@@ -81,8 +102,8 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
   const submenuTriggerProps: MenuHTMLProps =
     itemMetadata.type === "submenu-trigger"
       ? {
-          onMouseEnter() {
-            itemMetadata.setActive();
+          onMouseEnter(event: MouseEvent) {
+            itemMetadata.setActive(event);
           },
         }
       : {};
@@ -103,6 +124,7 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
       ...submenuTriggerProps,
       ...externalProps,
       onKeyDown: chainHandlers(externalProps?.onKeyDown, commonProps.onKeyDown),
+      onMouseDown: chainHandlers(externalProps?.onMouseDown, commonProps.onMouseDown),
       onMouseMove: chainHandlers(externalProps?.onMouseMove, floatProps.onMouseMove, commonProps.onMouseMove),
       onClick: chainHandlers(externalProps?.onClick, floatProps.onClick, commonProps.onClick),
       onMouseUp: chainHandlers(externalProps?.onMouseUp, commonProps.onMouseUp),
@@ -185,7 +207,7 @@ export type UseMenuItemMetadata =
   | typeof REGULAR_ITEM
   | {
       type: "submenu-trigger";
-      setActive: () => void;
+      setActive: (event: MouseEvent) => void;
     };
 
 export interface UseMenuItemReturnValue {
@@ -217,7 +239,10 @@ export interface UseMenuItemReturnValue {
  * index stays `-1` and the item is never highlighted, mirroring upstream's optional
  * positioner context.
  */
-export function useMenuListItem(label: () => string | undefined): { ref: (element: HTMLElement | null) => void; index: () => number } {
+export function useMenuListItem(
+  label: () => string | undefined,
+  options?: { enabled?: () => boolean },
+): { ref: (element: HTMLElement | null) => void; index: () => number } {
   const context = useContext(CompositeListContext);
 
   let itemElement: HTMLElement | null = null;
@@ -239,6 +264,22 @@ export function useMenuListItem(label: () => string | undefined): { ref: (elemen
       context?.unregister(itemElement);
     }
   });
+
+  // A filtered-out item renders nothing while its component stays mounted, so its cleanup never
+  // runs. Unregister it explicitly; the ref re-registers it when it renders again.
+  if (options?.enabled) {
+    const enabled = options.enabled;
+    createEffect(
+      () => enabled(),
+      (isEnabled) => {
+        if (!isEnabled && itemElement !== null) {
+          context?.unregister(itemElement);
+          itemElement = null;
+        }
+        return undefined;
+      },
+    );
+  }
 
   // `indexOf` subscribes to registry changes even for a `null` element, so the first `-1`
   // doesn't stick forever when the ref runs later.

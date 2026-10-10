@@ -9,12 +9,33 @@ interface FakeAnimation {
   finished: Promise<void>;
   pending: boolean;
   playState: string;
+  effect?: { getTiming: () => { duration: number; iterations: number } } | null;
 }
 
 function stubGetAnimations(element: HTMLElement, animations: () => FakeAnimation[]) {
   const spy = vi.fn(animations);
   element.getAnimations = spy as unknown as HTMLElement["getAnimations"];
   return spy;
+}
+
+function createAnimation(iterations = 1, duration = 1) {
+  let resolveFinished!: () => void;
+  let rejectFinished!: () => void;
+  const finished = new Promise<void>((resolve, reject) => {
+    resolveFinished = resolve;
+    rejectFinished = reject;
+  });
+
+  return {
+    animation: {
+      finished,
+      effect: { getTiming: () => ({ duration, iterations }) },
+      pending: false,
+      playState: "running",
+    } as FakeAnimation,
+    finish: resolveFinished,
+    cancel: rejectFinished,
+  };
 }
 
 describe("createAnimationsFinishedRunner", () => {
@@ -72,6 +93,55 @@ describe("createAnimationsFinishedRunner", () => {
         await nextFrames();
         expect(onComplete).toHaveBeenCalledTimes(1);
         expect(getAnimations).toHaveBeenCalledTimes(1);
+
+        dispose();
+      });
+    });
+  });
+
+  it.each(["finish", "cancel"] as const)("ignores infinite animations when a finite animation completes via %s", async (completion) => {
+    await withRealAnimations(async () => {
+      await createRoot(async (dispose) => {
+        const element = document.createElement("div");
+        const finite = createAnimation();
+        const infinite = createAnimation(Infinity);
+        const onComplete = vi.fn();
+        let animations = [finite.animation, infinite.animation];
+        const getAnimations = stubGetAnimations(element, () => animations);
+        const run = createAnimationsFinishedRunner(() => element);
+
+        run(onComplete);
+        await nextFrames();
+        expect(getAnimations).toHaveBeenCalled();
+        expect(onComplete).not.toHaveBeenCalled();
+
+        animations = [infinite.animation];
+        finite[completion]();
+        await nextFrames();
+
+        expect(onComplete).toHaveBeenCalledTimes(1);
+
+        dispose();
+      });
+    });
+  });
+
+  it.each([
+    ["iteration count", Infinity, 1],
+    ["duration", 1, Infinity],
+  ] as const)("finishes when the element only has an animation with an infinite %s", async (_timing, iterations, duration) => {
+    await withRealAnimations(async () => {
+      await createRoot(async (dispose) => {
+        const element = document.createElement("div");
+        const infinite = createAnimation(iterations, duration);
+        const onComplete = vi.fn();
+        stubGetAnimations(element, () => [infinite.animation]);
+        const run = createAnimationsFinishedRunner(() => element);
+
+        run(onComplete);
+        await nextFrames();
+
+        expect(onComplete).toHaveBeenCalledTimes(1);
 
         dispose();
       });

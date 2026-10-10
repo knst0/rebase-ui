@@ -6,7 +6,6 @@ import { createLabel, focusElementWithVisible } from "../../internals/labelable-
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { ownerDocument } from "../../internals/utils/owner";
 import type { SliderRoot } from "../root/SliderRoot";
 import { useSliderRootContext } from "../root/SliderRootContext";
 import { sliderStateAttributesMapping } from "../root/stateAttributesMapping";
@@ -30,7 +29,8 @@ export function SliderLabel<T extends ValidComponent = "div">(props: SliderLabel
 
   function focusControl(event: MouseEvent, controlId: string | null | undefined) {
     if (controlId) {
-      const control = ownerDocument(event.currentTarget as Element).getElementById(controlId);
+      const root = (event.currentTarget as Element).getRootNode() as Document | ShadowRoot;
+      const control = root.getElementById(controlId);
       if (isHTMLElement(control)) {
         focusElementWithVisible(control);
         return;

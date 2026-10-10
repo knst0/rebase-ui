@@ -1,6 +1,8 @@
 import type { JSX } from "@solidjs/web";
+import { omit } from "solid-js";
 
-import { MenuRoot } from "../root/MenuRoot";
+import { useMenuFilterProviderContext } from "../filter-provider/MenuFilterProviderContext";
+import { MenuRoot, type MenuRoot as MenuRootNamespace } from "../root/MenuRoot";
 import { useMenuRootContext } from "../root/MenuRootContext";
 import { MenuSubmenuRootContext } from "./MenuSubmenuRootContext";
 
@@ -11,6 +13,15 @@ import { MenuSubmenuRootContext } from "./MenuSubmenuRootContext";
  * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
  */
 export function MenuSubmenuRoot(props: MenuSubmenuRoot.Props) {
+  const filterProvider = useMenuFilterProviderContext();
+  if (filterProvider) {
+    const FilterSubmenuRoot = filterProvider.SubmenuRoot;
+    // The provider's own `children` is this root's element: omitting (not reading) it keeps the
+    // element from setting up a second time and lets this root's children through.
+    const filterOptions = omit(filterProvider.options, "children");
+    return <FilterSubmenuRoot {...(props as Record<string, unknown>)} {...filterOptions} />;
+  }
+
   const parentMenu = useMenuRootContext().store;
 
   return (
@@ -21,6 +32,8 @@ export function MenuSubmenuRoot(props: MenuSubmenuRoot.Props) {
         highlightItemOnHover={props.highlightItemOnHover}
         onOpenChange={props.onOpenChange}
         onOpenChangeComplete={props.onOpenChangeComplete}
+        onItemHighlighted={props.onItemHighlighted}
+        actionsRef={props.actionsRef}
         open={props.open}
         orientation={props.orientation}
         disabled={props.disabled}
@@ -32,47 +45,14 @@ export function MenuSubmenuRoot(props: MenuSubmenuRoot.Props) {
   );
 }
 
-export interface MenuSubmenuRootProps {
-  /**
-   * Whether the submenu is initially open.
-   *
-   * To render a controlled submenu, use the `open` prop instead.
-   * @default false
-   */
-  defaultOpen?: boolean | undefined;
-  /**
-   * Whether to loop keyboard focus back to the first item
-   * when the end of the list is reached while using the arrow keys.
-   * @default true
-   */
-  loopFocus?: boolean | undefined;
-  /**
-   * Whether moving the pointer over items should highlight them.
-   * @default true
-   */
-  highlightItemOnHover?: boolean | undefined;
+export interface MenuSubmenuRootProps extends Omit<
+  MenuRootNamespace.Props,
+  "modal" | "onOpenChange" | "handle" | "triggerId" | "children"
+> {
   /**
    * Event handler called when the submenu is opened or closed.
    */
   onOpenChange?: ((open: boolean, eventDetails: MenuSubmenuRoot.ChangeEventDetails) => void) | undefined;
-  /**
-   * Event handler called after any animations complete when the submenu is opened or closed.
-   */
-  onOpenChangeComplete?: ((open: boolean) => void) | undefined;
-  /**
-   * Whether the submenu is currently open.
-   */
-  open?: boolean | undefined;
-  /**
-   * The visual orientation of the submenu.
-   * @default 'vertical'
-   */
-  orientation?: MenuRoot.Orientation | undefined;
-  /**
-   * Whether the component should ignore user interaction.
-   * @default false
-   */
-  disabled?: boolean | undefined;
   /**
    * When in a submenu, determines whether pressing the Escape key
    * closes the entire menu, or only the current child menu.

@@ -3,7 +3,7 @@ import { For, onSettled, untrack, type Setter } from "solid-js";
 
 import { CompositeListContext, createCompositeList } from "../../internals/composite";
 import { REASONS } from "../../internals/event-details";
-import type { RebaseUIChangeEventDetails, RebaseUIGenericEventDetails } from "../../internals/event-details/createEventDetails";
+import type { RebaseUIChangeEventDetails, RebaseUIHighlightEventDetails } from "../../internals/event-details/createEventDetails";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
@@ -87,7 +87,6 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
     formAutoComplete: () => props.formAutoComplete,
     locale: () => props.locale,
     submitOnItemClick: () => props.submitOnItemClick ?? false,
-    hasActionsRef: untrack(() => props.actionsRef) !== undefined,
   });
   // Item registration for the whole subtree (typeahead, highlight, selection
   // index). Provided here rather than in the list: a Solid provider only
@@ -102,7 +101,7 @@ export function AriaCombobox<Value = any, Mode extends SelectionMode = "none", I
     // Delivering the actions is a signal write, so it happens outside the
     // component's owned scope once rendering has settled.
     onSettled(() => {
-      actionsRef({ unmount: root.forceUnmount });
+      actionsRef({ unmount: root.forceUnmount, close: root.close });
 
       return () => {
         actionsRef(null);
@@ -199,6 +198,10 @@ export type SelectionMode = "single" | "multiple" | "none";
 
 export type ComboboxItemValueType<ItemValue, Mode extends SelectionMode> = Mode extends "multiple" ? ItemValue[] : ItemValue;
 
+type ComboboxItemInputValue<ItemValue, Mode extends SelectionMode> = Mode extends "multiple" ? readonly ItemValue[] : ItemValue;
+
+type ComboboxItemOutputValue<ItemValue, Mode extends SelectionMode> = Mode extends "multiple" ? ItemValue[] : ItemValue;
+
 interface ComboboxRootProps<ItemValue, Item = ItemValue> {
   children?: JSX.Element;
   /**
@@ -243,7 +246,7 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
   /**
    * Event handler called when the popup is opened or closed.
    */
-  onOpenChange?: ((open: boolean, eventDetails: AriaCombobox.ChangeEventDetails) => void) | undefined;
+  onOpenChange?: ((open: boolean, eventDetails: AriaCombobox.OpenChangeEventDetails) => void) | undefined;
   /**
    * Event handler called after any animations complete when the popup is opened or closed.
    */
@@ -296,7 +299,9 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
   /**
    * A ref to imperative actions.
    * - `unmount`: Manually unmounts the combobox.
-   * Call this after any externally controlled closing animation finishes.
+   * Call `preventUnmountOnClose()` in `onOpenChange` to manually control unmounting,
+   * then call this action after any externally controlled closing animation finishes.
+   * - `close`: Closes the combobox.
    */
   actionsRef?: Setter<AriaCombobox.Actions | null> | undefined;
   /**
@@ -304,8 +309,10 @@ interface ComboboxRootProps<ItemValue, Item = ItemValue> {
    * Receives the highlighted item value (or `undefined` if no item is highlighted) and event details with a `reason` property describing why the highlight changed.
    * The `reason` can be:
    * - `'keyboard'`: the highlight changed due to keyboard navigation.
-   * - `'pointer'`: the highlight changed due to pointer hovering.
-   * - `'none'`: the highlight changed programmatically.
+   * - `'pointer'`: the highlight changed due to pointer hovering. The event may be a `MouseEvent`
+   *   rather than a `PointerEvent`.
+   * - `'none'`: the highlight changed for another reason, such as typing, `autoHighlight`, the
+   *   item list changing, or the popup opening or closing.
    */
   onItemHighlighted?: ((itemValue: ItemValue | undefined, eventDetails: AriaCombobox.HighlightEventDetails) => void) | undefined;
   /**
@@ -433,17 +440,19 @@ export type AriaComboboxProps<Value, Mode extends SelectionMode = "none", Item =
   /**
    * The selected value of the combobox. Use when controlled.
    */
-  selectedValue?: ComboboxItemValueType<Value, Mode> | undefined;
+  selectedValue?: ComboboxItemInputValue<Value, Mode> | undefined;
   /**
    * The uncontrolled selected value of the combobox when it's initially rendered.
    *
    * To render a controlled combobox, use the `selectedValue` prop instead.
    */
-  defaultSelectedValue?: ComboboxItemValueType<Value, Mode> | null | undefined;
+  defaultSelectedValue?: ComboboxItemInputValue<Value, Mode> | null | undefined;
   /**
    * Callback fired when the selected value of the combobox changes.
    */
-  onSelectedValueChange?: ((value: ComboboxItemValueType<Value, Mode>, eventDetails: AriaCombobox.ChangeEventDetails) => void) | undefined;
+  onSelectedValueChange?:
+    | ((value: ComboboxItemOutputValue<Value, Mode>, eventDetails: AriaCombobox.ChangeEventDetails) => void)
+    | undefined;
 };
 
 export namespace AriaCombobox {
@@ -452,10 +461,11 @@ export namespace AriaCombobox {
 
   export interface Actions {
     unmount: () => void;
+    close: () => void;
   }
 
   export type HighlightEventReason = typeof REASONS.keyboard | typeof REASONS.pointer | typeof REASONS.none;
-  export type HighlightEventDetails = RebaseUIGenericEventDetails<HighlightEventReason, { index: number }>;
+  export type HighlightEventDetails = RebaseUIHighlightEventDetails<HighlightEventReason, { index: number }>;
 
   export type ChangeEventReason =
     | typeof REASONS.triggerPress
@@ -471,6 +481,7 @@ export namespace AriaCombobox {
     | typeof REASONS.clearPress
     | typeof REASONS.chipRemovePress
     | typeof REASONS.cancelOpen
+    | typeof REASONS.imperativeAction
     | typeof REASONS.none;
   export type ChangeEventDetails = RebaseUIChangeEventDetails<ChangeEventReason> & {
     /**
@@ -479,4 +490,16 @@ export namespace AriaCombobox {
      */
     isItemPress?: boolean | undefined;
   };
+
+  export type OpenChangeEventReason = ChangeEventReason;
+  export type OpenChangeEventDetails = RebaseUIChangeEventDetails<
+    OpenChangeEventReason,
+    {
+      /**
+       * Prevents the combobox popup from unmounting when the close completes.
+       * When used, call the actions ref `unmount` function manually once the popup can unmount.
+       */
+      preventUnmountOnClose(): void;
+    }
+  >;
 }

@@ -21,7 +21,7 @@ import {
   PAGE_DOWN,
   PAGE_UP,
 } from "../../internals/composite/composite";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createSetFieldFocused, useFieldRootContext } from "../../internals/field-root-context";
 import { createLabelableId } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
@@ -114,6 +114,7 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
     format,
     handleInputChange,
     inset,
+    isArrayValue,
     labelId,
     largeStep,
     locale,
@@ -144,9 +145,11 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
   const range = () => sliderValues().length > 1;
   const vertical = () => orientation() === "vertical";
 
-  const { setTouched, setFocused, validationMode } = useFieldRootContext();
+  const { setTouched, validationMode } = useFieldRootContext();
 
   let thumbElement: HTMLElement | null = null;
+  let inputElement: HTMLInputElement | null = null;
+  const setFocused = createSetFieldFocused(disabled, () => inputElement);
   let restoringFocusVisible = false;
 
   // Attached to the `input` (not the thumb wrapper) so `event.currentTarget` is the
@@ -372,7 +375,7 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
     setFocused(false);
 
     if (validationMode === "onBlur") {
-      void validation.commit(getSliderValue(thumbValue() ?? min(), index(), min(), max(), range(), sliderValues()));
+      void validation.commit(getSliderValue(thumbValue() ?? min(), index(), min(), max(), isArrayValue(), sliderValues()));
     }
   }
 
@@ -492,6 +495,7 @@ export function SliderThumb<T extends ValidComponent = "div">(props: SliderThumb
   };
 
   const mergedInputRef = mergeRefs((element: HTMLInputElement | null) => {
+    inputElement = element;
     if (element) {
       validation.registerInput(element, {
         get controlElement() {

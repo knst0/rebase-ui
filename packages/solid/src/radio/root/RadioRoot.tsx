@@ -10,7 +10,7 @@ import type { FieldRootState } from "../../field/root/FieldRoot";
 import { ACTIVE_COMPOSITE_ITEM, useCompositeItem } from "../../internals/composite";
 import { createButton } from "../../internals/create-button";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createSetFieldFocused, useFieldRootContext } from "../../internals/field-root-context";
 import { createAriaLabelledBy, createLabelableId, useLabelableContext } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
@@ -67,6 +67,7 @@ export function RadioRoot<Value, T extends ValidComponent = "span">(props: Radio
 
   let radioElement: HTMLElement | null = null;
   let inputElement: HTMLInputElement | null = null;
+  const setFieldFocused = createSetFieldFocused(disabled, () => radioElement);
   const [labelSource, setLabelSource] = createSignal<HTMLInputElement | null>(null);
 
   const validation = groupContext?.validation ?? fieldValidation;
@@ -127,6 +128,7 @@ export function RadioRoot<Value, T extends ValidComponent = "span">(props: Radio
     labelSource,
     enableFallback: () => !nativeButton,
     labelSourceId: controlId,
+    ariaLabel: () => elementProps["aria-label"] as string | undefined,
   });
 
   const { getButtonProps, buttonRef } = createButton({
@@ -171,7 +173,7 @@ export function RadioRoot<Value, T extends ValidComponent = "span">(props: Radio
     const target: Record<string, any> = {};
 
     for (const key in externalProps) {
-      if (key === "onKeyDown" || key === "onClick" || key === "onFocus") {
+      if (key === "onKeyDown" || key === "onClick" || key === "onFocus" || key === "onBlur") {
         continue;
       }
       Object.defineProperty(target, key, { enumerable: true, configurable: true, get: () => externalProps[key] });
@@ -200,6 +202,8 @@ export function RadioRoot<Value, T extends ValidComponent = "span">(props: Radio
     });
 
     chainHandler("onFocus", (event: FocusEvent) => {
+      setFieldFocused(true);
+
       if (event.defaultPrevented || disabled() || readOnly() || !groupContext?.touched()) {
         return;
       }
@@ -207,6 +211,14 @@ export function RadioRoot<Value, T extends ValidComponent = "span">(props: Radio
       inputElement?.click();
 
       groupContext?.setTouched(false);
+    });
+
+    chainHandler("onBlur", () => {
+      // A grouped radio's exit is cleared by the group's `contains`-guarded blur handler, so
+      // radio-to-radio moves inside the group don't churn the focused state.
+      if (!groupContext) {
+        setFieldFocused(false);
+      }
     });
 
     function chainHandler(key: string, internal: (event: any) => void) {

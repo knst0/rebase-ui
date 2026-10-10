@@ -1,9 +1,16 @@
 import { createContext, useContext } from "../../internals/context";
 import type { MenuParent, MenuStore } from "../store/MenuStore";
+import type { MenuRoot } from "./MenuRoot";
 
 export interface MenuRootContext<Payload = unknown> {
   store: MenuStore<Payload>;
   parent: MenuParent;
+  orientation: MenuRoot.Orientation;
+  loopFocus: boolean;
+  /** Whether arrow keys can step from either end of the list back to a virtual focus owner. */
+  allowEscape: boolean;
+  virtualFocus: boolean;
+  parentVirtualFocus: boolean;
 }
 
 export const MenuRootContext = createContext<MenuRootContext<any>>();

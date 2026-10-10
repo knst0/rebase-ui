@@ -6,6 +6,7 @@ import { EMPTY_ARRAY, NOOP } from "#utils/empty";
 
 import { isElementDisabled } from "../../internals/composite/composite";
 import { createControllableSignal } from "../../internals/createControllableSignal";
+import { createUnmountAfterClose } from "../../internals/createUnmountAfterClose";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { createRegisterFieldControl } from "../../internals/field-register-control/createRegisterFieldControl";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
@@ -16,10 +17,8 @@ import { createTypeahead } from "../../internals/floating/interactions/createTyp
 import { useFloatingRootContext } from "../../internals/floating/useFloatingRootContext";
 import { useFormContext } from "../../internals/form-context/FormContext";
 import { createLabelableId } from "../../internals/labelable-provider/createLabelableId";
-import { FOCUSABLE_POPUP_PROPS, getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
-import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
+import { attachPreventUnmountOnClose, FOCUSABLE_POPUP_PROPS, getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
 import { stableCallback } from "../../internals/stableCallback";
-import { createTransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import {
   createInitialSelectStoreContext,
   createInitialSelectStoreState,
@@ -48,9 +47,8 @@ export interface CreateSelectRootParameters {
   itemToStringValue: () => ((item: any) => string) | undefined;
   isItemEqualToValue: () => (itemValue: any, selectedValue: any) => boolean;
   onValueChange: (value: any, eventDetails: SelectRoot.ChangeEventDetails) => void;
-  onOpenChange: (open: boolean, eventDetails: SelectRoot.ChangeEventDetails) => void;
+  onOpenChange: (open: boolean, eventDetails: SelectRoot.OpenChangeEventDetails) => void;
   onOpenChangeComplete: (open: boolean) => void;
-  hasActionsRef: boolean;
 }
 
 export interface CreateSelectRootReturnValue {
@@ -66,6 +64,7 @@ export interface CreateSelectRootReturnValue {
   fieldStringValue: () => string | string[];
   hasSelectedValue: () => boolean;
   forceUnmount: () => void;
+  close: () => void;
 }
 
 export function createSelectRoot(parameters: CreateSelectRootParameters): CreateSelectRootReturnValue {
@@ -101,13 +100,20 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     setValueUnwrapped(nextValue);
   }
 
-  function setOpen(nextOpen: boolean, eventDetails: SelectRoot.ChangeEventDetails) {
-    onOpenChange(nextOpen, eventDetails);
+  const [preventUnmountOnClose, setPreventUnmountOnClose] = createSignal(false);
+
+  function setOpen(nextOpen: boolean, eventDetails: Omit<SelectRoot.OpenChangeEventDetails, "preventUnmountOnClose">) {
+    const openEventDetails = eventDetails as SelectRoot.OpenChangeEventDetails;
+    const shouldPreventUnmountOnClose = attachPreventUnmountOnClose(openEventDetails);
+    onOpenChange(nextOpen, openEventDetails);
 
     if (eventDetails.isCanceled) {
       return;
     }
 
+    if (!nextOpen) {
+      setPreventUnmountOnClose(shouldPreventUnmountOnClose());
+    }
     setOpenUnwrapped(nextOpen);
 
     if (!nextOpen && (eventDetails.reason === REASONS.focusOut || eventDetails.reason === REASONS.outsidePress)) {
@@ -120,7 +126,28 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     }
   }
 
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open);
+  const { mounted, transitionStatus, forceUnmount } = createUnmountAfterClose({
+    open,
+    ref: () => store.context.popupRef.current,
+    preventUnmountOnClose,
+    setPreventUnmountOnClose,
+    onUnmount() {
+      store.update({
+        activeIndex: null,
+        openMethod: null,
+        scrollUpArrowVisible: false,
+        scrollDownArrowVisible: false,
+      });
+      onOpenChangeComplete(false);
+    },
+  });
+
+  function close() {
+    // `setOpen` doesn't no-op when the value is unchanged, so guard explicitly.
+    if (store.peek("open")) {
+      setOpen(false, createChangeEventDetails(REASONS.imperativeAction));
+    }
+  }
 
   // `useFloatingRootContext` reads the initial open state eagerly while the store is created;
   // untrack the setup read (the open value stays reactive through the synced effect inside).
@@ -137,6 +164,10 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     id: generatedId(),
     modal: parameters.modal(),
     multiple: parameters.multiple(),
+    disabled: disabled(),
+    readOnly: parameters.readOnly(),
+    required: parameters.required(),
+    highlightItemOnHover: parameters.highlightItemOnHover(),
     itemToStringLabel: parameters.itemToStringLabel(),
     itemToStringValue: parameters.itemToStringValue(),
     isItemEqualToValue: parameters.isItemEqualToValue(),
@@ -287,11 +318,20 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
   }
 
   const itemProps = { ...listNavigation.item() };
+  // The item interaction props are static, so seed them synchronously: items read
+  // them during setup, before the synced-values effect below has run.
+  store.set("itemProps", itemProps);
 
   store.useSyncedValues(() => ({
     id: generatedId(),
     modal: parameters.modal(),
     multiple: parameters.multiple(),
+    // The effective disabled state (including the field) preserves the previous
+    // props-context semantics for item and trigger consumers.
+    disabled: disabled(),
+    readOnly: parameters.readOnly(),
+    required: parameters.required(),
+    highlightItemOnHover: parameters.highlightItemOnHover(),
     value: value(),
     open: open(),
     mounted: mounted(),
@@ -423,28 +463,6 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     store.set("scrollDownArrowVisible", shouldShowDown);
   }
 
-  function handleUnmount() {
-    setMounted(false);
-    store.update({
-      activeIndex: null,
-      openMethod: null,
-      scrollUpArrowVisible: false,
-      scrollDownArrowVisible: false,
-    });
-    onOpenChangeComplete(false);
-  }
-
-  runOnOpenChangeComplete({
-    enabled: () => !parameters.hasActionsRef,
-    open,
-    ref: () => store.context.popupRef.current,
-    onComplete() {
-      if (!store.peek("open")) {
-        handleUnmount();
-      }
-    },
-  });
-
   store.context.handleScrollArrowVisibility = handleScrollArrowVisibility;
   store.context.onOpenChangeComplete = onOpenChangeComplete;
 
@@ -460,7 +478,8 @@ export function createSelectRoot(parameters: CreateSelectRootParameters): Create
     serializedValue,
     fieldStringValue,
     hasSelectedValue,
-    forceUnmount: handleUnmount,
+    forceUnmount,
+    close,
   };
 }
 

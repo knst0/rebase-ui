@@ -1,8 +1,7 @@
 import { flush } from "solid-js";
 
 import { createChangeEventDetails, REASONS } from "../event-details";
-import { contains } from "../floating/utils/element";
-import { getNextTabbable, getTabbableAfterElement, getTabbableBeforeElement, isOutsideEvent } from "../floating/utils/tabbable";
+import { getTabbableNearElement, isOutsideEvent } from "../floating/utils/tabbable";
 
 /**
  * Minimal store interface required by the trigger focus guards.
@@ -12,13 +11,17 @@ export interface TriggerFocusGuardStore {
   setOpen(open: boolean, eventDetails: any): void;
   peek(key: "positionerElement"): HTMLElement | null;
   context: {
+    /**
+     * Shared with the focus manager through `getInsideElements` so that blurring the trigger
+     * onto this guard does not close the popup before the guard's own focus handler runs.
+     */
+    readonly beforeTriggerFocusGuardRef: { current: HTMLElement | null };
     readonly beforeContentFocusGuardRef: { current: HTMLElement | null };
     readonly triggerFocusTargetRef: { current: HTMLElement | null };
   };
 }
 
 export interface TriggerFocusGuards {
-  preFocusGuardRef: { current: HTMLElement | null };
   handlePreFocusGuardFocus: (event: FocusEvent) => void;
   handleFocusTargetFocus: (event: FocusEvent) => void;
 }
@@ -35,38 +38,30 @@ export function createTriggerFocusGuards(
   store: TriggerFocusGuardStore,
   triggerElementRef: { readonly current: Element | null },
 ): TriggerFocusGuards {
-  const preFocusGuardRef: { current: HTMLElement | null } = { current: null };
+  function closeAndFocus(event: FocusEvent, direction: 1 | -1, positionerElement: HTMLElement | null) {
+    const guard = event.currentTarget as HTMLElement;
+
+    flush(() => {
+      store.setOpen(false, createChangeEventDetails(REASONS.focusOut, event, guard));
+    });
+
+    // The close callback may change the tab order. Resolve it after the flush, using
+    // the trigger as the anchor if the guard unmounted, even when its tabIndex is -1.
+    getTabbableNearElement(guard.isConnected ? guard : triggerElementRef.current, direction, positionerElement)?.focus();
+  }
 
   function handlePreFocusGuardFocus(event: FocusEvent) {
-    store.setOpen(false, createChangeEventDetails(REASONS.focusOut, event, (event.currentTarget as HTMLElement) ?? undefined));
-    flush();
-
-    const previousTabbable = getTabbableBeforeElement(preFocusGuardRef.current);
-    previousTabbable?.focus();
+    closeAndFocus(event, -1, store.peek("positionerElement"));
   }
 
   function handleFocusTargetFocus(event: FocusEvent) {
     const positionerElement = store.peek("positionerElement");
     if (positionerElement && isOutsideEvent(event, positionerElement)) {
       store.context.beforeContentFocusGuardRef.current?.focus();
-      return;
+    } else {
+      closeAndFocus(event, 1, positionerElement);
     }
-
-    store.setOpen(false, createChangeEventDetails(REASONS.focusOut, event, (event.currentTarget as HTMLElement) ?? undefined));
-    flush();
-
-    let nextTabbable = getTabbableAfterElement(store.context.triggerFocusTargetRef.current ?? triggerElementRef.current);
-
-    while (nextTabbable !== null && contains(positionerElement, nextTabbable)) {
-      const prevTabbable = nextTabbable;
-      nextTabbable = getNextTabbable(nextTabbable);
-      if (nextTabbable === prevTabbable) {
-        break;
-      }
-    }
-
-    nextTabbable?.focus();
   }
 
-  return { preFocusGuardRef, handlePreFocusGuardFocus, handleFocusTargetFocus };
+  return { handlePreFocusGuardFocus, handleFocusTargetFocus };
 }

@@ -1,23 +1,4 @@
-// Framework-free port of `@base-ui/utils/platform` detections used here.
-// The upstream package derives these flags from `navigator` once at load and
-// stays SSR-safe by evaluating to `false` when `navigator` is undefined.
-function getLowerUserAgent() {
-  return typeof navigator === "undefined" ? "" : (navigator.userAgent ?? "").toLowerCase();
-}
-
-function getLowerPlatform() {
-  return typeof navigator === "undefined" ? "" : ((navigator as Navigator).platform ?? "").toLowerCase();
-}
-
-function isJSDOM() {
-  return /jsdom|happydom/.test(getLowerUserAgent());
-}
-
-function isAndroid() {
-  const platform = getLowerPlatform();
-  const userAgent = getLowerUserAgent();
-  return platform === "android" || userAgent.includes("android");
-}
+import { platform } from "../../utils/platform";
 
 export function stopEvent(event: Event | { preventDefault(): void; stopPropagation(): void }) {
   event.preventDefault();
@@ -30,7 +11,7 @@ export function isVirtualClick(event: MouseEvent | PointerEvent): boolean {
     return true;
   }
 
-  if (isAndroid() && (event as PointerEvent).pointerType) {
+  if (platform.os.android && (event as PointerEvent).pointerType) {
     return event.type === "click" && event.buttons === 1;
   }
 
@@ -38,17 +19,21 @@ export function isVirtualClick(event: MouseEvent | PointerEvent): boolean {
 }
 
 export function isVirtualPointerEvent(event: PointerEvent) {
-  if (isJSDOM()) {
+  if (platform.env.jsdom) {
     return false;
   }
   return (
-    (!isAndroid() && event.width === 0 && event.height === 0) ||
-    (isAndroid() &&
+    (!platform.os.android && event.width === 0 && event.height === 0) ||
+    // Chrome synthesizes a screen reader press (TalkBack, VoiceOver, NVDA) as a 1x1 mouse
+    // `pointerdown` with no pressure. TalkBack can report a pressed button, while desktop
+    // mouse presses can report no pressure, so only require no pressed button off Android.
+    (event.type === "pointerdown" &&
       event.width === 1 &&
       event.height === 1 &&
       event.pressure === 0 &&
       event.detail === 0 &&
-      event.pointerType === "mouse") ||
+      event.pointerType === "mouse" &&
+      (platform.os.android || event.buttons === 0)) ||
     // iOS VoiceOver returns 0.333• for width/height.
     (event.width < 1 && event.height < 1 && event.pressure === 0 && event.detail === 0 && event.pointerType === "touch")
   );
@@ -62,6 +47,10 @@ export function isMouseLikePointerType(pointerType: string | undefined, strict?:
     values.push("", undefined);
   }
   return values.includes(pointerType);
+}
+
+export function isTouchLikePointerType(pointerType: string | undefined) {
+  return pointerType === "touch" || pointerType === "pen";
 }
 
 export function isClickLikeEvent(event: Event) {

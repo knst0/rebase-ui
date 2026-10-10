@@ -13,6 +13,7 @@ import { createEffect, createMemo, createSignal, untrack, type Accessor } from "
 import { EMPTY_ARRAY, EMPTY_OBJECT, NOOP } from "#utils/empty";
 
 import { createControllableSignal } from "../../internals/createControllableSignal";
+import { createUnmountAfterClose } from "../../internals/createUnmountAfterClose";
 import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { createRegisterFieldControl } from "../../internals/field-register-control/createRegisterFieldControl";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
@@ -21,14 +22,13 @@ import { createDismiss } from "../../internals/floating/interactions/createDismi
 import { createListNavigation } from "../../internals/floating/interactions/createListNavigation";
 import { gridNavigation } from "../../internals/floating/interactions/gridNavigation";
 import { useFloatingRootContext } from "../../internals/floating/useFloatingRootContext";
-import { contains, getTarget } from "../../internals/floating/utils/element";
+import { activeElement, contains, getTarget } from "../../internals/floating/utils/element";
 import { useFormContext } from "../../internals/form-context/FormContext";
 import { createLabelableId } from "../../internals/labelable-provider/createLabelableId";
-import { FOCUSABLE_POPUP_PROPS, getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
-import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
+import { attachPreventUnmountOnClose, FOCUSABLE_POPUP_PROPS, getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
 import { stableCallback } from "../../internals/stableCallback";
-import { createTransitionStatus } from "../../internals/transition-status/createTransitionStatus";
 import { error } from "../../internals/utils/error";
+import { getHighlightReason } from "../../internals/utils/getHighlightReason";
 import { flattenLeafItems, isGroupedItems, stringifyAsLabel, stringifyAsValue, type Group } from "../../select/utils/resolveValueLabel";
 import type { ItemCollection } from "../items/itemCollection";
 import { findCollectionItem } from "../items/itemCollection";
@@ -56,7 +56,7 @@ export interface CreateComboboxRootParameters {
   onInputValueChange: (value: string, eventDetails: AriaCombobox.ChangeEventDetails) => void;
   open: () => boolean | undefined;
   defaultOpen: () => boolean;
-  onOpenChange: (open: boolean, eventDetails: AriaCombobox.ChangeEventDetails) => void;
+  onOpenChange: (open: boolean, eventDetails: AriaCombobox.OpenChangeEventDetails) => void;
   onOpenChangeComplete: (open: boolean) => void;
   onItemHighlighted: ((value: any, eventDetails: AriaCombobox.HighlightEventDetails) => void) | undefined;
   name: () => string | undefined;
@@ -86,7 +86,6 @@ export interface CreateComboboxRootParameters {
   formAutoComplete: () => string | undefined;
   locale: () => Intl.LocalesArgument | undefined;
   submitOnItemClick: () => boolean;
-  hasActionsRef: boolean;
 }
 
 export interface CreateComboboxRootReturnValue {
@@ -106,6 +105,7 @@ export interface CreateComboboxRootReturnValue {
   derivedItems: ComboboxDerivedItemsContextValue;
   hasItems: () => boolean;
   forceUnmount: () => void;
+  close: () => void;
   handleHiddenInputFocus: () => void;
   handleAutofillChange: (event: Event) => void;
 }
@@ -473,12 +473,65 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
   const inputInsidePopup = () => store.peek("inputInsidePopup") as boolean;
   const inputMatchesSelectedValue = () => single() && !inputInsidePopup() && inputValue() === selectedLabelString();
 
-  const { mounted, setMounted, transitionStatus } = createTransitionStatus(open);
+  const [preventUnmountOnClose, setPreventUnmountOnClose] = createSignal(false);
+
+  const { mounted, transitionStatus, forceUnmount } = createUnmountAfterClose({
+    open,
+    ref: () => {
+      const positioner = store.peek("positionerElement") as HTMLElement | null;
+      if (store.peek("inline") && positioner) {
+        return positioner.closest('[role="dialog"]') as HTMLElement | null;
+      }
+      return store.context.popupRef.current;
+    },
+    preventUnmountOnClose,
+    setPreventUnmountOnClose,
+    onUnmount() {
+      onOpenChangeComplete(false);
+      setQueryChangedAfterOpen(false);
+      setCloseQuery(null);
+      if (selectionMode() === "none") {
+        setIndices({ activeIndex: null, selectedIndex: null });
+      } else {
+        setIndices({ activeIndex: null });
+      }
+      // Multiple selection mode:
+      // If the user typed a filter and didn't select in multiple mode, clear the input
+      // after close completes to avoid mid-exit flicker and start fresh on next open.
+      if (multiple() && store.context.inputRef.current && store.context.inputRef.current.value !== "" && !hadInputClear) {
+        setInputValue("", createChangeEventDetails(REASONS.inputClear));
+      }
+      // Single selection mode:
+      // - If input is rendered inside the popup, clear it so the next open is blank
+      // - If input is outside the popup, sync it to the selected value
+      if (single()) {
+        if (store.peekState().inputInsidePopup) {
+          if (store.context.inputRef.current && store.context.inputRef.current.value !== "") {
+            setInputValue("", createChangeEventDetails(REASONS.inputClear));
+          }
+        } else {
+          const stringVal = stringifyValueLabel(selectedValue());
+          if (store.context.inputRef.current && store.context.inputRef.current.value !== stringVal) {
+            // If no selection was made, treat this as clearing the typed filter.
+            const reason = stringVal === "" ? REASONS.inputClear : REASONS.none;
+            setInputValue(stringVal, createChangeEventDetails(reason));
+          }
+        }
+      }
+    },
+  });
+
+  function close() {
+    // `setOpen` no-ops when the value is unchanged, so closing an already-closed
+    // combobox through the action is a safe no-op.
+    setOpen(false, createChangeEventDetails(REASONS.imperativeAction));
+  }
+
   const [openMethod, setOpenMethod] = createSignal<ComboboxInteractionType | null>(null);
 
   // Mirrors upstream's `openMethod ?? previousOpenMethod`: the recorded interaction type stays
-  // readable through the closing transition, and the store keeps it until `handleUnmount`
-  // clears the state.
+  // readable through the closing transition, and the store keeps it until the unmount
+  // cleanup clears the state.
   let previousOpenMethod: ComboboxInteractionType | null = null;
   const renderedOpenMethod = createMemo(() => {
     const current = openMethod();
@@ -510,7 +563,7 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
    * Emits `onItemHighlighted` for the item at `index`, or clears the highlight when `index` is `-1`
    * (a no-op if nothing was highlighted). Keeps the last-highlight record in sync with what was emitted.
    */
-  function emitHighlight(value: any, index: number, type: AriaCombobox.HighlightEventReason) {
+  function emitHighlight(value: any, index: number, type: AriaCombobox.HighlightEventReason, event?: Event) {
     if (index === -1) {
       if (lastHighlight === INITIAL_LAST_HIGHLIGHT) {
         return;
@@ -521,13 +574,14 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     }
     // One-shot callback read: the effect apply scopes that reach this emitter
     // must not subscribe to the handler identity, so read it untracked.
-    untrack(() => onItemHighlighted(value, createGenericEventDetails(type, undefined, { index })));
+    untrack(() => onItemHighlighted(value, createGenericEventDetails(type, event, { index })));
   }
 
   function setIndices(options: {
     activeIndex?: number | null | undefined;
     selectedIndex?: number | null | undefined;
     type?: AriaCombobox.HighlightEventReason | undefined;
+    event?: Event | undefined;
   }) {
     const update = {} as Pick<ComboboxStoreState, "activeIndex" | "selectedIndex">;
     if (options.activeIndex !== undefined) {
@@ -543,9 +597,9 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     }
     const type: AriaCombobox.HighlightEventReason = options.type || REASONS.none;
     if (activeIndexOption === null) {
-      emitHighlight(undefined, -1, type);
+      emitHighlight(undefined, -1, type, options.event);
     } else {
-      emitHighlight(store.context.valuesRef.current[activeIndexOption], activeIndexOption, type);
+      emitHighlight(store.context.valuesRef.current[activeIndexOption], activeIndexOption, type, options.event);
     }
   }
 
@@ -623,7 +677,7 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     }
   }
 
-  function setOpen(nextOpen: boolean, eventDetails: AriaCombobox.ChangeEventDetails) {
+  function setOpen(nextOpen: boolean, eventDetails: Omit<AriaCombobox.OpenChangeEventDetails, "preventUnmountOnClose">) {
     if (open() === nextOpen) {
       return;
     }
@@ -633,9 +687,19 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     if (eventDetails.reason === REASONS.escapeKey && hasItems() && flatFilteredValues().length === 0 && !store.context.emptyRef.current) {
       eventDetails.allowPropagation();
     }
-    onOpenChange(nextOpen, eventDetails);
+    const openEventDetails = eventDetails as AriaCombobox.OpenChangeEventDetails;
+    const shouldPreventUnmountOnClose = attachPreventUnmountOnClose(openEventDetails);
+    onOpenChange(nextOpen, openEventDetails);
+    // A typed request must not highlight a later open: discard it when its own open is
+    // rejected, or when any other open change goes through.
+    if (pendingQueryHighlight?.hasQuery && (eventDetails.reason === REASONS.inputChange) === eventDetails.isCanceled) {
+      pendingQueryHighlight = null;
+    }
     if (eventDetails.isCanceled) {
       return;
+    }
+    if (!nextOpen) {
+      setPreventUnmountOnClose(shouldPreventUnmountOnClose());
     }
     if (nextOpen && closeQuery() !== null) {
       // `ComboboxInput` calls `setInputValue` before `setOpen`, so on an input-change reopen
@@ -755,41 +819,6 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     }
   }
 
-  function handleUnmount() {
-    setMounted(false);
-    onOpenChangeComplete(false);
-    setQueryChangedAfterOpen(false);
-    setCloseQuery(null);
-    if (selectionMode() === "none") {
-      setIndices({ activeIndex: null, selectedIndex: null });
-    } else {
-      setIndices({ activeIndex: null });
-    }
-    // Multiple selection mode:
-    // If the user typed a filter and didn't select in multiple mode, clear the input
-    // after close completes to avoid mid-exit flicker and start fresh on next open.
-    if (multiple() && store.context.inputRef.current && store.context.inputRef.current.value !== "" && !hadInputClear) {
-      setInputValue("", createChangeEventDetails(REASONS.inputClear));
-    }
-    // Single selection mode:
-    // - If input is rendered inside the popup, clear it so the next open is blank
-    // - If input is outside the popup, sync it to the selected value
-    if (single()) {
-      if (store.peekState().inputInsidePopup) {
-        if (store.context.inputRef.current && store.context.inputRef.current.value !== "") {
-          setInputValue("", createChangeEventDetails(REASONS.inputClear));
-        }
-      } else {
-        const stringVal = stringifyValueLabel(selectedValue());
-        if (store.context.inputRef.current && store.context.inputRef.current.value !== stringVal) {
-          // If no selection was made, treat this as clearing the typed filter.
-          const reason = stringVal === "" ? REASONS.inputClear : REASONS.none;
-          setInputValue(stringVal, createChangeEventDetails(reason));
-        }
-      }
-    }
-  }
-
   function forceMount() {
     if (items()) {
       // Ensure typeahead works on a closed list.
@@ -810,9 +839,6 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
   const setupOpenOnInputClick = untrack(() => parameters.openOnInputClick());
   const setupInputInsidePopup = untrack(() => store.peekState().inputInsidePopup);
   const setupAutoHighlightMode = untrack(autoHighlightMode);
-  const setupFocusItemOnOpen = untrack((): false | "auto" =>
-    queryChangedAfterOpen() || (selectionMode() === "none" && !autoHighlightMode()) ? false : "auto",
-  );
 
   // `readOnly` locks the value, not the interaction: the popup opens and can be browsed.
   // Value changes stay blocked in `ComboboxItem`, `ComboboxInput`'s keydown, `ComboboxTrigger`'s
@@ -858,7 +884,10 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     virtual: true,
     loopFocus: setupLoopFocus,
     allowEscape: setupLoopFocus && !setupAutoHighlightMode,
-    focusItemOnOpen: setupFocusItemOnOpen,
+    // Reactive (upstream reads this per render): a typed query suppresses focusing the
+    // first item when the popup opens from an arrow key.
+    focusItemOnOpen: (): false | "auto" =>
+      queryChangedAfterOpen() || (selectionMode() === "none" && !autoHighlightMode()) ? false : "auto",
     focusItemOnHover: setupHighlightOnHover,
     resetOnPointerLeave: !setupKeepHighlight,
     orientation: setupGrid ? "horizontal" : undefined,
@@ -873,14 +902,11 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
       if ((!event && !isOpen) || status === "ending") {
         return;
       }
-      if (!event) {
-        setIndices({ activeIndex: nextActiveIndex });
-      } else {
-        setIndices({
-          activeIndex: nextActiveIndex,
-          type: store.context.keyboardActiveRef.current ? REASONS.keyboard : REASONS.pointer,
-        });
-      }
+      setIndices({
+        activeIndex: nextActiveIndex,
+        type: getHighlightReason(event),
+        event,
+      });
     },
   });
 
@@ -1141,6 +1167,17 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
   );
 
   createEffect(
+    () => open(),
+    (isOpen) => {
+      // Controlled closes can bypass `setOpen`, and their exit animation may be interrupted.
+      if (!isOpen && pendingQueryHighlight?.hasQuery) {
+        pendingQueryHighlight = null;
+      }
+      return undefined;
+    },
+  );
+
+  createEffect(
     () => ({
       highlighted: activeIndex(),
       highlightMode: autoHighlightMode(),
@@ -1152,16 +1189,31 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
       currentInputValue: inputValue(),
     }),
     ({ highlighted, highlightMode, hasSourceItems, hasExternalItems, filtered, isInline, isOpen, currentInputValue }) => {
+      const candidateItems = hasSourceItems || hasExternalItems ? filtered : store.context.valuesRef.current;
       const pendingHighlight = pendingQueryHighlight;
       if (pendingHighlight) {
         // A directly rendered list remains visible when the popup state is closed, while a
         // kept-mounted Positioner is hidden and should stay inert.
         const listIsNavigable = isOpen || isInline || store.peek("positionerElement")?.hidden === false;
         if (pendingHighlight.hasQuery) {
-          if (highlightMode && listIsNavigable) {
+          const input = store.context.inputRef.current;
+          // Keep the request while results or a controlled popup opening are pending,
+          // but do not restore an inline highlight after focus has left the input.
+          if (
+            !highlightMode ||
+            String(currentInputValue).trim() === "" ||
+            (isInline && highlightMode !== "always" && (!input || activeElement(input.ownerDocument) !== input))
+          ) {
+            pendingQueryHighlight = null;
+          } else if (
+            listIsNavigable &&
+            // Individually rendered items register without re-running this effect, and their
+            // registry has holes mid-reindex, so resolve their request immediately.
+            (candidateItems[0] !== undefined || (!hasSourceItems && !hasExternalItems))
+          ) {
             store.set("activeIndex", 0);
+            pendingQueryHighlight = null;
           }
-          pendingQueryHighlight = null;
         } else if (String(currentInputValue).trim() === "") {
           // Only handle the clear once it has committed (a controlled input may reject it),
           // so a restore cannot fire while a query is still active.
@@ -1232,8 +1284,6 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
       if (!isOpen && !isInline) {
         return undefined;
       }
-      const shouldUseFlatFilteredValues = hasSourceItems || hasExternalItems;
-      const candidateItems = shouldUseFlatFilteredValues ? filtered : store.context.valuesRef.current;
       const storeActiveIndex = highlighted;
       if (storeActiveIndex == null) {
         if (highlightMode === "always" && candidateItems.length > 0) {
@@ -1440,23 +1490,6 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     queueMicrotask(handleChange);
   }
 
-  runOnOpenChangeComplete({
-    enabled: () => !parameters.hasActionsRef,
-    open,
-    ref: () => {
-      const positioner = store.peek("positionerElement") as HTMLElement | null;
-      if (store.peek("inline") && positioner) {
-        return positioner.closest('[role="dialog"]') as HTMLElement | null;
-      }
-      return store.context.popupRef.current;
-    },
-    onComplete() {
-      if (!store.peek("open")) {
-        handleUnmount();
-      }
-    },
-  });
-
   const derivedItems: ComboboxDerivedItemsContextValue = {
     get query() {
       return query();
@@ -1488,7 +1521,8 @@ export function createComboboxRoot(parameters: CreateComboboxRootParameters): Cr
     multipleValues,
     derivedItems,
     hasItems,
-    forceUnmount: handleUnmount,
+    forceUnmount,
+    close,
     handleHiddenInputFocus,
     handleAutofillChange,
   };

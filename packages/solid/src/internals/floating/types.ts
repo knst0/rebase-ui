@@ -269,9 +269,17 @@ export interface UseFloatingOptions {
    * External FloatingTree to use when the one provided by context can't be used.
    */
   externalTree?: FloatingTreeStore | undefined;
-  placement?: Placement | undefined;
+  /**
+   * The placement to position against. Accepts an accessor for placements that react to
+   * positioning output, such as the anchor lock that makes flips sticky while filtering.
+   */
+  placement?: Placement | (() => Placement) | undefined;
   strategy?: Strategy | undefined;
-  middleware?: Array<Middleware | null | undefined> | undefined;
+  /**
+   * Middleware for the positioning computation. Accepts an accessor when the set or order
+   * reacts to positioning output.
+   */
+  middleware?: Array<Middleware | null | undefined> | (() => Array<Middleware | null | undefined>) | undefined;
   platform?: Platform | undefined;
   /**
    * Custom function to update the position while the elements are mounted.

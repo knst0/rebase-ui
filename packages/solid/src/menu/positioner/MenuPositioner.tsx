@@ -12,7 +12,6 @@ import {
   type Side,
 } from "../../internals/anchor-positioning/createAnchorPositioning";
 import { CompositeListContext, createCompositeList } from "../../internals/composite";
-import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { Timeout } from "../../internals/floating/interactions/createHoverInteractionSharedState";
 import { FloatingNode } from "../../internals/floating/tree/FloatingTree";
@@ -22,6 +21,7 @@ import { RenderElement } from "../../internals/render-element";
 import { createScrollLock } from "../../internals/scroll-lock";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { useTriggerSwitchTransition } from "../../internals/useTriggerSwitchTransition";
 import { useMenuPortalContext } from "../portal/MenuPortalContext";
 import type { MenuRoot } from "../root/MenuRoot";
 import { useMenuRootContext } from "../root/MenuRootContext";
@@ -64,7 +64,7 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
 
   const as = untrack(() => local.as);
 
-  const { store, parent } = useMenuRootContext();
+  const { store, parent, virtualFocus } = useMenuRootContext();
   const keepMounted = useMenuPortalContext();
 
   const isSubmenu = parent.type === "menu";
@@ -98,6 +98,7 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
     keepMounted,
     floatingRootContext: untrack(() => store.select("floatingRootContext")),
     mounted: () => store.select("mounted"),
+    lazyFlip: virtualFocus ? "placement" : false,
     collisionAvoidance: untrack(() => local.collisionAvoidance) ?? (isSubmenu ? POPUP_COLLISION_AVOIDANCE : DROPDOWN_COLLISION_AVOIDANCE),
     get adaptiveOrigin() {
       return store.select("adaptiveOrigin");
@@ -204,32 +205,13 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
     },
   );
 
-  const runOnceAnimationsFinish = createAnimationsFinishedRunner(() => store.select("positionerElement") as HTMLElement | null);
-
-  // When the current trigger element changes, enable transitions on the
-  // positioner temporarily.
   const rootFloatingContext = untrack(() => store.select("floatingRootContext"));
-  const [previousTriggerElement, setPreviousTriggerElement] = createSignal<Element | null>(null, { ownedWrite: true });
-  createEffect(
-    () => rootFloatingContext.select("domReferenceElement") as Element | null,
-    (currentTriggerElement) => {
-      const previousTriggerElementValue = untrack(previousTriggerElement);
-      if (currentTriggerElement) {
-        setPreviousTriggerElement(currentTriggerElement);
-      }
-      if (previousTriggerElementValue && currentTriggerElement && currentTriggerElement !== previousTriggerElementValue) {
-        store.set("instantType", undefined);
-        const controller = new AbortController();
-        runOnceAnimationsFinish(() => {
-          store.set("instantType", "trigger-change");
-        }, controller.signal);
-        return () => {
-          controller.abort();
-        };
-      }
-      return undefined;
-    },
-  );
+  useTriggerSwitchTransition({
+    store,
+    domReference: () => rootFloatingContext.select("domReferenceElement") as Element | null,
+    positionerElement: () => store.select("positionerElement") as HTMLElement | null,
+    open: () => store.select("open") as boolean,
+  });
 
   const compositeList = createCompositeList<{ label?: string | null }>();
 
@@ -246,6 +228,8 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
       }
       store.context.itemDomElements.current = nextElements;
       store.context.itemLabels.current = nextLabels;
+      // An index can come to point at a different element while its value stays the same.
+      store.context.syncHighlightedItem?.();
       return undefined;
     },
   );
@@ -348,6 +332,10 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
             state={state}
             props={[positionerProps, getDisabledMountTransitionStyles(() => store.select("transitionStatus")), elementProps, refProps]}
             stateAttributesMapping={menuPositionerStateMapping}
+            // Children must instantiate once: resolving them tracked would re-run the
+            // children getter (recreating nested roots) whenever signals read during
+            // their creation change. Render-prop children still stay reactive.
+            untrackChildren
           />
         </CompositeListContext>
       </FloatingNode>

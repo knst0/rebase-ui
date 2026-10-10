@@ -140,26 +140,8 @@ export function ComboboxList<T extends ValidComponent = "div">(props: ComboboxLi
     },
   };
 
-  // Solid has no `on*Capture` props (such a name binds a literal
-  // `keydowncapture` listener that never fires), so capture-phase listeners
-  // are attached imperatively.
-  function trackKeyboardActive() {
-    store.context.keyboardActiveRef.current = true;
-  }
-
-  function trackPointerActive() {
-    store.context.keyboardActiveRef.current = false;
-  }
-
-  let listElement: HTMLDivElement | null = null;
-
   const refProps = (externalProps: Record<string, any>) => ({
     ref: mergeRefs<HTMLDivElement>(externalProps.ref, (element: HTMLDivElement | null) => {
-      listElement?.removeEventListener("keydown", trackKeyboardActive, true);
-      listElement?.removeEventListener("pointermove", trackPointerActive, true);
-      listElement = element;
-      element?.addEventListener("keydown", trackKeyboardActive, true);
-      element?.addEventListener("pointermove", trackPointerActive, true);
       store.set("listElement", element);
       if (!hasPositionerContext) {
         store.set("positionerElement", element);

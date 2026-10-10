@@ -18,6 +18,10 @@ export type SelectStoreState = {
   labelId: string | undefined;
   modal: boolean;
   multiple: boolean;
+  disabled: boolean;
+  readOnly: boolean;
+  required: boolean;
+  highlightItemOnHover: boolean;
 
   items: SelectItemsInput;
   itemToStringLabel: ((item: any) => string) | undefined;
@@ -37,6 +41,7 @@ export type SelectStoreState = {
 
   popupProps: Record<string, unknown>;
   triggerProps: Record<string, unknown>;
+  itemProps: Record<string, unknown>;
   triggerElement: HTMLElement | null;
   positionerElement: HTMLElement | null;
   listElement: HTMLDivElement | null;
@@ -87,6 +92,11 @@ export const selectors = {
   id: (state: SelectStoreState) => state.id,
   labelId: (state: SelectStoreState) => state.labelId,
   modal: (state: SelectStoreState) => state.modal,
+  multiple: (state: SelectStoreState) => state.multiple,
+  disabled: (state: SelectStoreState) => state.disabled,
+  readOnly: (state: SelectStoreState) => state.readOnly,
+  required: (state: SelectStoreState) => state.required,
+  highlightItemOnHover: (state: SelectStoreState) => state.highlightItemOnHover,
 
   items: (state: SelectStoreState) => state.items,
   itemToStringLabel: (state: SelectStoreState) => state.itemToStringLabel,
@@ -139,6 +149,7 @@ export const selectors = {
 
   popupProps: (state: SelectStoreState) => state.popupProps,
   triggerProps: (state: SelectStoreState) => state.triggerProps,
+  itemProps: (state: SelectStoreState) => state.itemProps,
   triggerElement: (state: SelectStoreState) => state.triggerElement,
   positionerElement: (state: SelectStoreState) => state.positionerElement,
   listElement: (state: SelectStoreState) => state.listElement,
@@ -361,6 +372,10 @@ export function createInitialSelectStoreState(
     labelId: undefined,
     modal: true,
     multiple: false,
+    disabled: false,
+    readOnly: false,
+    required: false,
+    highlightItemOnHover: true,
     items: undefined,
     itemToStringLabel: undefined,
     itemToStringValue: undefined,
@@ -375,6 +390,7 @@ export function createInitialSelectStoreState(
     selectedIndex: null,
     popupProps: EMPTY_OBJECT as Record<string, unknown>,
     triggerProps: EMPTY_OBJECT as Record<string, unknown>,
+    itemProps: EMPTY_OBJECT as Record<string, unknown>,
     triggerElement: null,
     positionerElement: null,
     listElement: null,

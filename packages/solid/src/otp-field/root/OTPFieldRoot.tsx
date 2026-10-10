@@ -304,8 +304,6 @@ export function OTPFieldRoot<T extends ValidComponent = "div">(props: OTPFieldRo
     }
 
     setFocusedIndex(index);
-    setFocusedState(true);
-    field.setFocused(true);
     event.currentTarget.select();
   }
 
@@ -365,6 +363,7 @@ export function OTPFieldRoot<T extends ValidComponent = "div">(props: OTPFieldRo
     readOnly: () => local.readOnly,
     required: () => local.required,
     normalizeValue: () => local.normalizeValue,
+    setFocused: setFocusedState,
     setValue,
     state,
     validationType: () => local.validationType,

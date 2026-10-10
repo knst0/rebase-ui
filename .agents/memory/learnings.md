@@ -7,7 +7,7 @@ type: reference
 ## Pre-port (saves rework)
 
 - Load `port-component` + `solid-js-v2-coding` skills; read `AGENTS.md` + `PORT_FIDELITY.md`.
-- Fetch upstream `mui/base-ui` `packages/react/src/<component>/` + docs page + ALL demos; pin v1.8.0 (unpinned fetch 404'd once).
+- Fetch upstream `mui/base-ui` `packages/react/src/<component>/` + docs page + ALL demos; pin v1.9.0 (unpinned fetch 404'd once).
 - Mirror upstream layout (`root/`, per-part dirs, `*DataAttributes.ts`, `index.parts.ts`); reuse `RenderElement`, `split`, shared utils. `useX` → `createX`, except context accessors keep `useX`. Positioning via `@floating-ui/dom`, not React binding.
 - Big ports (floating: 46 files) split into sequential groups (utils/types → tree/stores → portal/focus → core → interactions); huge single-shot ports hit model idle timeouts.
 

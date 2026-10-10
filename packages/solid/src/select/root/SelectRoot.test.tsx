@@ -1,14 +1,14 @@
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen } from "@solidjs/testing-library";
-import { createSignal, flush } from "solid-js";
+import { fireEvent, render, screen, waitFor } from "@solidjs/testing-library";
+import { createSignal, flush, type Setter } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { nextFrames } from "#test-utils";
+import { expectType, nextFrames } from "#test-utils";
 
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import * as Select from "../index.parts";
 import type { SelectStore } from "../store/SelectStore";
-import { useSelectRootContext, useSelectRootPropsContext } from "./SelectRootContext";
+import { useSelectRootContext } from "./SelectRootContext";
 
 function CaptureStore(props: { onStore: (store: SelectStore) => void }) {
   props.onStore(useSelectRootContext());
@@ -238,25 +238,47 @@ describe("<Select.Root />", () => {
     expect(input.value).toBe("sans");
   });
 
-  it("publishes disabled and readOnly through the props context", () => {
-    let disabledValue = false;
-    let readOnlyValue = false;
-    function CaptureProps() {
-      const propsContext = useSelectRootPropsContext();
-      disabledValue = propsContext.disabled;
-      readOnlyValue = propsContext.readOnly;
-      return null;
-    }
+  it("publishes disabled and readOnly to the store", () => {
+    let captured: SelectStore | undefined;
+    renderSelect({
+      rootProps: { disabled: true, readOnly: true },
+      onStore: (store) => {
+        captured = store;
+      },
+    });
 
+    expect(captured?.peek("disabled")).toBe(true);
+    expect(captured?.peek("readOnly")).toBe(true);
+  });
+
+  it("syncs root props into the store", () => {
+    const [disabled, setDisabled] = createSignal(false);
+    const [highlightItemOnHover, setHighlightItemOnHover] = createSignal(true);
+    let captured: SelectStore | undefined;
     render(() => (
-      <Select.Root disabled readOnly>
-        <CaptureProps />
+      <Select.Root disabled={disabled()} highlightItemOnHover={highlightItemOnHover()} multiple required>
+        <CaptureStore
+          onStore={(store) => {
+            captured = store;
+          }}
+        />
       </Select.Root>
     ));
     flush();
 
-    expect(disabledValue).toBe(true);
-    expect(readOnlyValue).toBe(true);
+    expect(captured?.peek("disabled")).toBe(false);
+    expect(captured?.peek("readOnly")).toBe(false);
+    expect(captured?.peek("required")).toBe(true);
+    expect(captured?.peek("multiple")).toBe(true);
+    expect(captured?.peek("highlightItemOnHover")).toBe(true);
+    expect(captured?.peek("itemProps")).toBeTypeOf("object");
+
+    setDisabled(true);
+    setHighlightItemOnHover(false);
+    flush();
+
+    expect(captured?.peek("disabled")).toBe(true);
+    expect(captured?.peek("highlightItemOnHover")).toBe(false);
   });
 
   it("disables the hidden input when disabled", () => {
@@ -345,32 +367,250 @@ describe("<Select.Root />", () => {
     expect(captured?.peek("openMethod")).toBe("touch");
   });
 
-  it("delivers unmount through actionsRef after the popup closes", async () => {
-    const [actions, setActions] = createSignal<Select.Root.Actions | null>(null);
-    let captured: SelectStore | undefined;
-    render(() => (
-      <Select.Root actionsRef={setActions} defaultOpen>
-        <CaptureStore
+  describe("manual unmount lifecycle", () => {
+    function UnmountPopup(props: {
+      openSignal?: () => boolean | undefined;
+      defaultOpen?: boolean;
+      onOpenChange?: (open: boolean, eventDetails: Select.Root.OpenChangeEventDetails) => void;
+      onOpenChangeComplete?: (open: boolean) => void;
+      actionsRef?: Setter<Select.Root.Actions | null>;
+      onStore?: (store: SelectStore) => void;
+    }) {
+      const [uncontrolledOpen, setUncontrolledOpen] = createSignal(props.defaultOpen ?? false);
+      return (
+        <Select.Root
+          open={props.openSignal?.() ?? uncontrolledOpen()}
+          onOpenChange={(nextOpen, eventDetails) => {
+            props.onOpenChange?.(nextOpen, eventDetails);
+            if (!eventDetails.isCanceled && props.openSignal === undefined) {
+              setUncontrolledOpen(nextOpen);
+            }
+          }}
+          onOpenChangeComplete={props.onOpenChangeComplete}
+          actionsRef={props.actionsRef}
+        >
+          {props.onStore ? <CaptureStore onStore={props.onStore} /> : null}
+          <Select.Trigger>Trigger</Select.Trigger>
+          <Select.Portal>
+            <Select.Positioner>
+              <Select.Popup>
+                <Select.Item value="apple">Apple</Select.Item>
+              </Select.Popup>
+            </Select.Positioner>
+          </Select.Portal>
+        </Select.Root>
+      );
+    }
+
+    function renderUnmountPopup(
+      props: Pick<
+        Parameters<typeof UnmountPopup>[0],
+        "openSignal" | "defaultOpen" | "onOpenChange" | "onOpenChangeComplete" | "actionsRef"
+      >,
+    ) {
+      let captured: SelectStore | undefined;
+      render(() => (
+        <UnmountPopup
+          {...props}
           onStore={(store) => {
             captured = store;
           }}
         />
-      </Select.Root>
-    ));
-    flush();
-    await nextFrames();
+      ));
+      flush();
+      return {
+        get store() {
+          return captured as SelectStore;
+        },
+      };
+    }
 
-    expect(actions()).not.toBeNull();
-    expect(captured?.peek("open")).toBe(true);
-    expect(captured?.peek("mounted")).toBe(true);
+    function closeCount(spy: ReturnType<typeof vi.fn>) {
+      return spy.mock.calls.filter(([open]) => !open).length;
+    }
 
-    captured?.context.setOpen(false, createChangeEventDetails(REASONS.escapeKey));
-    flush();
-    await nextFrames();
-    actions()?.unmount();
-    flush();
-    await nextFrames();
+    it("automatically unmounts with an actions ref and completes closing once", async () => {
+      const [actions, setActions] = createSignal<Select.Root.Actions | null>(null);
+      const onOpenChangeComplete = vi.fn();
+      const { store } = renderUnmountPopup({ defaultOpen: true, actionsRef: setActions, onOpenChangeComplete });
+      await nextFrames();
 
-    expect(captured?.peek("mounted")).toBe(false);
+      expect(onOpenChangeComplete).not.toHaveBeenCalledWith(false);
+      expect(screen.queryByRole("listbox")).not.toBeNull();
+
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.escapeKey)));
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+
+      expect(actions()).not.toBeNull();
+      expect(typeof actions()?.unmount).toBe("function");
+      expect(typeof actions()?.close).toBe("function");
+      expect(closeCount(onOpenChangeComplete)).toBe(1);
+    });
+
+    it("keeps the popup mounted until the unmount action completes closing", async () => {
+      const [actions, setActions] = createSignal<Select.Root.Actions | null>(null);
+      const [open, setOpen] = createSignal(true);
+      const onOpenChangeComplete = vi.fn();
+      const { store } = renderUnmountPopup({
+        openSignal: open,
+        actionsRef: setActions,
+        onOpenChangeComplete,
+        onOpenChange: (nextOpen, eventDetails) => {
+          if (!nextOpen) {
+            eventDetails.preventUnmountOnClose();
+          }
+          if (!eventDetails.isCanceled) {
+            setOpen(nextOpen);
+          }
+        },
+      });
+      await nextFrames();
+
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.itemPress)));
+      await nextFrames();
+      await nextFrames();
+      expect(screen.queryByRole("listbox")).not.toBeNull();
+      expect(onOpenChangeComplete).not.toHaveBeenCalledWith(false);
+
+      flush(() => actions()?.unmount());
+      expect(screen.queryByRole("listbox")).toBeNull();
+      expect(closeCount(onOpenChangeComplete)).toBe(1);
+
+      // Let the unmount's deferred focus return settle while closed: reopening in the same
+      // task would race it and the stale focus would close the reopened popup again.
+      await nextFrames();
+      flush(() => setOpen(true));
+      await waitFor(() => expect(screen.queryByRole("listbox")).not.toBeNull());
+      flush(() => setOpen(false));
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      expect(closeCount(onOpenChangeComplete)).toBe(2);
+    });
+
+    it("clears the opt-out when a controlled reopen interrupts a pending unmount", async () => {
+      const [open, setOpen] = createSignal(true);
+      const onOpenChangeComplete = vi.fn();
+      const { store } = renderUnmountPopup({
+        openSignal: open,
+        onOpenChangeComplete,
+        onOpenChange: (nextOpen, eventDetails) => {
+          if (!nextOpen) {
+            eventDetails.preventUnmountOnClose();
+          }
+          if (!eventDetails.isCanceled) {
+            setOpen(nextOpen);
+          }
+        },
+      });
+      await nextFrames();
+
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.itemPress)));
+      await nextFrames();
+      await nextFrames();
+      expect(screen.queryByRole("listbox")).not.toBeNull();
+      expect(onOpenChangeComplete).not.toHaveBeenCalledWith(false);
+
+      flush(() => setOpen(true));
+      await waitFor(() => expect(screen.queryByRole("listbox")).not.toBeNull());
+      flush(() => setOpen(false));
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      expect(closeCount(onOpenChangeComplete)).toBe(1);
+    });
+
+    it("ignores an opt-out on a canceled close", async () => {
+      let cancel = true;
+      const { store } = renderUnmountPopup({
+        defaultOpen: true,
+        onOpenChange: (nextOpen, eventDetails) => {
+          if (!nextOpen && cancel) {
+            eventDetails.preventUnmountOnClose();
+            eventDetails.cancel();
+          }
+        },
+      });
+      await nextFrames();
+
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.itemPress)));
+      await nextFrames();
+      expect(store.peek("open")).toBe(true);
+      expect(screen.queryByRole("listbox")).not.toBeNull();
+
+      cancel = false;
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.itemPress)));
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+    });
+
+    it("completes closing once when unmount is called repeatedly", async () => {
+      const [actions, setActions] = createSignal<Select.Root.Actions | null>(null);
+      const onOpenChangeComplete = vi.fn();
+      const { store } = renderUnmountPopup({ defaultOpen: true, actionsRef: setActions, onOpenChangeComplete });
+      await nextFrames();
+
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.escapeKey)));
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      expect(closeCount(onOpenChangeComplete)).toBe(1);
+
+      flush(() => {
+        actions()?.unmount();
+        actions()?.unmount();
+      });
+      await nextFrames();
+      expect(store.peek("mounted")).toBe(false);
+      expect(closeCount(onOpenChangeComplete)).toBe(1);
+    });
+
+    it("stays mounted when unmounted while open and still closes afterwards", async () => {
+      const [actions, setActions] = createSignal<Select.Root.Actions | null>(null);
+      const onOpenChangeComplete = vi.fn();
+      const { store } = renderUnmountPopup({ defaultOpen: true, actionsRef: setActions, onOpenChangeComplete });
+      await nextFrames();
+
+      // Matches upstream: unmounting while open runs the completion once without an
+      // observable unmount (no focus return), and the later close completes closing again.
+      flush(() => actions()?.unmount());
+      await nextFrames();
+      expect(store.peek("open")).toBe(true);
+      expect(screen.queryByRole("listbox")).not.toBeNull();
+
+      flush(() => store.context.setOpen(false, createChangeEventDetails(REASONS.escapeKey)));
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      expect(closeCount(onOpenChangeComplete)).toBe(2);
+    });
+
+    it("closes the popup through the close action", async () => {
+      const [actions, setActions] = createSignal<Select.Root.Actions | null>(null);
+      const onOpenChange = vi.fn();
+      const { store } = renderUnmountPopup({ defaultOpen: true, actionsRef: setActions, onOpenChange });
+      await nextFrames();
+
+      flush(() => actions()?.close());
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+
+      expect(store.peek("open")).toBe(false);
+      expect(onOpenChange).toHaveBeenCalledWith(false, expect.objectContaining({ reason: REASONS.imperativeAction }));
+    });
   });
 });
+
+function ReadonlyMultipleValues() {
+  const [value, setValue] = createSignal<string[]>([]);
+  const readonlyValue: readonly string[] = value();
+  const tupleValue = ["javascript", "typescript"] as const;
+
+  return (
+    <>
+      <Select.Root multiple value={readonlyValue} onValueChange={setValue} />
+      <Select.Root multiple defaultValue={readonlyValue} onValueChange={setValue} />
+      <Select.Root
+        multiple
+        value={tupleValue}
+        onValueChange={(newValue) => {
+          expectType<("javascript" | "typescript")[], typeof newValue>(newValue);
+          newValue.pop();
+        }}
+      />
+      <Select.Root multiple defaultValue={tupleValue} onValueChange={setValue} />
+    </>
+  );
+}
+
+void ReadonlyMultipleValues;

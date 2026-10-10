@@ -1,18 +1,20 @@
 import { isServer, type ValidComponent } from "@solidjs/web";
-import { createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
 
-import { REASONS } from "../../internals/event-details";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { safePolygon } from "../../internals/floating";
 import { createClick, type ClickReferenceProps } from "../../internals/floating/interactions/createClick";
 import {
   createHoverReferenceInteraction,
   type HoverReferenceProps,
 } from "../../internals/floating/interactions/createHoverReferenceInteraction";
+import { getTarget } from "../../internals/floating/utils/element";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { getRootFloatingContext, setupTrigger } from "../../internals/popups/popupStoreUtils";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { useMenuFilterItem } from "../filter-root/MenuFilterContext";
 import { useMenuItem, useMenuListItem } from "../item/useMenuItem";
 import { useMenuRootContext } from "../root/MenuRootContext";
 import type { MenuStore } from "../store/MenuStore";
@@ -62,7 +64,8 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
   }
   const parentMenuStore = submenuRootContext.parentMenu as MenuStore<unknown>;
 
-  const listItem = useMenuListItem(() => local.label);
+  const filterItem = useMenuFilterItem({ label: local.label }, "submenu-trigger");
+  const listItem = useMenuListItem(() => local.label, { enabled: filterItem.visible });
 
   const { store } = useMenuRootContext();
 
@@ -102,9 +105,9 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
     nativeButton: () => local.nativeButton,
     itemMetadata: {
       type: "submenu-trigger",
-      setActive() {
+      setActive(event: MouseEvent) {
         if (parentMenuStore.peek("highlightItemOnHover")) {
-          parentMenuStore.set("activeIndex", listItem.index());
+          parentMenuStore.setActiveIndex(listItem.index(), REASONS.pointer, event);
         }
       },
     },
@@ -139,6 +142,31 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
   const openedByKeyboard = () => lastOpenChangeReason() === REASONS.listNavigation || openMethod() === "keyboard";
   const shouldOmitExpanded = () => open() && openedByKeyboard() && isVoiceOver();
 
+  let focusReturnedThroughGuard = false;
+
+  createEffect(
+    () => ({ isOpen: open(), positioner: store.select("positionerElement") as HTMLElement | null }),
+    ({ isOpen, positioner }) => {
+      if (!isOpen || !positioner) {
+        return undefined;
+      }
+
+      const handleGuardFocusOut = (event: FocusEvent) => {
+        if (getTarget(event) === store.context.beforeContentFocusGuardRef.current) {
+          focusReturnedThroughGuard = event.relatedTarget === triggerElementRef.current;
+        }
+      };
+
+      // Observe focus leaving the guard inside its positioner. When the portal is in a shadow root,
+      // the trigger's focus event can report the shadow host as `relatedTarget`, not the guard.
+      positioner.addEventListener("focusout", handleGuardFocusOut, true);
+      return () => {
+        focusReturnedThroughGuard = false;
+        positioner.removeEventListener("focusout", handleGuardFocusOut, true);
+      };
+    },
+  );
+
   const state: MenuSubmenuTriggerState = {
     get disabled() {
       return disabled();
@@ -151,13 +179,24 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
     },
   };
 
+  function handleFocus(event: FocusEvent) {
+    // Close when focus returns through the submenu's guard to its trigger. This also lets
+    // screen reader users move past the trigger in the parent menu. Direct focus from a
+    // submenu item, such as on hover, leaves the submenu open.
+    if (store.peek("open") && focusReturnedThroughGuard) {
+      focusReturnedThroughGuard = false;
+      store.setOpen(false, createChangeEventDetails(REASONS.focusOut, event));
+    }
+  }
+
   function handleBlur() {
     if (untrack(highlighted)) {
-      parentMenuStore.set("activeIndex", null);
+      parentMenuStore.setActiveIndex(null, REASONS.none);
     }
   }
 
   const localHandlers: Record<string, (event: any) => void> = {
+    onFocus: handleFocus,
     onBlur: handleBlur,
   };
 
@@ -171,9 +210,14 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
     const parentHandler = parentFloat[key] as ((event: any) => void) | undefined;
     const localHandler = localHandlers[key] as ((event: any) => void) | undefined;
     const user = (userHandlers as Record<string, unknown>)[key] as ((event: any) => void) | undefined;
+    // Present when the submenu this trigger opens is filterable: routes cross-axis keys between
+    // the parent list and the submenu.
+    const submenuNavigationHandler = key === "onKeyDown" ? submenuRootContext?.onTriggerKeyDown : undefined;
 
     // Execution order mirrors upstream `mergeProps` (right-to-left).
-    const handlers = [user, localHandler, parentHandler, rootHandler, hover, click].filter(Boolean) as Array<(event: any) => void>;
+    const handlers = [user, submenuNavigationHandler, localHandler, parentHandler, rootHandler, hover, click].filter(Boolean) as Array<
+      (event: any) => void
+    >;
     if (handlers.length === 0) {
       return undefined;
     }
@@ -239,12 +283,19 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
     },
   };
 
-  const ref = mergeRefs<HTMLElement | null>(buttonRef, itemRef, listItem.ref, setTriggerElement, (element: HTMLElement | null) => {
-    triggerElementRef.current = element;
-    if (element !== null) {
-      store.set("activeTriggerElement", element);
-    }
-  });
+  const ref = mergeRefs<HTMLElement | null>(
+    buttonRef,
+    itemRef,
+    listItem.ref,
+    filterItem.ref,
+    setTriggerElement,
+    (element: HTMLElement | null) => {
+      triggerElementRef.current = element;
+      if (element !== null) {
+        store.set("activeTriggerElement", element);
+      }
+    },
+  );
 
   return (
     <>
@@ -252,7 +303,8 @@ export function MenuSubmenuTrigger<T extends ValidComponent = "div">(props: Menu
       <RenderElement
         as={as}
         state={state}
-        props={[parentItemProps, submenuTriggerProps, elementProps, getItemProps, getButtonProps, { ref }]}
+        enabled={filterItem.visible}
+        props={[parentItemProps, submenuTriggerProps, filterItem.props ?? {}, elementProps, getItemProps, getButtonProps, { ref }]}
         stateAttributesMapping={{ ...menuItemStateMapping, ...menuSubmenuTriggerStateMapping }}
       />
     </>
@@ -296,9 +348,14 @@ function MenuSubmenuTriggerInteractions(props: {
   const click = createClick(floatingContext, {
     enabled: !props.disabled,
     event: "mousedown",
-    toggle: !props.openOnHover,
+    // Without toggling, TalkBack users cannot close the submenu to reach the next parent menu
+    // item: moving the virtual cursor outside does not close it, and moving forward again
+    // re-enters the still-open submenu. Keep toggling enabled so activating its trigger closes it.
+    // Toggling applies to touch and keyboard activation. In hover mode, mouse presses are
+    // ignored and the first activation after hover-opening keeps the submenu open.
+    toggle: true,
     ignoreMouse: props.openOnHover,
-    stickIfOpen: false,
+    stickIfOpen: props.openOnHover,
   }).reference();
 
   if (!isServer) {

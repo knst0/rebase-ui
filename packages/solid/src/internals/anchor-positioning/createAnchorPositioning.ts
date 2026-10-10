@@ -115,7 +115,7 @@ export function createAnchorPositioning(
     collisionPadding: collisionPaddingParam = 5,
     sticky = false,
     arrowPadding = 5,
-    disableAnchorTracking = false,
+    disableAnchorTracking,
     inline: inlineMiddleware,
     // Private parameters
     keepMounted = false,
@@ -129,12 +129,14 @@ export function createAnchorPositioning(
   } = params;
 
   const [mountSide, setMountSide] = createSignal<PhysicalSide | null>(null);
+  const [mountAlign, setMountAlign] = createSignal<Align | null>(null);
 
   createEffect(
     () => mounted(),
     (isMounted) => {
-      if (!isMounted && untrack(mountSide) !== null) {
+      if (!isMounted && (untrack(mountSide) !== null || untrack(mountAlign) !== null)) {
         setMountSide(null);
+        setMountAlign(null);
       }
       return undefined;
     },
@@ -148,20 +150,28 @@ export function createAnchorPositioning(
 
   const isRtl = getIsRtl();
 
-  const side =
-    untrack(mountSide) ||
-    (
-      {
-        top: "top",
-        right: "right",
-        bottom: "bottom",
-        left: "left",
-        "inline-end": isRtl ? "left" : "right",
-        "inline-start": isRtl ? "right" : "left",
-      } satisfies Record<Side, PhysicalSide>
-    )[sideParam];
+  const lockAlign = lazyFlip === "placement";
 
-  const placement: Placement = align === "center" ? side : (`${side}-${align}` as Placement);
+  const preferredSide: PhysicalSide = (
+    {
+      top: "top",
+      right: "right",
+      bottom: "bottom",
+      left: "left",
+      "inline-end": isRtl ? "left" : "right",
+      "inline-start": isRtl ? "right" : "left",
+    } satisfies Record<Side, PhysicalSide>
+  )[sideParam];
+
+  // Reactive so a lock the positioning effect publishes feeds back into the placement floating-ui
+  // is asked for, like upstream's per-render recomputation.
+  const side = () => mountSide() || preferredSide;
+  const placementAlign = () => (lockAlign ? (mountAlign() ?? align) : align);
+  const placement = (): Placement => {
+    const requestedAlign = placementAlign();
+    const requestedSide = side();
+    return requestedAlign === "center" ? requestedSide : (`${requestedSide}-${requestedAlign}` as Placement);
+  };
 
   let collisionPadding = collisionPaddingParam as {
     top: number;
@@ -228,13 +238,13 @@ export function createAnchorPositioning(
     },
   );
 
-  const middleware: Array<Middleware | null | undefined | false> = [];
+  const prefixMiddleware: Array<Middleware | null | undefined | false> = [];
 
   if (inlineMiddleware) {
-    middleware.push(inlineMiddleware);
+    prefixMiddleware.push(inlineMiddleware);
   }
 
-  middleware.push(
+  prefixMiddleware.push(
     offset((state: MiddlewareState) => {
       const data = getOffsetData(state, sideParam, getIsRtl());
 
@@ -295,12 +305,9 @@ export function createAnchorPositioning(
               }),
       });
 
+  // The final assembly lives below the suffix definition: it reads the requested alignment,
+  // so it recomputes when a lock engages, like upstream's per-render rebuild.
   // https://floating-ui.com/docs/flip#combining-with-shift
-  if (collisionAvoidanceSide === "shift" || collisionAvoidanceAlign === "shift" || align === "center") {
-    middleware.push(shiftMiddleware, flipMiddleware);
-  } else {
-    middleware.push(flipMiddleware, shiftMiddleware);
-  }
 
   const mountedRef: { current: boolean } = { current: untrack(mounted) };
   createEffect(
@@ -311,7 +318,7 @@ export function createAnchorPositioning(
     },
   );
 
-  middleware.push(
+  const suffixMiddleware: Array<Middleware | null | undefined | false> = [
     size({
       ...commonCollisionProps,
       apply({ elements: { floating }, availableWidth, availableHeight, rects }) {
@@ -402,7 +409,16 @@ export function createAnchorPositioning(
         return current.fn(state);
       },
     },
-  );
+  ];
+
+  const middleware = createMemo(() => {
+    const shiftFirst = collisionAvoidanceSide === "shift" || collisionAvoidanceAlign === "shift" || placementAlign() === "center";
+    return [
+      ...prefixMiddleware,
+      ...(shiftFirst ? [shiftMiddleware, flipMiddleware] : [flipMiddleware, shiftMiddleware]),
+      ...suffixMiddleware,
+    ].filter(Boolean) as Array<Middleware>;
+  });
 
   createEffect(
     () => mounted(),
@@ -431,12 +447,22 @@ export function createAnchorPositioning(
     rootContext: floatingRootContext,
     open: keepMounted ? mounted : undefined,
     placement,
-    middleware: middleware.filter(Boolean) as Array<Middleware>,
+    middleware,
     strategy: positionMethod,
     whileElementsMounted: keepMounted ? undefined : (...args) => autoUpdate(...args, autoUpdateOptions),
     nodeId,
     externalTree,
   });
+
+  // A lock changes the requested placement and middleware order; reposition with them. Without
+  // consumers of the lock the memo values never change, so this only runs on setup (where the
+  // update is a no-op until elements mount) and when a flip locks.
+  createEffect(
+    () => ({ placement: placement(), middleware: middleware() }),
+    () => {
+      floatingApi.update();
+    },
+  );
 
   const positionerStyles = createMemo((): JSX.CSSProperties => {
     const { sideX, sideY } = (floatingApi.middlewareData.adaptiveOrigin || DEFAULT_SIDES) as {
@@ -522,14 +548,28 @@ export function createAnchorPositioning(
   const renderedAlign = () => getAlignment(renderedPlacement()) || "center";
   const anchorHidden = () => Boolean(floatingApi.middlewareData.hide?.referenceHidden);
 
-  // Locks the flip (makes it "sticky") so it doesn't prefer a given placement
-  // and flips back lazily, not eagerly. Ideal for filtered lists that change
+  // Locks the flipped side, and the alignment too when the consumer opts in, while
+  // filtering resizes the popup. The lock makes the flip "sticky" so it doesn't prefer a
+  // given placement and flips back lazily, not eagerly. Ideal for filtered lists that change
   // the size of the popup dynamically to avoid unwanted flipping when typing.
   createEffect(
-    () => ({ isMounted: mounted(), isPositioned: floatingApi.isPositioned, side: renderedSide() }),
-    ({ isMounted, isPositioned, side: currentSide }) => {
-      if (lazyFlip && isMounted && isPositioned && currentSide !== side) {
+    () => ({
+      isMounted: mounted(),
+      isPositioned: floatingApi.isPositioned,
+      side: renderedSide(),
+      align: renderedAlign(),
+      requestedSide: side(),
+      requestedAlign: placementAlign(),
+    }),
+    ({ isMounted, isPositioned, side: currentSide, align: currentAlign, requestedSide, requestedAlign }) => {
+      if (!lazyFlip || !isMounted || !isPositioned) {
+        return undefined;
+      }
+      if (currentSide !== requestedSide) {
         setMountSide(currentSide);
+      }
+      if (lockAlign && currentAlign !== requestedAlign) {
+        setMountAlign(currentAlign as Align);
       }
       return undefined;
     },
@@ -658,7 +698,7 @@ export interface CreateAnchorPositioningParameters extends CreateAnchorPositioni
         rootBoundary?: "layoutViewport" | undefined;
       }
     | undefined;
-  lazyFlip?: boolean | undefined;
+  lazyFlip?: boolean | "placement" | undefined;
   externalTree?: FloatingTreeStore | undefined;
   /**
    * Optional middleware that can replace the measured reference rect before offsets and collision

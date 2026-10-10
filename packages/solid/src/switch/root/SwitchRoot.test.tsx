@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
+import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { describeConformance } from "#test-utils";
 
+import { Field } from "../../field";
 import { SwitchThumb } from "../thumb/SwitchThumb";
 import { SwitchRoot } from "./SwitchRoot";
 import * as SwitchRootDataAttributes from "./SwitchRootDataAttributes";
@@ -104,5 +106,29 @@ describe("<Switch.Root />", () => {
     expect(hidden?.value).toBe("off");
     expect(hidden?.getAttribute("form")).toBe("settings-form");
     expect(hidden?.getAttribute("name")).toBe("alerts");
+  });
+
+  it("prefers `aria-label` over an associated label", () => {
+    render(() => (
+      <>
+        <label>
+          <SwitchRoot aria-label="Wi-Fi" />
+          Wi-Fi
+        </label>
+        <Field.Root>
+          <Field.Label>
+            <SwitchRoot aria-label="Bluetooth" />
+            Bluetooth
+          </Field.Label>
+        </Field.Root>
+      </>
+    ));
+
+    const [nativeLabelled, fieldLabelled] = screen.getAllByRole("switch");
+    flush();
+    expect(nativeLabelled).not.toHaveAttribute("aria-labelledby");
+    expect(nativeLabelled).toHaveAccessibleName("Wi-Fi");
+    expect(fieldLabelled).not.toHaveAttribute("aria-labelledby");
+    expect(fieldLabelled).toHaveAccessibleName("Bluetooth");
   });
 });

@@ -5,6 +5,7 @@ import { createChangeEventDetails, REASONS } from "../../internals/event-details
 import type { TransitionStatus } from "../../internals/transition-status";
 import { CollapsibleRoot } from "../root/CollapsibleRoot";
 import * as CollapsiblePanelCssVars from "./CollapsiblePanelCssVars";
+import * as CollapsiblePanelDataAttributes from "./CollapsiblePanelDataAttributes";
 
 type AnimationType = "css-transition" | "css-animation" | "none";
 
@@ -176,7 +177,17 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
       element: panelElement(),
     }),
     ({ open, mounted, status, phase: currentPhase, element }) => {
+      // A render function can remove the panel on close. Clear one-shot open animation
+      // suppression even without an element, so the next open animates normally.
+      if (!open) {
+        setShouldPreventMountAnimation(false);
+      }
+
       if (element === null) {
+        // A render function can drop the panel element while it closes. There is nothing left
+        // to animate, so finish closing instead of staying in the ending phase.
+        setMounted(false);
+        setDimensions(EMPTY_DIMENSIONS, false);
         return undefined;
       }
 
@@ -254,8 +265,6 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
       }
 
       if (!open && mounted && (status === "idle" || status === "starting")) {
-        setShouldPreventMountAnimation(false);
-
         if (currentAnimationType === "none") {
           setDimensions(EMPTY_DIMENSIONS, false);
           setMounted(false);
@@ -319,7 +328,15 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
   createEffect(
     () => ({ isOpen: open(), isMounted: mounted(), status: panelTransitionStatus(), element: panelElement() }),
     ({ isOpen, isMounted, status, element }) => {
-      if (isOpen || !isMounted || status !== "ending" || element === null) {
+      if (isOpen || !isMounted || status !== "ending") {
+        return undefined;
+      }
+
+      if (element === null) {
+        // A render function can drop the panel element while it closes. There is nothing left
+        // to animate, so finish closing instead of staying in the ending phase.
+        setMounted(false);
+        setDimensions(EMPTY_DIMENSIONS, false);
         return undefined;
       }
 
@@ -354,23 +371,100 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
         return undefined;
       }
 
+      const panel = element;
+      let revealDecisionTimeout: ReturnType<typeof setTimeout> | undefined;
+      let revertRevealFrame = -1;
+
+      const clearRevealTimers = () => {
+        if (revealDecisionTimeout !== undefined) {
+          clearTimeout(revealDecisionTimeout);
+          revealDecisionTimeout = undefined;
+        }
+
+        if (revertRevealFrame !== -1) {
+          cancelAnimationFrame(revertRevealFrame);
+          revertRevealFrame = -1;
+        }
+      };
+
+      // Reverting must wait until the browser has measured the match, and the render
+      // cannot do it: it keeps rendering the same `hidden` and `data-starting-style`
+      // props while the panel stays closed, so it never rewrites attributes that were
+      // changed behind its back (the browser removes `hidden` as part of the reveal).
+      //
+      // Whether the open arrived is decided in a task, not a frame: `setOpen` has
+      // already scheduled a reactive flush by the time the timeout is queued, so the
+      // decision drains after the commit even when a busy main thread delays both,
+      // whereas a rendering update could preempt the still-queued commit and make an
+      // animation frame read a stale value. When the consumer ignores the open, no
+      // commit is ever scheduled and the decision holds. The DOM revert then runs
+      // in a frame so it stays atomic with respect to paint.
+      const scheduleRevealRevert = (revertSkippedMotion: boolean, restoreStartingStyle: boolean) => {
+        clearRevealTimers();
+
+        revealDecisionTimeout = setTimeout(() => {
+          revealDecisionTimeout = undefined;
+
+          if (untrack(open)) {
+            return;
+          }
+
+          revertRevealFrame = requestAnimationFrame(() => {
+            revertRevealFrame = -1;
+
+            if (untrack(open)) {
+              return;
+            }
+
+            if (revertSkippedMotion) {
+              // The open never happened, so the next one is an ordinary open that
+              // should keep its author-defined motion.
+              machineState.shouldSkipNextOpen = false;
+            }
+
+            if (restoreStartingStyle) {
+              panel.setAttribute(CollapsiblePanelDataAttributes.startingStyle, "");
+            }
+
+            panel.setAttribute("hidden", "until-found");
+          });
+        }, 0);
+      };
+
       const handleBeforeMatch = (event: Event) => {
         const eventDetails = createChangeEventDetails(REASONS.none, event);
 
         onOpenChange(true, eventDetails);
 
         if (eventDetails.isCanceled) {
+          // A canceled reveal means the panel must stay hidden, so undo the
+          // browser's removal of `hidden` and keep the content searchable.
+          scheduleRevealRevert(false, false);
           return;
         }
 
         machineState.shouldSkipNextOpen = true;
+
+        // The browser removes `hidden` and measures the match in the same task that
+        // dispatches this event, while the state update below only lands in a
+        // later one. Panels kept collapsed by persisted starting styles would still
+        // be zero-sized at that point and the match highlight is dropped, so drop
+        // those styles synchronously here.
+        const hadStartingStyle = panel.hasAttribute(CollapsiblePanelDataAttributes.startingStyle);
+        panel.removeAttribute(CollapsiblePanelDataAttributes.startingStyle);
+
         setOpen(true);
+
+        // A controlled panel whose `onOpenChange` is ignored never receives the open
+        // state, so return it to the fully closed state once the browser has measured.
+        scheduleRevealRevert(true, hadStartingStyle);
       };
 
-      element.addEventListener("beforematch", handleBeforeMatch);
+      panel.addEventListener("beforematch", handleBeforeMatch);
 
       return () => {
-        element.removeEventListener("beforematch", handleBeforeMatch);
+        clearRevealTimers();
+        panel.removeEventListener("beforematch", handleBeforeMatch);
       };
     },
   );

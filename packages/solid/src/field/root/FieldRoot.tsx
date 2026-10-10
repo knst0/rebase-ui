@@ -53,6 +53,7 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
   const [dirtyState, setDirtyState] = createSignal(false);
   const [filled, setFilled] = createSignal(false);
   const [focused, setFocused] = createSignal(false);
+  let focusOwner: unknown;
 
   const dirty = createMemo(() => (local.dirty === undefined ? dirtyState() : accessBoolean(local.dirty)));
   const touched = createMemo(() => (local.touched === undefined ? touchedState() : accessBoolean(local.touched)));
@@ -197,6 +198,10 @@ function FieldRootInner(ownerProps: { props: FieldRoot.Props }) {
     setDirty,
     setFilled,
     setFocused,
+    getFocusOwner: () => focusOwner,
+    setFocusOwner: (owner) => {
+      focusOwner = owner;
+    },
     validationMode,
     shouldValidateOnChange,
     state,

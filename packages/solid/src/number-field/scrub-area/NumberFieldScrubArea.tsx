@@ -57,14 +57,41 @@ export function NumberFieldScrubArea<T extends ValidComponent = "span">(props: N
   let isScrubbingRef = false;
   let didMoveRef = false;
   let pointerDownTarget: EventTarget | null = null;
+  let nativeClickReceived = false;
   const virtualCursorCoords = { x: 0, y: 0 };
 
   let exitPointerLockTimeout: ReturnType<typeof setTimeout> | undefined;
+  let syntheticClickTimeout: ReturnType<typeof setTimeout> | undefined;
   onCleanup(() => {
     if (exitPointerLockTimeout !== undefined) {
       clearTimeout(exitPointerLockTimeout);
     }
+    if (syntheticClickTimeout !== undefined) {
+      clearTimeout(syntheticClickTimeout);
+    }
   });
+
+  // Solid lowercases `on*` props to the event name, so `onClickCapture` would
+  // never fire; listen in the capture phase explicitly (upstream `onClickCapture`).
+  // Tracks the browser's own click so `finish()` only synthesizes one when the
+  // native click was swallowed (e.g. retargeted by pointer lock).
+  createEffect(
+    () => scrubAreaElement(),
+    (element) => {
+      if (!element) {
+        return undefined;
+      }
+
+      function handleNativeClickCapture() {
+        nativeClickReceived = true;
+      }
+
+      element.addEventListener("click", handleNativeClickCapture, { capture: true });
+      return () => {
+        element.removeEventListener("click", handleNativeClickCapture, { capture: true });
+      };
+    },
+  );
 
   const [isTouchInput, setIsTouchInput] = createSignal(false);
   const [isPointerLockDenied, setIsPointerLockDenied] = createSignal(false);
@@ -163,17 +190,30 @@ export function NumberFieldScrubArea<T extends ValidComponent = "span">(props: N
               createGenericEventDetails(REASONS.scrub, event),
             );
 
-            // Manually dispatch a click event if no movement happened, since
-            // preventDefault on pointerdown prevents the browser click event.
+            // Dispatch a click if no movement happened. While the pointer is locked, the
+            // browser targets its click at the lock element instead of the scrub area.
+            // Without a lock (WebKit, or a denied request) the native click still arrives,
+            // and it is dispatched after pointerup in the same task, so wait one task and
+            // only synthesize the click if the native one didn't reach the scrub area.
             const target = pointerDownTarget;
             const inputEl = untrack(store.inputElement);
             if (!didMoveRef && target != null && inputEl) {
-              target.dispatchEvent(
-                new (ownerWindow(inputEl).MouseEvent)("click", {
-                  bubbles: true,
-                  cancelable: true,
-                }),
-              );
+              const MouseEventConstructor = ownerWindow(inputEl).MouseEvent;
+              if (syntheticClickTimeout !== undefined) {
+                clearTimeout(syntheticClickTimeout);
+              }
+              syntheticClickTimeout = setTimeout(() => {
+                syntheticClickTimeout = undefined;
+                if (nativeClickReceived) {
+                  return;
+                }
+                target.dispatchEvent(
+                  new MouseEventConstructor("click", {
+                    bubbles: true,
+                    cancelable: true,
+                  }),
+                );
+              }, 0);
             }
 
             didMoveRef = false;
@@ -288,6 +328,11 @@ export function NumberFieldScrubArea<T extends ValidComponent = "span">(props: N
 
     isScrubbingRef = true;
     didMoveRef = false;
+    nativeClickReceived = false;
+    if (syntheticClickTimeout !== undefined) {
+      clearTimeout(syntheticClickTimeout);
+      syntheticClickTimeout = undefined;
+    }
     pointerDownTarget = event.target;
     handleScrubbingChange(true, event.clientX, event.clientY);
 

@@ -35,7 +35,9 @@ export function ComboboxRoot<Value, Multiple extends boolean | undefined = false
 
 type ModeFromMultiple<Multiple extends boolean | undefined> = Multiple extends true ? "multiple" : "single";
 
-type ComboboxValueType<Value, Multiple extends boolean | undefined> = Multiple extends true ? Value[] : Value;
+type ComboboxInputValue<Value, Multiple extends boolean | undefined> = Multiple extends true ? readonly Value[] : Value;
+
+type ComboboxOutputValue<Value, Multiple extends boolean | undefined> = Multiple extends true ? Value[] : Value;
 
 export type ComboboxRootProps<Value, Multiple extends boolean | undefined = false, Item = Value> = Omit<
   AriaCombobox.Props<Value, ModeFromMultiple<Multiple>, Item>,
@@ -105,17 +107,19 @@ export type ComboboxRootProps<Value, Multiple extends boolean | undefined = fals
    *
    * To render a controlled combobox, use the `value` prop instead.
    */
-  defaultValue?: ComboboxValueType<Value, Multiple> | null | undefined;
+  defaultValue?: ComboboxInputValue<Value, Multiple> | null | undefined;
   /**
    * A ref to imperative actions.
    * - `unmount`: Manually unmounts the combobox.
-   * Call this after any externally controlled closing animation finishes.
+   * Call `preventUnmountOnClose()` in `onOpenChange` to manually control unmounting,
+   * then call this action after any externally controlled closing animation finishes.
+   * - `close`: Closes the combobox.
    */
   actionsRef?: Setter<ComboboxRoot.Actions | null> | undefined;
   /**
    * Event handler called when the popup is opened or closed.
    */
-  onOpenChange?: ((open: boolean, eventDetails: ComboboxRoot.ChangeEventDetails) => void) | undefined;
+  onOpenChange?: ((open: boolean, eventDetails: ComboboxRoot.OpenChangeEventDetails) => void) | undefined;
   /**
    * Event handler called when the input value changes.
    */
@@ -125,20 +129,22 @@ export type ComboboxRootProps<Value, Multiple extends boolean | undefined = fals
    * Receives the highlighted item value (or `undefined` if no item is highlighted) and event details with a `reason` property describing why the highlight changed.
    * The `reason` can be:
    * - `'keyboard'`: the highlight changed due to keyboard navigation.
-   * - `'pointer'`: the highlight changed due to pointer hovering.
-   * - `'none'`: the highlight changed programmatically.
+   * - `'pointer'`: the highlight changed due to pointer hovering. The event may be a `MouseEvent`
+   *   rather than a `PointerEvent`.
+   * - `'none'`: the highlight changed for another reason, such as typing, `autoHighlight`, the
+   *   item list changing, or the popup opening or closing.
    */
   onItemHighlighted?: ((highlightedValue: Value | undefined, eventDetails: ComboboxRoot.HighlightEventDetails) => void) | undefined;
   /**
    * The selected value of the combobox. Use when controlled.
    */
-  value?: ComboboxValueType<Value, Multiple> | null | undefined;
+  value?: ComboboxInputValue<Value, Multiple> | null | undefined;
   /**
    * Event handler called when the selected value of the combobox changes.
    */
   onValueChange?:
     | ((
-        value: ComboboxValueType<Value, Multiple> | (Multiple extends true ? never : null),
+        value: ComboboxOutputValue<Value, Multiple> | (Multiple extends true ? never : null),
         eventDetails: ComboboxRoot.ChangeEventDetails,
       ) => void)
     | undefined;
@@ -147,6 +153,8 @@ export type ComboboxRootProps<Value, Multiple extends boolean | undefined = fals
 export interface ComboboxRootState extends AriaCombobox.State {}
 
 export type ComboboxRootActions = AriaCombobox.Actions;
+
+export type ComboboxRootOpenChangeEventDetails = AriaCombobox.OpenChangeEventDetails;
 
 export type ComboboxRootChangeEventReason = AriaCombobox.ChangeEventReason;
 export type ComboboxRootChangeEventDetails = AriaCombobox.ChangeEventDetails;
@@ -160,6 +168,7 @@ export namespace ComboboxRoot {
   export type Actions = ComboboxRootActions;
   export type ChangeEventReason = ComboboxRootChangeEventReason;
   export type ChangeEventDetails = ComboboxRootChangeEventDetails;
+  export type OpenChangeEventDetails = ComboboxRootOpenChangeEventDetails;
   export type HighlightEventReason = ComboboxRootHighlightEventReason;
   export type HighlightEventDetails = ComboboxRootHighlightEventDetails;
 }

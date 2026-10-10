@@ -48,11 +48,26 @@ export function createBaseUIFloating(options: UseFloatingOptions & { rootContext
 function createFloatingWithStore(options: UseFloatingOptions, store: FloatingRootStore): UseFloatingReturn {
   const nodeId = untrack(() => options.nodeId);
   const externalTree = untrack(() => options.externalTree);
-  const placement = untrack(() => options.placement ?? "bottom");
+  const placementOption = untrack(() => options.placement ?? "bottom");
   const strategy = untrack(() => options.strategy ?? "absolute");
-  const middleware = untrack(() => options.middleware ?? []);
+  const middlewareOption = untrack(() => options.middleware ?? []);
   const platform = untrack(() => options.platform);
   const whileElementsMounted = untrack(() => options.whileElementsMounted ?? autoUpdate);
+
+  // Resolved live so anchor locks feed back into the requested placement. Read untracked:
+  // `update` runs from autoUpdate callbacks and effect applies, which must not subscribe.
+  function readPlacement(): Placement {
+    return untrack(() => (typeof placementOption === "function" ? (placementOption as () => Placement)() : placementOption));
+  }
+
+  function readMiddleware(): Array<Middleware> {
+    return untrack(() =>
+      (typeof middlewareOption === "function"
+        ? (middlewareOption as () => Array<Middleware | null | undefined>)()
+        : (middlewareOption as Array<Middleware | null | undefined>)
+      ).filter(Boolean),
+    ) as Array<Middleware>;
+  }
 
   const referenceElement = store.useState("referenceElement");
   const floatingElement = store.useState("floatingElement");
@@ -74,7 +89,7 @@ function createFloatingWithStore(options: UseFloatingOptions, store: FloatingRoo
 
   const [x, setX] = createSignal(0, { ownedWrite: true });
   const [y, setY] = createSignal(0, { ownedWrite: true });
-  const [currentPlacement, setCurrentPlacement] = createSignal<Placement>(placement, {
+  const [currentPlacement, setCurrentPlacement] = createSignal<Placement>(readPlacement(), {
     ownedWrite: true,
   });
   const [currentStrategy, setCurrentStrategy] = createSignal<Strategy>(strategy, {
@@ -100,9 +115,9 @@ function createFloatingWithStore(options: UseFloatingOptions, store: FloatingRoo
     }
 
     void computePosition(reference, floating, {
-      placement,
+      placement: readPlacement(),
       strategy,
-      middleware: middleware.filter(Boolean) as Array<Middleware>,
+      middleware: readMiddleware(),
       ...(platform !== undefined ? { platform } : {}),
     }).then(({ x: nextX, y: nextY, placement: nextPlacement, strategy: nextStrategy, middlewareData: nextMiddlewareData }) => {
       // Writes are microtask-batched by the runtime; no explicit batching needed.

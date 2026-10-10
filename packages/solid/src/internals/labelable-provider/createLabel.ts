@@ -36,8 +36,8 @@ export function createLabel(params: CreateLabelParameters = {}): Record<string, 
       return;
     }
 
-    const currentTarget = event.currentTarget as HTMLElement;
-    const controlElement = (currentTarget.ownerDocument ?? document).getElementById(controlId);
+    const root = (event.currentTarget as HTMLElement).getRootNode() as Document | ShadowRoot;
+    const controlElement = root.getElementById(controlId);
     if (isHTMLElement(controlElement)) {
       focusElementWithVisible(controlElement);
     }

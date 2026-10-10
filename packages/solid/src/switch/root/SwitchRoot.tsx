@@ -12,7 +12,7 @@ import { createButton } from "../../internals/create-button";
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, type RebaseUIChangeEventDetails, REASONS } from "../../internals/event-details";
 import { createRegisterFieldControl } from "../../internals/field-register-control";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createSetFieldFocused, useFieldRootContext } from "../../internals/field-root-context";
 import { useFormContext } from "../../internals/form-context";
 import { createAriaLabelledBy, createLabelableId, useLabelableContext } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
@@ -51,7 +51,6 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
     name: fieldName,
     setDirty,
     setFilled,
-    setFocused,
     setTouched,
     state: fieldState,
     validationMode,
@@ -79,6 +78,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
 
   let controlElement: HTMLElement | null = null;
   let inputElement: HTMLInputElement | null = null;
+  const setFocused = createSetFieldFocused(disabled, () => controlElement);
   const [labelSource, setLabelSource] = createSignal<HTMLInputElement | null>(null);
 
   const { getButtonProps, buttonRef } = createButton({ disabled, native: () => nativeButton });
@@ -114,6 +114,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
     labelSource,
     enableFallback: () => !nativeButton,
     labelSourceId: controlId,
+    ariaLabel: () => elementProps["aria-label"] as string | undefined,
   });
 
   createEffect(
@@ -177,9 +178,7 @@ export function SwitchRoot<T extends ValidComponent = "span">(props: SwitchRoot.
     }
 
     chainHandler("onFocus", () => {
-      if (!disabled()) {
-        setFocused(true);
-      }
+      setFocused(true);
     });
 
     chainHandler("onBlur", () => {

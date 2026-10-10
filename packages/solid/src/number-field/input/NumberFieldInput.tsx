@@ -15,7 +15,7 @@ import { createEffect, untrack } from "solid-js";
 
 import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { createRegisterFieldControl } from "../../internals/field-register-control";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createSetFieldFocused, useFieldRootContext } from "../../internals/field-root-context";
 import { useFormContext } from "../../internals/form-context";
 import { useLabelableContext } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
@@ -44,8 +44,10 @@ export function NumberFieldInput<T extends ValidComponent = "input">(props: Numb
   const { disabled, readOnly, required, value, inputValue } = state;
 
   const { clearErrors } = useFormContext();
-  const { validationMode, setTouched, setFocused, invalid, shouldValidateOnChange, validation } = useFieldRootContext();
+  const { validationMode, setTouched, invalid, shouldValidateOnChange, validation } = useFieldRootContext();
   const { labelId } = useLabelableContext();
+
+  const setFocused = createSetFieldFocused(disabled, () => store.inputElement());
 
   let blockRevalidation = false;
   let pendingCaret: number | null = null;

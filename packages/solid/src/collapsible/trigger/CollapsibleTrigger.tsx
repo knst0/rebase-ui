@@ -6,9 +6,16 @@ import { createButton } from "../../internals/create-button";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
+import { transitionStatusMapping } from "../../internals/transition-status";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import type { CollapsibleRootState } from "../root/CollapsibleRoot";
 import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
+
+const stateAttributesMapping: StateAttributesMapping<CollapsibleRootState> = {
+  ...triggerOpenStateMapping,
+  ...transitionStatusMapping,
+};
 
 /**
  * A button that opens and closes the collapsible panel.
@@ -26,7 +33,6 @@ export function CollapsibleTrigger<T extends ValidComponent = "button">(props: C
 
   const { getButtonProps, buttonRef } = createButton({
     disabled,
-    focusableWhenDisabled: true,
     native: () => local.nativeButton ?? true,
   });
 
@@ -51,7 +57,7 @@ export function CollapsibleTrigger<T extends ValidComponent = "button">(props: C
       as={as}
       state={rootContext.state}
       props={[triggerProps, elementProps, refProps, getButtonProps]}
-      stateAttributesMapping={triggerOpenStateMapping}
+      stateAttributesMapping={stateAttributesMapping}
     />
   );
 }

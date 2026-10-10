@@ -30,6 +30,7 @@ export type PopoverStoreState<Payload> = import("../../internals/popups/popupSto
 export type PopoverStoreContext = PopupStoreContext<PopoverRoot.ChangeEventDetails> & {
   readonly popupRef: { current: HTMLElement | null };
   readonly triggerFocusTargetRef: { current: HTMLElement | null };
+  readonly beforeTriggerFocusGuardRef: { current: HTMLElement | null };
   readonly beforeContentFocusGuardRef: { current: HTMLElement | null };
   readonly stickIfOpenTimeout: Timeout;
 };
@@ -37,7 +38,13 @@ export type PopoverStoreContext = PopupStoreContext<PopoverRoot.ChangeEventDetai
 const popoverStoreSelectors = {
   ...popupStoreSelectors,
   disabled: (state: PopoverStoreState<unknown>) => state.disabled,
-  instantType: (state: PopoverStoreState<unknown>) => state.instantType,
+  // `trigger-change` describes a popup moving between triggers, which only has
+  // meaning while it is open. Dropping it once closed keeps a late or stale
+  // restoration from marking a closing popup instant and skipping its exit
+  // transition, including on close paths that never reach `setOpen` — a
+  // controlled consumer committing `open={false}` goes straight through the prop.
+  instantType: (state: PopoverStoreState<unknown>) =>
+    state.instantType === "trigger-change" && !popupStoreSelectors.open(state) ? undefined : state.instantType,
   openMethod: (state: PopoverStoreState<unknown>) => state.openMethod,
   openChangeReason: (state: PopoverStoreState<unknown>) => state.openChangeReason,
   modal: (state: PopoverStoreState<unknown>) => state.modal,
@@ -165,6 +172,7 @@ function createInitialContext(triggerElements: PopupTriggerMap): PopoverStoreCon
     onOpenChange: undefined,
     onOpenChangeComplete: undefined,
     triggerFocusTargetRef: { current: null },
+    beforeTriggerFocusGuardRef: { current: null },
     beforeContentFocusGuardRef: { current: null },
     stickIfOpenTimeout: new Timeout(),
     triggerElements,

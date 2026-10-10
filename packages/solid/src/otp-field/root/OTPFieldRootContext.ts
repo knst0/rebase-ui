@@ -24,6 +24,7 @@ export interface OTPFieldRootContext {
   readOnly: Accessor<boolean>;
   required: Accessor<boolean>;
   normalizeValue: Accessor<((value: string) => string) | undefined>;
+  setFocused: (focused: boolean) => void;
   setValue: (value: string, details: OTPFieldRoot.ChangeEventDetails) => string | null;
   state: OTPFieldRootState;
   validationType: Accessor<OTPFieldRoot.ValidationType>;

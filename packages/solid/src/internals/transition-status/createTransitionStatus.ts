@@ -99,9 +99,10 @@ export function createTransitionStatus(
   );
 
   createRenderEffect(
-    () => ({ isOpen: open(), isReady: ready() }),
-    ({ isOpen, isReady }) => {
-      if (!isOpen || enableIdleState || !isReady) {
+    () => ({ isOpen: open(), isReady: ready(), status: transitionStatus() }),
+    ({ isOpen, isReady, status }) => {
+      // Nothing to clear when the element mounted open or reopened after its exit settled.
+      if (!isOpen || enableIdleState || !isReady || status === undefined) {
         return undefined;
       }
 

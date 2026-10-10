@@ -188,6 +188,7 @@ export function PopoverPopup<T extends ValidComponent = "div">(props: PopoverPop
       initialFocus={resolveInitialFocus}
       returnFocus={resolveFinalFocus}
       restoreFocus="popup"
+      getInsideElements={() => [store.context.beforeTriggerFocusGuardRef.current]}
       previousFocusableElement={(() => {
         const element = store.peek("activeTriggerElement") as Element | null;
         return isHTMLElement(element) ? element : undefined;

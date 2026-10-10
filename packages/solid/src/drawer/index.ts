@@ -19,3 +19,13 @@ export type * from "./root/DrawerRootContext";
 export type * from "./provider/DrawerProviderContext";
 export type * from "./viewport/DrawerViewportContext";
 export type * from "./virtual-keyboard-provider/DrawerVirtualKeyboardContext";
+
+export * as DrawerBackdropCssVariables from "./backdrop/DrawerBackdropCssVars";
+export * as DrawerBackdropDataAttributes from "./backdrop/DrawerBackdropDataAttributes";
+export * as DrawerPopupCssVariables from "./popup/DrawerPopupCssVars";
+export * as DrawerPopupDataAttributes from "./popup/DrawerPopupDataAttributes";
+export * as DrawerSwipeAreaDataAttributes from "./swipe-area/DrawerSwipeAreaDataAttributes";
+export * as DrawerViewportCssVariables from "./viewport/DrawerViewportCssVars";
+export * as DrawerViewportDataAttributes from "./viewport/DrawerViewportDataAttributes";
+export * as DrawerTriggerDataAttributes from "../dialog/trigger/DialogTriggerDataAttributes";
+export * as DrawerCloseDataAttributes from "../dialog/close/DialogCloseDataAttributes";

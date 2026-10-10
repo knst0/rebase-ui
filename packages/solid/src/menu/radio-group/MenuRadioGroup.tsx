@@ -6,17 +6,12 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import { stableCallback } from "../../internals/stableCallback";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { useMenuFilterImpl } from "../filter-root/MenuFilterContext";
 import { MenuGroupContext } from "../group/MenuGroupContext";
 import type { MenuRoot } from "../root/MenuRoot";
 import { MenuRadioGroupContext } from "./MenuRadioGroupContext";
 
-/**
- * Groups related radio items.
- * Renders a `<div>` element.
- *
- * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
- */
-export function MenuRadioGroup<T extends ValidComponent = "div">(props: MenuRadioGroup.Props<T>) {
+export function MenuRadioGroupPlain<T extends ValidComponent = "div">(props: MenuRadioGroup.Props<T>) {
   const [local, elementProps] = split(props as MenuRadioGroup.Props, { default: defaultProps }, [
     "as",
     "value",
@@ -80,6 +75,17 @@ export function MenuRadioGroup<T extends ValidComponent = "div">(props: MenuRadi
       </MenuRadioGroupContext>
     </MenuGroupContext>
   );
+}
+
+/**
+ * Groups related radio items.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
+ */
+export function MenuRadioGroup<T extends ValidComponent = "div">(props: MenuRadioGroup.Props<T>) {
+  const Group = useMenuFilterImpl()?.RadioGroup ?? MenuRadioGroupPlain;
+  return <Group {...(props as Record<string, unknown>)} />;
 }
 
 const defaultProps = Object.freeze({

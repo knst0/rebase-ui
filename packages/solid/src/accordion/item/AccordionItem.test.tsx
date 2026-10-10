@@ -36,7 +36,7 @@ describe("<Accordion.Item />", () => {
   it("falls back to the root disabled state", () => {
     renderItems({ disabled: true });
 
-    expect(screen.getAllByRole("button")[0]).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getAllByRole("button")[0]).toBeDisabled();
   });
 
   it("reflects the open state on the item and its header", () => {

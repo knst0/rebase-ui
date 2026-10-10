@@ -1,6 +1,8 @@
 import { type Accessor, onCleanup, untrack } from "solid-js";
 
 import { TransitionStatusDataAttributes } from "./transition-status";
+import { NOOP } from "./utils/empty";
+import { getFiniteAnimations } from "./utils/getFiniteAnimations";
 
 export type AnimationsFinishedRunner = (fnToExecute: () => void, signal?: AbortSignal | null) => void;
 
@@ -68,7 +70,7 @@ export function createAnimationsFinishedRunner(
         return;
       }
 
-      const animations = resolvedElement.getAnimations();
+      const animations = getFiniteAnimations(resolvedElement);
       if (animations.length === 0) {
         // Early exit: the element isn't animating, so there is nothing to wait for.
         // Cache the outcome until `open` changes instead of re-querying on every run.
@@ -78,7 +80,8 @@ export function createAnimationsFinishedRunner(
       }
       cachedHasAnimations = true;
 
-      Promise.all(animations.map((animation) => animation.finished)).then(
+      // Discard fulfilled Animation values so unfinished animations cannot retain their targets.
+      Promise.all(animations.map((animation) => animation.finished.then(NOOP))).then(
         () => {
           if (!signal?.aborted) {
             fnToExecute();
@@ -89,7 +92,7 @@ export function createAnimationsFinishedRunner(
             return;
           }
 
-          const currentAnimations = resolvedElement.getAnimations();
+          const currentAnimations = getFiniteAnimations(resolvedElement);
 
           if (currentAnimations.some((animation) => animation.pending || animation.playState !== "finished")) {
             exec();

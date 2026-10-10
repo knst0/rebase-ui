@@ -6,6 +6,7 @@ import type { DialogRoot as DialogRootNamespace } from "../../dialog/root/Dialog
 import { DialogRootContext, useDialogRootContext } from "../../dialog/root/DialogRootContext";
 import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { stableCallback } from "../../internals/stableCallback";
+import { NOOP } from "../../internals/utils/empty";
 import { ownerDocument } from "../../internals/utils/owner";
 import type { DrawerHandle } from "../handle";
 import { useDrawerProviderContext } from "../provider/DrawerProviderContext";
@@ -185,18 +186,34 @@ function DrawerProviderReporter() {
         return undefined;
       }
 
-      function handleCloseWatcher(event: Event) {
+      function handleCancel(event: Event) {
         if (!untrack(store.open)) {
           return;
         }
-        store.setOpen(false, createChangeEventDetails(REASONS.closeWatcher, event) as unknown as DialogRootNamespace.ChangeEventDetails);
+
+        const eventDetails: Parameters<typeof store.setOpen>[1] = createChangeEventDetails(REASONS.closeWatcher, event);
+
+        if (!event.cancelable) {
+          // The browser lets only one close request per user activation be prevented; any further
+          // request closes the drawer regardless, like a native `<dialog>`.
+          eventDetails.cancel = NOOP;
+        }
+
+        store.setOpen(false, eventDetails as unknown as DialogRootNamespace.ChangeEventDetails);
+
+        if (eventDetails.isCanceled) {
+          // Keeps this watcher active for the next close request.
+          event.preventDefault();
+        }
       }
 
       const closeWatcher = new CloseWatcherCtor();
-      (closeWatcher as unknown as EventTarget).addEventListener("close", handleCloseWatcher);
+      // The browser destroys the watcher before `close` fires, so the request is handled from
+      // `cancel`, where it can still be prevented.
+      (closeWatcher as unknown as EventTarget).addEventListener("cancel", handleCancel);
 
       return () => {
-        (closeWatcher as unknown as EventTarget).removeEventListener("close", handleCloseWatcher);
+        (closeWatcher as unknown as EventTarget).removeEventListener("cancel", handleCancel);
         closeWatcher.destroy();
       };
     },

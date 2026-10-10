@@ -27,6 +27,10 @@ export interface SliderRootContext {
   handleInputChange: (valueInput: number, index: number, event: KeyboardEvent | Event) => void;
   indicatorPosition: Accessor<(number | undefined)[]>;
   inset: Accessor<boolean>;
+  /**
+   * Whether the slider value is an array, including single-thumb arrays.
+   */
+  isArrayValue: Accessor<boolean>;
   labelId: Accessor<string | undefined>;
   rootLabelId: Accessor<string | undefined>;
   /**

@@ -1,11 +1,13 @@
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@solidjs/testing-library";
+import { fireEvent, render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { describeConformance } from "#test-utils";
 
+import * as Field from "../../field/index.parts";
+import { Form } from "../../form";
 import { SliderControl } from "../control/SliderControl";
 import { SliderIndicator } from "../indicator/SliderIndicator";
 import { SliderLabel } from "../label/SliderLabel";
@@ -198,5 +200,29 @@ describe("<Slider.Root />", () => {
     thumbs[0].focus();
     await user.keyboard("{ArrowRight}");
     expect(thumbs[0]).toHaveAttribute("aria-valuenow", "26");
+  });
+
+  it("validationMode=onBlur preserves single-element array values", async () => {
+    const validate = vi.fn(() => null);
+    render(() => (
+      <Form>
+        <Field.Root name="volume" validationMode="onBlur" validate={validate}>
+          <SliderRoot defaultValue={[25]}>
+            <SliderControl>
+              <SliderTrack>
+                <SliderIndicator />
+                <SliderThumb aria-label="Volume" />
+              </SliderTrack>
+            </SliderControl>
+          </SliderRoot>
+        </Field.Root>
+      </Form>
+    ));
+
+    fireEvent.blur(screen.getByRole("slider", { name: "Volume" }));
+    await Promise.resolve();
+    flush();
+
+    expect(validate).toHaveBeenCalledWith([25], expect.anything());
   });
 });

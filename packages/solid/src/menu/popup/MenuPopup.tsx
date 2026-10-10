@@ -14,11 +14,17 @@ import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete
 import { split } from "../../internals/split";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { useMenuFilterImpl, type MenuFilterParentHandoff } from "../filter-root/MenuFilterContext";
 import { useMenuPositionerContext } from "../positioner/MenuPositionerContext";
 import type { MenuRoot } from "../root/MenuRoot";
 import { useMenuRootContext } from "../root/MenuRootContext";
-import type { MenuInteractionType } from "../store/MenuStore";
+import type { MenuInteractionType, MenuStore } from "../store/MenuStore";
+import { useMenuSubmenuRootContext } from "../submenu-root/MenuSubmenuRootContext";
 import { menuPopupStateMapping } from "../utils/stateAttributesMapping";
+
+function useNoParentHandoff(): MenuFilterParentHandoff {
+  return { parentVirtualFocusRef: undefined, handleFocus: undefined };
+}
 
 /**
  * Determines the element to focus when the menu opens or closes.
@@ -60,21 +66,19 @@ function resolveFocusTarget(
   return target;
 }
 
-/**
- * A container for the menu items.
- * Renders a `<div>` element.
- *
- * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
- */
-export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Props<T>) {
+export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopup.Props<T>) {
   const [local, elementProps] = split(props as MenuPopup.Props, { default: defaultProps }, ["as", "initialFocus", "finalFocus"]);
 
   const as = untrack(() => local.as);
   const initialFocus = untrack(() => local.initialFocus);
   const finalFocus = untrack(() => local.finalFocus);
 
-  const { store, parent } = useMenuRootContext();
+  const { store, parent, orientation, virtualFocus } = useMenuRootContext();
   const positioner = useMenuPositionerContext();
+  const inheritedSubmenuRootContext = useMenuSubmenuRootContext();
+
+  // A dialog's menu can render under a submenu provider; only the actual submenu inherits it.
+  const submenuRootContext = parent.type === "menu" ? inheritedSubmenuRootContext : undefined;
 
   const isTopLevel = parent.type === undefined;
 
@@ -126,13 +130,35 @@ export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Pro
     },
   };
 
+  // Only a menu under a filter root bundles the handoff to a filterable parent. Whether one is
+  // above is fixed for a mounted popup.
+  const useParentHandoff = useMenuFilterImpl()?.useParentHandoff ?? useNoParentHandoff;
+  const { parentVirtualFocusRef, handleFocus } = useParentHandoff(
+    store as MenuStore<unknown>,
+    parent,
+    () => store.select("open") as boolean,
+    virtualFocus,
+  );
+
+  const listElement = () => store.select("listElement") as HTMLElement | null;
+
   const popupProps = {
     get id() {
       return store.select("floatingId") as string | undefined;
     },
-    role: "menu" as const,
+    // A rendered `Menu.List` carries the `menu` semantics instead.
+    get role() {
+      return (listElement() ? "presentation" : "menu") as "presentation" | "menu";
+    },
     ...FOCUSABLE_POPUP_PROPS,
+    get "aria-orientation"() {
+      // `menu` is implicitly vertical, so only the non-default value needs to be rendered.
+      return !listElement() && orientation === "horizontal" ? "horizontal" : undefined;
+    },
     get "aria-labelledby"() {
+      if (listElement()) {
+        return undefined;
+      }
       return ((store.select("activeTriggerElement") as Element | null)?.id ?? undefined) as string | undefined;
     },
     get style() {
@@ -160,6 +186,17 @@ export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Pro
   } as Record<string, any>;
 
   function resolveInitialFocus(openType: FloatingFocusManagerInteractionType) {
+    // One-shot reads: the focus manager calls this outside a tracking scope when opening.
+    const currentListElement = store.peek("listElement") as HTMLElement | null;
+    if (initialFocus === undefined && currentListElement && parent.type !== "menu") {
+      // A keyboard or screen reader open highlights an item, which list navigation focuses.
+      if (store.peek("activeIndex") !== null) {
+        return false;
+      }
+      // The list holds the `menu` role, so a pointer open lands focus on it rather than on the
+      // presentational popup.
+      return currentListElement;
+    }
     return resolveFocusTarget(
       initialFocus,
       ((openType || store.peek("openMethod") || "keyboard") as MenuInteractionType) ?? null,
@@ -178,6 +215,34 @@ export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Pro
 
   const activeTriggerElement = () => store.peek("activeTriggerElement") as HTMLElement | null;
 
+  // Internal defaults rather than consumer targets, so focus that already moved is respected.
+  const dynamicReturnFocus = submenuRootContext?.getReturnElement ?? parentVirtualFocusRef;
+
+  function resolveReturnFocus(closeType: FloatingFocusManagerInteractionType) {
+    if (finalFocus === undefined && dynamicReturnFocus) {
+      return typeof dynamicReturnFocus === "function"
+        ? (dynamicReturnFocus() ?? resolveFinalFocus(closeType))
+        : (dynamicReturnFocus.current ?? resolveFinalFocus(closeType));
+    }
+    return resolveFinalFocus(closeType);
+  }
+
+  // Chains the submenu navigation key handling and the parent handoff focus handling after the
+  // winning external handler, mirroring upstream `mergeProps`.
+  const submenuInteractionProps =
+    submenuRootContext?.onPopupKeyDown || handleFocus
+      ? (externalProps: Record<string, any>) => ({
+          onKeyDown: (event: KeyboardEvent) => {
+            externalProps.onKeyDown?.(event);
+            submenuRootContext?.onPopupKeyDown?.(event);
+          },
+          onFocus: (event: FocusEvent) => {
+            externalProps.onFocus?.(event);
+            handleFocus?.();
+          },
+        })
+      : undefined;
+
   return (
     <FloatingFocusManager
       context={floatingRootContext}
@@ -185,21 +250,39 @@ export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Pro
       modal={false}
       disabled={!(store.select("mounted") as boolean)}
       initialFocus={resolveInitialFocus}
-      returnFocus={resolveFinalFocus}
+      returnFocus={resolveReturnFocus}
+      explicitReturnFocus={finalFocus === undefined && dynamicReturnFocus ? false : undefined}
       restoreFocus
+      getInsideElements={isTopLevel ? () => [store.context.beforeTriggerFocusGuardRef.current] : undefined}
       externalTree={floatingTreeRoot}
       previousFocusableElement={activeTriggerElement() ?? undefined}
       nextFocusableElement={isTopLevel ? store.context.triggerFocusTargetRef : undefined}
-      beforeContentFocusGuardRef={isTopLevel ? store.context.beforeContentFocusGuardRef : undefined}
+      beforeContentFocusGuardRef={store.context.beforeContentFocusGuardRef}
     >
       <RenderElement
         as={as}
         state={state}
-        props={[popupProps, storePopupProps, elementProps, rootOwnerProps, refProps]}
+        props={[popupProps, storePopupProps, elementProps, submenuInteractionProps, rootOwnerProps, refProps]}
         stateAttributesMapping={menuPopupStateMapping}
+        // Children must instantiate once: resolving them tracked would re-run the
+        // children getter (recreating nested roots) whenever signals read during
+        // their creation change — e.g. opening a submenu would remount and
+        // instantly kill it. Render-prop children still stay reactive.
+        untrackChildren
       />
     </FloatingFocusManager>
   );
+}
+
+/**
+ * A container for the menu items.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
+ */
+export function MenuPopup<T extends ValidComponent = "div">(props: MenuPopup.Props<T>) {
+  const Popup = useMenuFilterImpl()?.Popup ?? MenuPopupPlain;
+  return <Popup {...(props as Record<string, unknown>)} />;
 }
 
 const defaultProps = Object.freeze({

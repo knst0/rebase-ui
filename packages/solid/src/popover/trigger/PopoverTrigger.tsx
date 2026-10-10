@@ -221,7 +221,7 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
 
   const showFocusGuards = () => {
     const liveStore = store();
-    return liveStore !== undefined && isMountedByThisTrigger() && !(untrack(() => liveStore.select("focusManagerModal")) as boolean);
+    return liveStore !== undefined && isOpenedByThisTrigger() && !(untrack(() => liveStore.select("focusManagerModal")) as boolean);
   };
 
   const state: PopoverTriggerState = {
@@ -290,10 +290,7 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
         return liveStore ? setupInteractions(liveStore) : null;
       })()}
       <Show when={showFocusGuards()}>
-        <FocusGuard
-          guardRef={getGuards()?.preFocusGuardRef as { current: HTMLSpanElement | null }}
-          onFocus={getGuards()?.handlePreFocusGuardFocus}
-        />
+        <FocusGuard guardRef={untrack(store)?.context.beforeTriggerFocusGuardRef} onFocus={getGuards()?.handlePreFocusGuardFocus} />
       </Show>
       <RenderElement
         as={as}
@@ -302,22 +299,7 @@ export function PopoverTrigger<Payload = unknown, T extends ValidComponent = "bu
         stateAttributesMapping={popoverTriggerStateMapping}
       />
       <Show when={showFocusGuards()}>
-        <FocusGuard
-          guardRef={
-            {
-              get current() {
-                return untrack(store)?.context.triggerFocusTargetRef.current ?? null;
-              },
-              set current(element: HTMLSpanElement | null) {
-                const liveStore = untrack(store);
-                if (liveStore) {
-                  liveStore.context.triggerFocusTargetRef.current = element;
-                }
-              },
-            } as { current: HTMLSpanElement | null }
-          }
-          onFocus={getGuards()?.handleFocusTargetFocus}
-        />
+        <FocusGuard guardRef={untrack(store)?.context.triggerFocusTargetRef} onFocus={getGuards()?.handleFocusTargetFocus} />
       </Show>
     </>
   );

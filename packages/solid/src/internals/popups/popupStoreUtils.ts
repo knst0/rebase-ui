@@ -473,6 +473,10 @@ export function trackOpenStateTransitions(
     ready: () => store.select("popupElement") != null,
   });
 
+  // Seed the Root-owned store before parts subscribe, matching the hook's initial mounted state.
+  // Otherwise, an initially open Root looks like a reopen until the layout effect syncs the store.
+  store.set("mounted", untrack(mounted));
+
   store.useSyncedValue("mounted", mounted);
   store.useSyncedValue("transitionStatus", transitionStatus);
 
@@ -486,6 +490,12 @@ export function trackOpenStateTransitions(
   );
 
   function forceUnmount() {
+    // Repeat `unmount()` calls after the popup already unmounted are no-ops: they must not
+    // wipe store state again or fire `onOpenChangeComplete` a second time.
+    if (!untrack(mounted)) {
+      return;
+    }
+
     setMounted(false);
     store.update({
       activeTriggerId: null,

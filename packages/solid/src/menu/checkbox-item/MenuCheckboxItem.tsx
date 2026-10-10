@@ -10,6 +10,7 @@ import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import { stableCallback } from "../../internals/stableCallback";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { useMenuFilterItem } from "../filter-root/MenuFilterContext";
 import { REGULAR_ITEM, useMenuItem, useMenuListItem } from "../item/useMenuItem";
 import type { MenuRoot } from "../root/MenuRoot";
 import { useMenuRootContext } from "../root/MenuRootContext";
@@ -37,7 +38,8 @@ export function MenuCheckboxItem<T extends ValidComponent = "div">(props: MenuCh
 
   const as = untrack(() => local.as);
 
-  const listItem = useMenuListItem(() => local.label);
+  const filterItem = useMenuFilterItem({ label: local.label });
+  const listItem = useMenuListItem(() => local.label, { enabled: filterItem.visible });
   const id = untrack(() => local.id) ?? createUniqueId();
 
   const { store } = useMenuRootContext();
@@ -110,7 +112,7 @@ export function MenuCheckboxItem<T extends ValidComponent = "div">(props: MenuCh
     });
   }
 
-  const ref = mergeRefs<HTMLElement | null>(buttonRef, itemRef, listItem.ref);
+  const ref = mergeRefs<HTMLElement | null>(buttonRef, itemRef, listItem.ref, filterItem.ref);
 
   return (
     <MenuCheckboxItemContext
@@ -129,7 +131,8 @@ export function MenuCheckboxItem<T extends ValidComponent = "div">(props: MenuCh
       <RenderElement
         as={as}
         state={state}
-        props={[storeItemProps, elementProps, getItemProps, getButtonProps, { ref }]}
+        enabled={filterItem.visible}
+        props={[storeItemProps, filterItem.props ?? {}, elementProps, getItemProps, getButtonProps, { ref }]}
         stateAttributesMapping={{ ...menuItemStateMapping, ...menuCheckableItemStateMapping }}
       />
     </MenuCheckboxItemContext>

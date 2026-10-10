@@ -215,4 +215,13 @@ const groups: ProduceGroupItem[] = [
 
 <Demo grouped />
 
+## Closing animations
+
+The popup unmounts automatically after its CSS closing animation finishes.
+
+To control unmounting with an external animation library, call `eventDetails.preventUnmountOnClose()` in `onOpenChange` when `open` is `false`.
+Then call the `unmount` action from `actionsRef` after the animation finishes.
+The opt-out applies to that close cycle and resets when the popup reopens.
+`onOpenChangeComplete(false)` fires when the popup unmounts.
+
 <ApiReference slug="select" />

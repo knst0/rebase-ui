@@ -3,7 +3,7 @@ import { onCleanup } from "solid-js";
 import { visuallyHidden } from "../utils/visuallyHidden";
 
 export interface FocusGuardProps {
-  guardRef?: { current: HTMLSpanElement | null } | undefined;
+  guardRef?: { current: HTMLElement | null } | undefined;
   onFocus?: ((event: FocusEvent) => void) | undefined;
 }
 

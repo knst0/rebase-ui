@@ -12,6 +12,7 @@ import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import { createTransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { getHighlightReason } from "../../internals/utils/getHighlightReason";
 import { useComboboxInputValueContext, useComboboxRootContext } from "../root/ComboboxRootContext";
 import * as ComboboxClearDataAttributes from "./ComboboxClearDataAttributes";
 
@@ -87,8 +88,7 @@ export function ComboboxClear<T extends ValidComponent = "button">(props: Combob
       return;
     }
 
-    const keyboardActive = store.context.keyboardActiveRef.current;
-    const type = keyboardActive ? REASONS.keyboard : REASONS.pointer;
+    const type = getHighlightReason(event);
 
     store.context.setInputValue("", createChangeEventDetails(REASONS.clearPress, event));
 
@@ -98,9 +98,14 @@ export function ComboboxClear<T extends ValidComponent = "button">(props: Combob
       store.context.setSelectedValue(Array.isArray(selectedValue) ? [] : null, createChangeEventDetails(REASONS.clearPress, event));
       // A distinct object shape: `update` iterates own keys, so passing an explicit
       // `selectedIndex: undefined` would overwrite the state instead of leaving it alone.
-      store.context.setIndices({ activeIndex: null, selectedIndex: null, type });
+      store.context.setIndices({
+        activeIndex: null,
+        selectedIndex: null,
+        type,
+        event,
+      });
     } else {
-      store.context.setIndices({ activeIndex: null, type });
+      store.context.setIndices({ activeIndex: null, type, event });
     }
 
     store.context.inputRef.current?.focus();

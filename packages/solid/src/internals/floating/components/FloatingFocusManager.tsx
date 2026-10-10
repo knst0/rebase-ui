@@ -6,6 +6,7 @@ import { type RebaseUIChangeEventDetails } from "../../event-details/createEvent
 import { createChangeEventDetails } from "../../event-details/createEventDetails";
 import { REASONS } from "../../event-details/reasons";
 import { ownerDocument, ownerWindow } from "../../utils/owner";
+import { platform } from "../../utils/platform";
 import { visuallyHidden } from "../../utils/visuallyHidden";
 import { type FloatingRootStore } from "../tree/FloatingRootStore";
 import { useFloatingTree } from "../tree/FloatingTree";
@@ -225,14 +226,9 @@ function createAnimationFrameHandle(): AnimationFrameHandle {
   };
 }
 
-// Approximation of `platform.engine.webkit` (`@base-ui/utils/platform`):
-// a WebKit engine that is not Chromium-based.
+// A WebKit engine that is not Chromium-based.
 function isWebkitEngine() {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
-  const userAgent = navigator.userAgent ?? "";
-  return /applewebkit/i.test(userAgent) && !/chrome|crios|chromium|edg/i.test(userAgent);
+  return platform.engine.webkit;
 }
 
 // VoiceOver's virtual cursor triggers focus only on focusable/role-button
@@ -320,6 +316,12 @@ export interface FloatingFocusManagerProps {
    * @default true
    */
   returnFocus?: FloatingFocusReturnFocus;
+  /**
+   * Whether `returnFocus` was explicitly provided. When true, focus returns to
+   * the resolved element even if focus already moved elsewhere, matching the
+   * behavior of a non-boolean `returnFocus` value.
+   */
+  explicitReturnFocus?: boolean | undefined;
   /**
    * Determines where focus should be restored if focus inside the floating
    * element is lost (such as due to the removal of the currently focused
@@ -857,13 +859,19 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
 
         const hadFocusInside = state.focusEl && contains(state.focusEl, activeElement(doc));
 
+        // Screen readers re-sync focus to their cursor right after a synthesized press. A focus
+        // that lands a frame later reads as a stray move and gets pulled back to the reference.
+        const openEvent = dataRef.current.openEvent;
+        const openedByVirtualPress = openEvent?.type === "mousedown" && isVirtualClick(openEvent as MouseEvent);
+
         // enqueueFocus returns a rAF-cancel function; we intentionally don't cancel this focus.
         void enqueueFocus(elToFocus, {
+          sync: openedByVirtualPress,
           preventScroll: elToFocus === state.focusEl || isPointerOpenInteraction(props.openInteractionType),
           shouldFocus() {
-            // This focus is queued on the next animation frame. If the floating element has closed
-            // before it runs — e.g. tabbing out of a kept-mounted popup — don't pull focus back
-            // onto the initial element after it has legitimately moved elsewhere.
+            // If the floating element has closed before this runs — e.g. tabbing out of a
+            // kept-mounted popup — don't pull focus back onto the initial element after it has
+            // legitimately moved elsewhere.
             // `peek` reads the synchronous snapshot, which is current even
             // immediately after a store write in the same tick.
             if (!store.peek("open")) {
@@ -885,17 +893,55 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
     },
   );
 
+  // A return-focus queued by the effect cleanup. If the effect re-arms, the cleanup
+  // was not a close, so the queued return is cancelled. Unlike React (which skips
+  // the cleanup/re-run cycle when dependency *values* are unchanged), a split-effect
+  // apply re-runs on every compute evaluation — e.g. `openChangeReason` flipping
+  // while the projected `disabled` stays false. A same-values re-arm is a scheduler
+  // artifact of the close in progress: the duplicate decision is dropped but the
+  // suppression the close requested is kept for the unmount cleanup. A real re-arm
+  // means the popup stayed open, so stale suppression is cleared like upstream.
+  let pendingReturnFocusJob: { cancelled: boolean } | null = null;
+  let lastReturnFocusState:
+    | { disabled: boolean; floating: Element | null; focusEl: Element | null; domReference: Element | null }
+    | undefined;
+  let lastProjectionEqual = false;
   // Track return focus targets and restore focus on unmount/close.
   createEffect(
-    () => ({
-      disabled: props.disabled ?? false,
-      floating: floating(),
-      focusEl: getFloatingFocusEl(),
-      domReference: domReference(),
-    }),
+    () => {
+      const next = {
+        disabled: props.disabled ?? false,
+        floating: floating(),
+        focusEl: getFloatingFocusEl(),
+        domReference: domReference(),
+      };
+      const last = lastReturnFocusState;
+      if (
+        last !== undefined &&
+        last.disabled === next.disabled &&
+        last.floating === next.floating &&
+        last.focusEl === next.focusEl &&
+        last.domReference === next.domReference
+      ) {
+        lastProjectionEqual = true;
+        return last;
+      }
+      lastProjectionEqual = false;
+      lastReturnFocusState = next;
+      return next;
+    },
     (state) => {
       if (state.disabled || !state.focusEl) {
+        pendingReturnFocusJob = null;
         return undefined;
+      }
+
+      if (pendingReturnFocusJob) {
+        pendingReturnFocusJob.cancelled = true;
+        pendingReturnFocusJob = null;
+        if (!lastProjectionEqual) {
+          preventReturnFocus = false;
+        }
       }
 
       const doc = ownerDocument(state.focusEl);
@@ -912,7 +958,11 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
           closeType = getEventType(details.nativeEvent, lastInteractionType);
         }
 
-        if (details.reason === REASONS.triggerHover && details.nativeEvent.type === "mouseleave") {
+        // Focus guards transfer focus themselves; other close handlers may still need return focus.
+        if (
+          (details.reason === REASONS.focusOut && details.triggerElement?.hasAttribute(focusGuardAttribute)) ||
+          (details.reason === REASONS.triggerHover && details.nativeEvent.type === "mouseleave")
+        ) {
           preventReturnFocus = true;
         }
 
@@ -996,13 +1046,21 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
         const returnFocusValue = props.returnFocus ?? true;
         const returnElement = getReturnElement(closeType);
 
+        const job = { cancelled: false };
+        pendingReturnFocusJob = job;
+
         queueMicrotask(() => {
+          if (pendingReturnFocusJob === job) {
+            pendingReturnFocusJob = null;
+          }
           // `returnElement` if it is tabbable, otherwise its first tabbable child,
           // otherwise `returnElement` itself (which may not be tabbable at all).
           const tabbableReturnElement = getFirstTabbableElement(returnElement);
-          const hasExplicitReturnFocus = typeof returnFocusValue !== "boolean";
+          // Read in the cleanup on purpose: the latest `explicitReturnFocus` decides.
+          const hasExplicitReturnFocus = untrack(() => props.explicitReturnFocus) ?? typeof returnFocusValue !== "boolean";
 
           if (
+            !job.cancelled &&
             returnFocusValue &&
             !preventReturnFocus &&
             isHTMLElement(tabbableReturnElement) &&
@@ -1022,7 +1080,12 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
             tabbableReturnElement.focus(focusOptions);
           }
 
-          preventReturnFocus = false;
+          // A return cancelled by a same-values re-arm belongs to the close in
+          // progress: its suppression is kept for the unmount cleanup. Any other
+          // return clears suppression before the next close.
+          if (!job.cancelled) {
+            preventReturnFocus = false;
+          }
         });
       };
     },

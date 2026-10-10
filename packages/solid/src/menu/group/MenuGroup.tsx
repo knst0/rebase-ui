@@ -4,15 +4,10 @@ import { createSignal, untrack } from "solid-js";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { useMenuFilterImpl } from "../filter-root/MenuFilterContext";
 import { MenuGroupContext } from "./MenuGroupContext";
 
-/**
- * Groups related menu items with the corresponding label.
- * Renders a `<div>` element.
- *
- * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
- */
-export function MenuGroup<T extends ValidComponent = "div">(props: MenuGroup.Props<T>) {
+export function MenuGroupPlain<T extends ValidComponent = "div">(props: MenuGroup.Props<T>) {
   const [local, elementProps] = split(props as MenuGroup.Props, { default: defaultProps }, ["as"]);
 
   const as = untrack(() => local.as);
@@ -31,6 +26,17 @@ export function MenuGroup<T extends ValidComponent = "div">(props: MenuGroup.Pro
       <RenderElement as={as} props={[groupProps, elementProps]} />
     </MenuGroupContext>
   );
+}
+
+/**
+ * Groups related menu items with the corresponding label.
+ * Renders a `<div>` element.
+ *
+ * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
+ */
+export function MenuGroup<T extends ValidComponent = "div">(props: MenuGroup.Props<T>) {
+  const Group = useMenuFilterImpl()?.Group ?? MenuGroupPlain;
+  return <Group {...(props as Record<string, unknown>)} />;
 }
 
 const defaultProps = Object.freeze({

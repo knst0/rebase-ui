@@ -1,9 +1,14 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
+import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
+import { ComboboxChip } from "../chip/ComboboxChip";
+import { ComboboxChips } from "../chips/ComboboxChips";
+import { ComboboxRoot } from "../root/ComboboxRoot";
 import { renderWithCombobox } from "../test-utils";
+import { ComboboxValue } from "../value/ComboboxValue";
 import { ComboboxInput } from "./ComboboxInput";
 
 function renderInput(inputProps: Record<string, unknown> = {}, harnessOptions: Record<string, unknown> = {}) {
@@ -187,5 +192,170 @@ describe("<Combobox.Input />", () => {
       render(() => <ComboboxInput />);
       flush();
     }).toThrow(/ComboboxRootContext is missing/);
+  });
+
+  it("clears the chip highlight when focus returns to the input", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <ComboboxRoot multiple defaultValue={["apple", "banana", "cherry"]}>
+        <ComboboxChips>
+          <ComboboxChip data-testid="chip-apple">apple</ComboboxChip>
+          <ComboboxChip data-testid="chip-banana">banana</ComboboxChip>
+          <ComboboxChip data-testid="chip-cherry">cherry</ComboboxChip>
+          <ComboboxInput data-testid="input" />
+        </ComboboxChips>
+      </ComboboxRoot>
+    ));
+    flush();
+
+    const input = screen.getByTestId("input");
+
+    input.focus();
+    await user.keyboard("{ArrowLeft}{ArrowLeft}");
+    expect(screen.getByTestId("chip-banana")).toHaveFocus();
+
+    input.focus();
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByTestId("chip-cherry")).toHaveFocus();
+  });
+
+  it("removes the last chip after clicking from a chip back to the input", async () => {
+    const handleValueChange = vi.fn();
+    const user = userEvent.setup();
+    render(() => (
+      <ComboboxRoot multiple openOnInputClick={false} defaultValue={["apple", "banana", "cherry"]} onValueChange={handleValueChange}>
+        <ComboboxChips>
+          <ComboboxChip data-testid="chip-apple">apple</ComboboxChip>
+          <ComboboxChip data-testid="chip-banana">banana</ComboboxChip>
+          <ComboboxChip data-testid="chip-cherry">cherry</ComboboxChip>
+          <ComboboxInput data-testid="input" />
+        </ComboboxChips>
+      </ComboboxRoot>
+    ));
+    flush();
+
+    const input = screen.getByTestId("input");
+
+    await user.click(input);
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByTestId("chip-cherry")).toHaveFocus();
+
+    await user.click(input);
+    expect(input).toHaveFocus();
+
+    await user.keyboard("{Backspace}");
+
+    expect(handleValueChange.mock.calls.length).toBe(1);
+    expect(handleValueChange.mock.calls[0][0]).toEqual(["apple", "banana"]);
+  });
+
+  it("removes the last chip after leaving a chip and tabbing back to the input", async () => {
+    const handleValueChange = vi.fn();
+    const user = userEvent.setup();
+    render(() => (
+      <div>
+        <button type="button" data-testid="outside">
+          outside
+        </button>
+        <ComboboxRoot multiple defaultValue={["apple", "banana", "cherry"]} onValueChange={handleValueChange}>
+          <ComboboxChips>
+            <ComboboxChip data-testid="chip-apple">apple</ComboboxChip>
+            <ComboboxChip data-testid="chip-banana">banana</ComboboxChip>
+            <ComboboxChip data-testid="chip-cherry">cherry</ComboboxChip>
+            <ComboboxInput data-testid="input" />
+          </ComboboxChips>
+        </ComboboxRoot>
+      </div>
+    ));
+    flush();
+
+    const input = screen.getByTestId("input");
+    const outside = screen.getByTestId("outside");
+
+    await user.click(outside);
+    await user.tab();
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByTestId("chip-cherry")).toHaveFocus();
+
+    await user.click(outside);
+    expect(outside).toHaveFocus();
+
+    await user.tab();
+    expect(input).toHaveFocus();
+
+    await user.keyboard("{Backspace}");
+
+    expect(handleValueChange.mock.calls.length).toBe(1);
+    expect(handleValueChange.mock.calls[0][0]).toEqual(["apple", "banana"]);
+  });
+
+  it("removes the last chip after tabbing from a chip back to the input", async () => {
+    const handleValueChange = vi.fn();
+    const user = userEvent.setup();
+    render(() => (
+      <ComboboxRoot multiple open={false} defaultValue={["apple", "banana", "cherry"]} onValueChange={handleValueChange}>
+        <ComboboxChips>
+          <ComboboxValue>
+            {(value) => (
+              <>
+                {(value() as Array<string>).map((item) => (
+                  <ComboboxChip data-testid={item}>{item}</ComboboxChip>
+                ))}
+                <ComboboxInput data-testid="input" />
+              </>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+      </ComboboxRoot>
+    ));
+    flush();
+
+    const input = screen.getByTestId("input");
+
+    await user.click(input);
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByTestId("cherry")).toHaveFocus();
+
+    await user.tab();
+    expect(input).toHaveFocus();
+
+    await user.keyboard("{Backspace}");
+
+    expect(handleValueChange.mock.calls.length).toBe(1);
+    expect(handleValueChange.mock.calls[0][0]).toEqual(["apple", "banana"]);
+  });
+
+  it("focuses the last chip with ArrowLeft after tabbing from a chip back to the input", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <ComboboxRoot multiple open={false} defaultValue={["apple", "banana", "cherry"]}>
+        <ComboboxChips>
+          <ComboboxValue>
+            {(value) => (
+              <>
+                {(value() as Array<string>).map((item) => (
+                  <ComboboxChip data-testid={item}>{item}</ComboboxChip>
+                ))}
+                <ComboboxInput data-testid="input" />
+              </>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+      </ComboboxRoot>
+    ));
+    flush();
+
+    const input = screen.getByTestId("input");
+    const lastChip = screen.getByTestId("cherry");
+
+    await user.click(input);
+    await user.keyboard("{ArrowLeft}");
+    expect(lastChip).toHaveFocus();
+
+    await user.tab();
+    expect(input).toHaveFocus();
+
+    await user.keyboard("{ArrowLeft}");
+    expect(lastChip).toHaveFocus();
   });
 });

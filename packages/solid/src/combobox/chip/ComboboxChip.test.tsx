@@ -4,9 +4,15 @@ import type { JSX } from "@solidjs/web";
 import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
+import { nextFrames } from "#test-utils";
+
 import { ComboboxChips } from "../chips/ComboboxChips";
 import { ComboboxInput } from "../input/ComboboxInput";
+import { ComboboxPopup } from "../popup/ComboboxPopup";
+import { ComboboxPortal } from "../portal/ComboboxPortal";
+import { ComboboxPositioner } from "../positioner/ComboboxPositioner";
 import { ComboboxRoot } from "../root/ComboboxRoot";
+import { ComboboxValue } from "../value/ComboboxValue";
 import { ComboboxChip } from "./ComboboxChip";
 
 function renderChips(rootProps: Record<string, unknown> = {}, chips: () => JSX.Element) {
@@ -204,5 +210,71 @@ describe("<Combobox.Chip />", () => {
     fireEvent.keyDown(chipApple, { key: "Delete" });
     flush();
     expect(handleValueChange).not.toHaveBeenCalled();
+  });
+
+  it("focuses the next chip after removing a chip rendered from the value", () => {
+    render(() => (
+      <ComboboxRoot multiple defaultValue={["apple", "banana", "cherry"]}>
+        <ComboboxChips>
+          <ComboboxValue>
+            {(value) => (
+              <>
+                {(value() as Array<string>).map((item) => (
+                  <ComboboxChip data-testid={`chip-${item}`}>{item}</ComboboxChip>
+                ))}
+              </>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+        <ComboboxInput data-testid="input" />
+      </ComboboxRoot>
+    ));
+    flush();
+
+    const chipBanana = screen.getByTestId("chip-banana");
+    chipBanana.focus();
+    fireEvent.keyDown(chipBanana, { key: "Delete" });
+    flush();
+
+    expect(screen.queryByTestId("chip-banana")).toBe(null);
+    expect(screen.getByTestId("chip-cherry")).toHaveFocus();
+  });
+
+  it("focuses a conditional input when reopening from a chip with ArrowDown and ArrowUp", async () => {
+    render(() => (
+      <ComboboxRoot multiple defaultValue={["apple", "banana"]}>
+        <ComboboxChips>
+          <ComboboxChip data-testid="chip-apple">apple</ComboboxChip>
+          <ComboboxChip data-testid="chip-banana">banana</ComboboxChip>
+        </ComboboxChips>
+        <ComboboxPortal>
+          <ComboboxPositioner>
+            <ComboboxPopup>
+              <ComboboxInput data-testid="input" />
+            </ComboboxPopup>
+          </ComboboxPositioner>
+        </ComboboxPortal>
+      </ComboboxRoot>
+    ));
+    flush();
+
+    const chipApple = screen.getByTestId("chip-apple");
+    chipApple.focus();
+    expect(screen.queryByTestId("input")).toBe(null);
+
+    fireEvent.keyDown(chipApple, { key: "ArrowDown" });
+    flush();
+    expect(screen.getByTestId("input")).toHaveFocus();
+
+    fireEvent.keyDown(screen.getByTestId("input"), { key: "Escape" });
+    flush();
+    await nextFrames();
+    expect(screen.queryByTestId("input")).toBe(null);
+
+    const chipBanana = screen.getByTestId("chip-banana");
+    chipBanana.focus();
+    fireEvent.keyDown(chipBanana, { key: "ArrowUp" });
+    flush();
+    expect(screen.getByTestId("input")).toHaveFocus();
   });
 });

@@ -8,6 +8,7 @@ import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { useMenuFilterItem } from "../filter-root/MenuFilterContext";
 import { REGULAR_ITEM, useMenuItem, useMenuListItem } from "../item/useMenuItem";
 import { useMenuRadioGroupContext } from "../radio-group/MenuRadioGroupContext";
 import { useMenuRootContext } from "../root/MenuRootContext";
@@ -33,7 +34,8 @@ export function MenuRadioItem<T extends ValidComponent = "div">(props: MenuRadio
 
   const as = untrack(() => local.as);
 
-  const listItem = useMenuListItem(() => local.label);
+  const filterItem = useMenuFilterItem({ label: local.label });
+  const listItem = useMenuListItem(() => local.label, { enabled: filterItem.visible });
   const id = untrack(() => local.id) ?? createUniqueId();
 
   const { store } = useMenuRootContext();
@@ -100,7 +102,7 @@ export function MenuRadioItem<T extends ValidComponent = "div">(props: MenuRadio
     });
   }
 
-  const ref = mergeRefs<HTMLElement | null>(buttonRef, itemRef, listItem.ref);
+  const ref = mergeRefs<HTMLElement | null>(buttonRef, itemRef, listItem.ref, filterItem.ref);
 
   return (
     <MenuRadioItemContext
@@ -119,7 +121,8 @@ export function MenuRadioItem<T extends ValidComponent = "div">(props: MenuRadio
       <RenderElement
         as={as}
         state={state}
-        props={[storeItemProps, elementProps, getItemProps, getButtonProps, { ref }]}
+        enabled={filterItem.visible}
+        props={[storeItemProps, filterItem.props ?? {}, elementProps, getItemProps, getButtonProps, { ref }]}
         stateAttributesMapping={{ ...menuItemStateMapping, ...menuCheckableItemStateMapping }}
       />
     </MenuRadioItemContext>

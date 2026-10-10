@@ -18,6 +18,12 @@ export interface FieldRootContext {
   setDirty: (value: boolean) => void;
   setFilled: (value: boolean) => void;
   setFocused: (value: boolean) => void;
+  /**
+   * Identifies the control the focused state belongs to, so that disabling or unmounting a
+   * different control in the same field can't clear it. Written through `createSetFieldFocused`.
+   */
+  getFocusOwner: () => unknown;
+  setFocusOwner: (owner: unknown) => void;
   validationMode: Form.ValidationMode;
   shouldValidateOnChange: () => boolean;
   state: FieldRootState;
@@ -47,6 +53,8 @@ export const DEFAULT_FIELD_ROOT_CONTEXT: FieldRootContext = {
   setDirty: NOOP,
   setFilled: NOOP,
   setFocused: NOOP,
+  getFocusOwner: () => undefined,
+  setFocusOwner: NOOP,
   validationMode: "onSubmit",
   shouldValidateOnChange: () => false,
   state: DEFAULT_FIELD_ROOT_STATE,

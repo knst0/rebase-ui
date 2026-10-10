@@ -105,4 +105,19 @@ describe("<Radio.Root />", () => {
 
     expect(screen.getByTestId("standalone")).toHaveAttribute("aria-checked", "true");
   });
+
+  it("prefers `aria-label` over an associated label", async () => {
+    await render(() => (
+      <RadioGroup>
+        <label>
+          <RadioRoot value="a" aria-label="Apple" />
+          Apple
+        </label>
+      </RadioGroup>
+    ));
+
+    const radio = screen.getByRole("radio");
+    expect(radio).not.toHaveAttribute("aria-labelledby");
+    expect(radio).toHaveAccessibleName("Apple");
+  });
 });

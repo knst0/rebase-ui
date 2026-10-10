@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { createEffect, createSignal, untrack } from "solid-js";
+import { createEffect, untrack } from "solid-js";
 
 import { CompositeListContext, createCompositeList } from "../../internals/composite";
 import { mergeRefs } from "../../internals/mergeRefs";
@@ -23,24 +23,9 @@ export function ComboboxChips<T extends ValidComponent = "div">(props: ComboboxC
 
   const store = useComboboxRootContext();
 
-  const [highlightedChipIndex, setHighlightedChipIndex] = createSignal<number | undefined>(undefined);
-
   const chipsRef: { current: Array<HTMLElement | null> } = { current: [] };
 
   const compositeList = createCompositeList();
-
-  createEffect(
-    () => store.select("open"),
-    (open) => {
-      // The apply callback is untracked: read nothing reactive here. Writing
-      // the same value is a no-op, so the `!== undefined` guard can go — the
-      // setter already skips identical values.
-      if (open) {
-        setHighlightedChipIndex(undefined);
-      }
-      return undefined;
-    },
-  );
 
   // Keep the imperative chips array in registration order so chips can move
   // focus between each other without reading reactive state in handlers.
@@ -71,8 +56,6 @@ export function ComboboxChips<T extends ValidComponent = "div">(props: ComboboxC
   });
 
   const contextValue: ComboboxChipsContext = {
-    highlightedChipIndex,
-    setHighlightedChipIndex,
     chipsRef,
   };
 

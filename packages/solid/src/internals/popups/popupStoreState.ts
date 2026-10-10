@@ -86,7 +86,7 @@ export interface PopupStoreState<Payload> {
 
 export function createInitialPopupStoreState<Payload>(
   triggerElements: PopupTriggerMap,
-  floatingId?: string | undefined,
+  floatingId?: string,
   nested = false,
 ): PopupStoreState<Payload> {
   return {
@@ -172,7 +172,9 @@ function triggerOwnsOpenPopupOrIsOnlyTrigger(state: S, triggerId: string | undef
 export const popupStoreSelectors = {
   open: openSelector,
   mounted: (state: S) => state.mounted,
-  transitionStatus: (state: S) => state.transitionStatus,
+  // `open` is written synchronously on an open change; `mounted`/`transitionStatus` sync in a
+  // layout effect. Match useTransitionStatus so a retained popup does not miss its starting phase.
+  transitionStatus: (state: S) => (openSelector(state) && !state.mounted ? "starting" : state.transitionStatus),
   floatingRootContext: (state: S) => state.floatingRootContext,
   floatingId: (state: S) => state.floatingId,
   triggerCount: (state: S) => state.triggerCount,

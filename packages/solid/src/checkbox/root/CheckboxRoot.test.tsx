@@ -55,4 +55,116 @@ describe("<Checkbox.Root /> native state", () => {
     flush();
     expect(control).not.toHaveAttribute("aria-invalid", "true");
   });
+
+  it("prefers `aria-label` over an associated label", async () => {
+    await render(() => (
+      <>
+        <label>
+          <CheckboxRoot aria-label="lease.pdf" />
+          lease.pdf
+        </label>
+        <Field.Root>
+          <Field.Label>
+            <CheckboxRoot aria-label="notes.txt" />
+            notes.txt
+          </Field.Label>
+        </Field.Root>
+      </>
+    ));
+
+    const [nativeLabelled, fieldLabelled] = screen.getAllByRole("checkbox");
+    expect(nativeLabelled).not.toHaveAttribute("aria-labelledby");
+    expect(nativeLabelled).toHaveAccessibleName("lease.pdf");
+    expect(fieldLabelled).not.toHaveAttribute("aria-labelledby");
+    expect(fieldLabelled).toHaveAccessibleName("notes.txt");
+  });
+
+  it.each(["", " ", "\n\t "] as const)("ignores a blank `aria-label` (%j)", async (ariaLabel) => {
+    await render(() => (
+      <>
+        <label>
+          <CheckboxRoot aria-label={ariaLabel} />
+          Native label
+        </label>
+        <Field.Root>
+          <Field.Label>
+            <CheckboxRoot aria-label={ariaLabel} />
+            Field label
+          </Field.Label>
+        </Field.Root>
+      </>
+    ));
+
+    const [nativeLabelled, fieldLabelled] = screen.getAllByRole("checkbox");
+    expect(nativeLabelled).toHaveAccessibleName("Native label");
+    expect(fieldLabelled).toHaveAccessibleName("Field label");
+  });
+
+  describe("[data-focused] without a blur event", () => {
+    it("is removed when the focused checkbox becomes disabled", async () => {
+      const [disabled, setDisabled] = createSignal(false);
+      await render(() => (
+        <Field.Root data-testid="root">
+          <CheckboxRoot data-testid="first" disabled={disabled()} />
+        </Field.Root>
+      ));
+
+      const button = screen.getByTestId("first") as HTMLElement;
+      button.focus();
+      flush();
+
+      expect(screen.getByTestId("root")).toHaveAttribute("data-focused", "");
+
+      setDisabled(true);
+      flush();
+
+      expect(screen.getByTestId("root")).not.toHaveAttribute("data-focused");
+      expect(button).not.toHaveAttribute("data-focused");
+    });
+
+    it("is removed when the focused checkbox unmounts", async () => {
+      const [mounted, setMounted] = createSignal(true);
+      await render(() => <Field.Root data-testid="root">{mounted() ? <CheckboxRoot data-testid="first" /> : null}</Field.Root>);
+
+      (screen.getByTestId("first") as HTMLElement).focus();
+      flush();
+
+      expect(screen.getByTestId("root")).toHaveAttribute("data-focused", "");
+
+      setMounted(false);
+      flush();
+
+      expect(screen.getByTestId("root")).not.toHaveAttribute("data-focused");
+    });
+  });
+
+  it("updates the accessible name when `aria-label` is added, cleared, or removed", async () => {
+    const [ariaLabel, setAriaLabel] = createSignal<string | undefined>(undefined);
+    await render(() => (
+      <label>
+        <CheckboxRoot aria-label={ariaLabel()} />
+        Associated label
+      </label>
+    ));
+
+    const checkbox = screen.getByRole("checkbox");
+    expect(checkbox).toHaveAccessibleName("Associated label");
+
+    setAriaLabel("Custom name");
+    flush();
+    expect(checkbox).toHaveAccessibleName("Custom name");
+    expect(checkbox).not.toHaveAttribute("aria-labelledby");
+
+    setAriaLabel(" \n\t ");
+    flush();
+    expect(checkbox).toHaveAccessibleName("Associated label");
+
+    setAriaLabel("Custom name");
+    flush();
+    expect(checkbox).toHaveAccessibleName("Custom name");
+
+    setAriaLabel(undefined);
+    flush();
+    expect(checkbox).toHaveAccessibleName("Associated label");
+  });
 });

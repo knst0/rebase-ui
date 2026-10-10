@@ -1,14 +1,16 @@
 import type { ValidComponent } from "@solidjs/web";
-import { createEffect, createMemo, untrack } from "solid-js";
+import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 
 import { useCompositeListItem } from "../../internals/composite/list/useCompositeListItem";
 import { createChangeEventDetails, createGenericEventDetails, REASONS } from "../../internals/event-details";
+import { createSetFieldFocused } from "../../internals/field-root-context/createSetFieldFocused";
 import { stopEvent } from "../../internals/floating/utils/event";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { platform } from "../../internals/utils/platform";
 import type { OTPFieldRootState } from "../root/OTPFieldRoot";
 import { useOTPFieldRootContext } from "../root/OTPFieldRootContext";
 import { normalizeOTPValueWithDetails, removeOTPCharacter, replaceOTPValue } from "../utils/otp";
@@ -35,6 +37,23 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
 
   const { ref: listItemRef, index } = useCompositeListItem();
   let inputElement: HTMLInputElement | null = null;
+  const setFocused = createSetFieldFocused(context.disabled, () => inputElement, context.setFocused);
+
+  // While an IME composition is active, Safari exposes the in-progress text through `onInput`
+  // as an accumulating string (`d`, then `dd`, then `ddd`). Committing those intermediate values
+  // would treat them as bulk input and fill too many slots, so the text is only buffered here
+  // and committed once on `compositionend`.
+  // Solid 2.0 batches signal writes (reads only see them after a flush), but composition
+  // handlers must observe each other's updates in the same tick, so the synchronous
+  // snapshot below is the source of truth in handlers and the signal only mirrors it
+  // for the reactive `value` prop.
+  let composingSnapshot: string | null = null;
+  const [composingValue, setComposingValue] = createSignal<string | null>(null);
+
+  function setComposing(next: string | null) {
+    composingSnapshot = next;
+    setComposingValue(next);
+  }
 
   const slotValue = createMemo(() => context.value()[index()] ?? "");
   const slotAriaLabel = () => local["aria-label"];
@@ -71,6 +90,74 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
     },
   );
 
+  function commitValue(
+    rawValue: string,
+    reason: typeof REASONS.inputChange | typeof REASONS.inputPaste,
+    event: Event & { currentTarget: HTMLInputElement },
+  ) {
+    const slotIndex = index();
+    const [nextDigits, didRejectCharacters] = normalizeOTPValueWithDetails(
+      rawValue,
+      context.length(),
+      context.validationType(),
+      context.normalizeValue(),
+    );
+
+    if (didRejectCharacters) {
+      context.reportValueInvalid(rawValue, createGenericEventDetails(reason, event));
+    }
+
+    if (nextDigits === "") {
+      // Typed input edits the slot in place: clear it, or restore its character when every
+      // typed character was rejected. An empty or fully rejected paste changes nothing.
+      if (reason === REASONS.inputChange) {
+        if (rawValue === "") {
+          context.setValue(removeOTPCharacter(context.value(), slotIndex), createChangeEventDetails(REASONS.inputClear, event));
+        } else {
+          // Restore the controlled slot value explicitly (upstream relies on a
+          // re-render for this).
+          if (event.currentTarget.value !== slotValue()) {
+            event.currentTarget.value = slotValue();
+          }
+          if (slotValue() !== "") {
+            event.currentTarget.select();
+          }
+        }
+      }
+      return;
+    }
+
+    const committedValue = context.setValue(
+      replaceOTPValue(context.value(), slotIndex, nextDigits, context.length(), context.validationType(), context.normalizeValue()),
+      createChangeEventDetails(reason, event),
+    );
+
+    if (committedValue != null) {
+      const nextInput = Math.min(slotIndex + nextDigits.length, context.length() - 1);
+      context.queueFocusInput(nextInput, committedValue);
+    }
+  }
+
+  function handleCompositionStart() {
+    // Some Android keyboards report all text as always-composing, so Android keeps
+    // committing through `onInput`.
+    if (!platform.os.android) {
+      setComposing(slotValue());
+    }
+  }
+
+  function handleCompositionEnd(event: CompositionEvent & { currentTarget: HTMLInputElement }) {
+    if (composingSnapshot == null) {
+      return;
+    }
+
+    setComposing(null);
+
+    if (!context.disabled() && !context.readOnly()) {
+      commitValue(event.currentTarget.value, REASONS.inputChange, event);
+    }
+  }
+
   function handleTextInput(event: Event & { currentTarget: HTMLInputElement }) {
     if (event.defaultPrevented || context.disabled() || context.readOnly()) {
       // Controlled inputs do not re-render on ignored edits, so restore the
@@ -81,50 +168,12 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
       return;
     }
 
-    const slotIndex = index();
-    const rawValue = event.currentTarget.value;
-    const [nextDigits, didRejectCharacters] = normalizeOTPValueWithDetails(
-      rawValue,
-      context.length(),
-      context.validationType(),
-      context.normalizeValue(),
-    );
-
-    if (didRejectCharacters) {
-      context.reportValueInvalid(rawValue, createGenericEventDetails(REASONS.inputChange, event));
-    }
-
-    if (nextDigits === "") {
-      if (rawValue === "") {
-        context.setValue(removeOTPCharacter(context.value(), slotIndex), createChangeEventDetails(REASONS.inputClear, event));
-      } else {
-        // Restore the controlled slot value explicitly (upstream relies on a
-        // re-render for this).
-        if (event.currentTarget.value !== slotValue()) {
-          event.currentTarget.value = slotValue();
-        }
-        if (slotValue() !== "") {
-          event.currentTarget.select();
-        }
-      }
+    if (composingSnapshot != null) {
+      setComposing(event.currentTarget.value);
       return;
     }
 
-    const nextValue = replaceOTPValue(
-      context.value(),
-      slotIndex,
-      nextDigits,
-      context.length(),
-      context.validationType(),
-      context.normalizeValue(),
-    );
-
-    const committedValue = context.setValue(nextValue, createChangeEventDetails(REASONS.inputChange, event));
-
-    if (committedValue != null) {
-      const nextInput = Math.min(slotIndex + nextDigits.length, context.length() - 1);
-      context.queueFocusInput(nextInput, committedValue);
-    }
+    commitValue(event.currentTarget.value, REASONS.inputChange, event);
   }
 
   function setKeyboardValue(event: KeyboardEvent, nextValue: string, targetIndex: number) {
@@ -136,7 +185,9 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
   }
 
   function handleKeyDown(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
-    if (event.defaultPrevented || context.disabled()) {
+    // Browsers deliver real key names (such as `Backspace`) for keydowns inside a composition.
+    // The IME owns editing until `compositionend`, so OTP commands must not run on them.
+    if (event.defaultPrevented || context.disabled() || composingSnapshot != null) {
       return;
     }
 
@@ -228,31 +279,7 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
 
     event.preventDefault();
 
-    const slotIndex = index();
-    const [nextDigits, didRejectCharacters] = normalizeOTPValueWithDetails(
-      rawValue,
-      context.length(),
-      context.validationType(),
-      context.normalizeValue(),
-    );
-
-    if (didRejectCharacters) {
-      context.reportValueInvalid(rawValue, createGenericEventDetails(REASONS.inputPaste, event));
-    }
-
-    if (nextDigits === "") {
-      return;
-    }
-
-    const committedValue = context.setValue(
-      replaceOTPValue(context.value(), slotIndex, nextDigits, context.length(), context.validationType(), context.normalizeValue()),
-      createChangeEventDetails(REASONS.inputPaste, event),
-    );
-
-    if (committedValue != null) {
-      const nextInput = Math.min(slotIndex + nextDigits.length, context.length() - 1);
-      context.queueFocusInput(nextInput, committedValue);
-    }
+    commitValue(rawValue, REASONS.inputPaste, event);
   }
 
   const controlProps = (externalProps: Record<string, any>) => {
@@ -266,7 +293,9 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
         key === "onInput" ||
         key === "onChange" ||
         key === "onKeyDown" ||
-        key === "onPaste"
+        key === "onPaste" ||
+        key === "onCompositionStart" ||
+        key === "onCompositionEnd"
       ) {
         continue;
       }
@@ -364,7 +393,7 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
     Object.defineProperty(target, "value", {
       enumerable: true,
       configurable: true,
-      get: () => slotValue(),
+      get: () => composingValue() ?? slotValue(),
     });
 
     chainHandler("onMouseDown", (event: MouseEvent) => {
@@ -381,6 +410,7 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
         return;
       }
 
+      setFocused(true);
       context.handleInputFocus(index(), event);
     });
 
@@ -389,6 +419,8 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
         return;
       }
 
+      // Focus moving to a sibling slot stays inside the root; `handleInputBlur` clears the
+      // focused state only when focus leaves the root, so slot-to-slot moves don't churn it.
       context.handleInputBlur(event);
     });
 
@@ -401,6 +433,10 @@ export function OTPFieldInput<T extends ValidComponent = "input">(props: OTPFiel
     chainHandler("onKeyDown", handleKeyDown as (event: KeyboardEvent & { currentTarget: HTMLInputElement }) => void);
 
     chainHandler("onPaste", handlePaste as (event: ClipboardEvent & { currentTarget: HTMLInputElement }) => void);
+
+    chainHandler("onCompositionStart", handleCompositionStart);
+
+    chainHandler("onCompositionEnd", handleCompositionEnd as (event: CompositionEvent & { currentTarget: HTMLInputElement }) => void);
 
     function chainHandler(key: string, internal: (event: any) => void) {
       const external = externalProps[key] as ((event: any) => void) | undefined;

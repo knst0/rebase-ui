@@ -156,13 +156,11 @@ export function ToastViewport<T extends ValidComponent = "div">(props: ToastView
       return;
     }
 
-    // Once transitions have finished, see if a mouseleave was already triggered
-    // but blocked from taking effect. If so, we can now safely collapse the viewport
-    // without restarting timers while the window is blurred.
-    if (snapshot.isWindowFocused) {
+    // Apply any mouseleave that was deferred until transitions finished.
+    store.set("hovering", false);
+    if (!store.peek("expandedOrOutOfFocus")) {
       store.resumeTimers();
     }
-    store.set("hovering", false);
     markedReadyForMouseLeave = false;
   }
 
@@ -177,12 +175,6 @@ export function ToastViewport<T extends ValidComponent = "div">(props: ToastView
     store.pauseTimers();
     store.set("hovering", true);
     markedReadyForMouseLeave = false;
-  }
-
-  function resumeTimersIfWindowFocused() {
-    if (store.peekState().isWindowFocused) {
-      store.resumeTimers();
-    }
   }
 
   function handleMouseLeave() {
@@ -232,7 +224,9 @@ export function ToastViewport<T extends ValidComponent = "div">(props: ToastView
     }
 
     store.set("focused", false);
-    resumeTimersIfWindowFocused();
+    if (!store.peek("expandedOrOutOfFocus")) {
+      store.resumeTimers();
+    }
   }
 
   const state: ToastViewportState = {

@@ -5,8 +5,16 @@ import { describe, expect, it } from "vite-plus/test";
 
 import { nextFrames } from "#test-utils";
 
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import * as Combobox from "../index.parts";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
+import type { ComboboxStore } from "../store/ComboboxStore";
 import { ComboboxPositioner } from "./ComboboxPositioner";
+
+function CaptureStore(props: { onStore: (store: ComboboxStore) => void }) {
+  props.onStore(useComboboxRootContext());
+  return null;
+}
 
 function renderOpenPositioner(positionerProps: Record<string, unknown> = {}) {
   const anchor = document.createElement("div");
@@ -79,8 +87,25 @@ describe("<Combobox.Positioner />", () => {
   it("repositions a retained popup after a completed close", async () => {
     const [open, setOpen] = createSignal(true);
     const [actions, setActions] = createSignal<Combobox.Root.Actions | null>(null);
+    let captured: ComboboxStore | undefined;
     render(() => (
-      <Combobox.Root open={open()} actionsRef={setActions}>
+      <Combobox.Root
+        open={open()}
+        actionsRef={setActions}
+        onOpenChange={(nextOpen, eventDetails) => {
+          if (!nextOpen) {
+            eventDetails.preventUnmountOnClose();
+          }
+          if (!eventDetails.isCanceled) {
+            setOpen(nextOpen);
+          }
+        }}
+      >
+        <CaptureStore
+          onStore={(store) => {
+            captured = store;
+          }}
+        />
         <Combobox.Input />
         <Combobox.Portal keepMounted>
           <ComboboxPositioner data-testid="positioner">
@@ -94,7 +119,11 @@ describe("<Combobox.Positioner />", () => {
     await nextFrames();
     const positioner = screen.getByTestId("positioner");
     expect(positioner.style.position).toBe("absolute");
-    flush(() => setOpen(false));
+    flush(() => captured?.context.setOpen(false, createChangeEventDetails(REASONS.escapeKey)));
+    await nextFrames();
+    await nextFrames();
+    // The close opted out of the automatic unmount, so the manual action completes closing.
+    expect(captured?.peek("mounted")).toBe(true);
     flush(() => actions()!.unmount());
     await nextFrames();
     await nextFrames();

@@ -9,6 +9,7 @@ export interface CreateAriaLabelledByParameters {
   labelSource: Accessor<LabelSource | null>;
   enableFallback?: Accessor<boolean | undefined> | undefined;
   labelSourceId?: Accessor<string | undefined> | undefined;
+  ariaLabel?: Accessor<string | undefined> | undefined;
 }
 
 export function createAriaLabelledBy(params: CreateAriaLabelledByParameters): Accessor<string | undefined> {
@@ -29,16 +30,24 @@ export function createAriaLabelledBy(params: CreateAriaLabelledByParameters): Ac
       enableFallback: params.enableFallback?.() ?? true,
       labelSource: params.labelSource(),
       generatedLabelId: generatedLabelId(),
+      ariaLabel: params.ariaLabel?.(),
     }),
-    ({ explicit, labelId, enableFallback, labelSource, generatedLabelId: generated }) => {
+    ({ explicit, labelId, enableFallback, labelSource, generatedLabelId: generated, ariaLabel }) => {
       if (isServer) return;
-      const nextAriaLabelledBy = explicit || labelId || !enableFallback ? undefined : getAriaLabelledBy(labelSource, generated);
+      const hasAriaLabel = Boolean(ariaLabel?.trim());
+      const nextAriaLabelledBy =
+        explicit || labelId || hasAriaLabel || !enableFallback ? undefined : getAriaLabelledBy(labelSource, generated);
 
       setFallbackAriaLabelledBy(nextAriaLabelledBy);
     },
   );
 
-  return () => params.ariaLabelledBy() ?? params.labelId() ?? fallbackAriaLabelledBy();
+  return () => {
+    // A non-blank `aria-label` wins over any associated label, as it does on native inputs.
+    const hasAriaLabel = Boolean(params.ariaLabel?.()?.trim());
+    const implicitLabelId = hasAriaLabel ? undefined : params.labelId();
+    return params.ariaLabelledBy() ?? implicitLabelId ?? fallbackAriaLabelledBy();
+  };
 }
 
 function getAriaLabelledBy(labelSource?: LabelSource | null, generatedLabelId?: string) {

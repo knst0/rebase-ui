@@ -290,4 +290,56 @@ describe("<RadioGroup />", () => {
     flush();
     expect(radio2).toHaveAttribute("aria-checked", "true");
   });
+
+  it("transfers the current input to a new inputRef without calling the previous ref", async () => {
+    const oldRef = vi.fn();
+    const newRef = vi.fn();
+    // A function cannot live in a signal (it becomes a computed), so switch on a boolean.
+    const [useNewRef, setUseNewRef] = createSignal(false);
+    const { user } = await render(() => (
+      <RadioGroup defaultValue="b" inputRef={useNewRef() ? newRef : oldRef}>
+        <Radio.Root value="a" />
+        <Radio.Root value="b" />
+      </RadioGroup>
+    ));
+
+    const calls = oldRef.mock.calls as [HTMLInputElement | null][];
+    const input = calls[calls.length - 1][0];
+    expect(input).toHaveAttribute("value", "b");
+    oldRef.mockClear();
+
+    setUseNewRef(true);
+    flush();
+
+    expect(newRef).toHaveBeenLastCalledWith(input);
+    expect(oldRef).not.toHaveBeenCalled();
+
+    const [radioA] = screen.getAllByRole("radio");
+    await user.click(radioA);
+    flush();
+
+    const inputA = document.querySelector('input[type="radio"][value="a"]');
+    expect(newRef).toHaveBeenLastCalledWith(inputA);
+    expect(oldRef).not.toHaveBeenCalled();
+  });
+
+  it("detaches inputRef with null when the forwarded input unmounts", async () => {
+    const inputRef = vi.fn();
+    const { unmount } = await render(() => (
+      <RadioGroup defaultValue="a" inputRef={inputRef}>
+        <Radio.Root value="a" />
+        <Radio.Root value="b" />
+      </RadioGroup>
+    ));
+
+    const calls = inputRef.mock.calls as [HTMLInputElement | null][];
+    expect(calls[calls.length - 1][0]).toHaveAttribute("value", "a");
+    inputRef.mockClear();
+
+    unmount();
+    flush();
+
+    expect(inputRef).toHaveBeenCalledTimes(1);
+    expect(inputRef).toHaveBeenCalledWith(null);
+  });
 });

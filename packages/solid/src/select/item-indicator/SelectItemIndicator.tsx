@@ -1,12 +1,9 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, untrack } from "solid-js";
+import { Show, type Accessor, untrack } from "solid-js";
 
-import { RenderElement } from "../../internals/render-element";
-import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
-import { split } from "../../internals/split";
-import type { StateAttributesMapping } from "../../internals/stateToAttributes";
-import { createTransitionStatus, type TransitionStatus, transitionStatusMapping } from "../../internals/transition-status";
+import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
+import { ItemIndicator } from "../../internals/utils/ItemIndicator";
 import { useSelectItemContext } from "../item/SelectItemContext";
 
 /**
@@ -16,65 +13,20 @@ import { useSelectItemContext } from "../item/SelectItemContext";
  * Documentation: [Base UI Select](https://base-ui.com/react/components/select)
  */
 export function SelectItemIndicator<T extends ValidComponent = "span">(props: SelectItemIndicator.Props<T>) {
-  const [local, elementProps] = split(props as SelectItemIndicator.Props, { default: defaultProps }, ["as", "keepMounted"]);
-
-  const as = untrack(() => local.as);
-
   const item = useSelectItemContext();
 
-  const rendered = () => item.selected();
+  const keepMounted = untrack(() => (props as SelectItemIndicator.Props).keepMounted ?? false);
 
-  const { mounted, transitionStatus, setMounted } = createTransitionStatus(rendered);
-
-  let indicatorElement: HTMLElement | null = null;
-
-  runOnOpenChangeComplete({
-    open: rendered,
-    ref: () => indicatorElement,
-    onComplete() {
-      if (!rendered()) {
-        setMounted(false);
-      }
-    },
-  });
-
-  const state: SelectItemIndicatorState = {
-    selected: rendered,
-    transitionStatus,
-  };
-
-  const stateAttributesMapping = {
-    ...transitionStatusMapping,
-  } as StateAttributesMapping<SelectItemIndicatorState>;
-
-  const shouldRender = () => local.keepMounted || mounted();
+  // Mount only when selected or kept mounted, avoiding the transition costs for
+  // unselected items. Pass selection as an accessor so memoization observes changes.
+  const shouldRender = () => keepMounted || item.selected();
 
   return (
-    <RenderElement
-      as={as}
-      enabled={shouldRender}
-      state={state}
-      stateAttributesMapping={stateAttributesMapping}
-      props={[
-        {
-          "aria-hidden": "true" as const,
-          children: "✔️",
-        },
-        elementProps,
-        {
-          ref: (element: HTMLElement | null) => {
-            indicatorElement = element;
-          },
-        },
-      ]}
-    />
+    <Show when={shouldRender()}>
+      <ItemIndicator {...(props as ItemIndicator.Props<T>)} selected={item.selected} />
+    </Show>
   );
 }
-
-const defaultProps = Object.freeze({
-  as: "span",
-  keepMounted: false,
-} satisfies Partial<SelectItemIndicator.Props>);
 
 export interface SelectItemIndicatorState {
   /**

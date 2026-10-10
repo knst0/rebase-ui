@@ -29,7 +29,8 @@ describe("ScrollArea", () => {
     renderScrollArea();
 
     expect(screen.getByTestId("root")).toHaveAttribute("role", "presentation");
-    expect(screen.getByTestId("viewport")).toHaveAttribute("role", "presentation");
+    // The viewport is focusable, so it must not be presentational.
+    expect(screen.getByTestId("viewport")).not.toHaveAttribute("role", "presentation");
     expect(screen.getByTestId("content")).toHaveAttribute("role", "presentation");
     expect(screen.getByTestId("content")).toHaveTextContent("Content");
   });

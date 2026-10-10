@@ -1,8 +1,9 @@
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@solidjs/testing-library";
-import { flush } from "solid-js";
+import { render, screen, waitFor } from "@solidjs/testing-library";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vite-plus/test";
 
+import * as Combobox from "../index.parts";
 import { ComboboxItemContext } from "../item/ComboboxItemContext";
 import { ComboboxItemIndicator } from "./ComboboxItemIndicator";
 
@@ -35,4 +36,81 @@ describe("<Combobox.ItemIndicator />", () => {
 
     expect(screen.getByTestId("indicator")).toBeInTheDocument();
   });
+
+  it("mounts only while selected when keepMounted is false", () => {
+    const [value, setValue] = createSignal("b");
+    render(() => <Selection value={value()} />);
+    flush();
+
+    expect(screen.queryByTestId("indicator")).toBe(null);
+
+    setValue("a");
+    flush();
+
+    const indicator = screen.getByTestId("indicator");
+    expect(indicator).toHaveAttribute("data-selected");
+    expect(indicator).toHaveAttribute("aria-hidden", "true");
+    expect(indicator).not.toHaveAttribute("selected");
+
+    setValue("b");
+    flush();
+
+    expect(screen.queryByTestId("indicator")).toBe(null);
+
+    setValue("a");
+    flush();
+
+    expect(screen.getByTestId("indicator")).toHaveAttribute("data-selected");
+  });
+
+  it("preserves the kept-mounted element across selection changes", async () => {
+    const [value, setValue] = createSignal("b");
+    render(() => <Selection value={value()} keepMounted />);
+    flush();
+    const indicator = screen.getByTestId("indicator");
+
+    expect(indicator).not.toHaveAttribute("data-selected");
+
+    setValue("a");
+    flush();
+
+    expect(screen.getByTestId("indicator")).toBe(indicator);
+    expect(indicator).toHaveAttribute("data-selected");
+
+    setValue("b");
+    flush();
+
+    expect(screen.getByTestId("indicator")).toBe(indicator);
+    expect(indicator).not.toHaveAttribute("data-selected");
+    await waitFor(() => {
+      expect(indicator).not.toHaveAttribute("data-ending-style");
+    });
+
+    setValue("a");
+    flush();
+
+    expect(screen.getByTestId("indicator")).toBe(indicator);
+    expect(indicator).toHaveAttribute("data-selected");
+  });
 });
+
+function Selection(props: { value: string; keepMounted?: boolean }) {
+  return (
+    <Combobox.Root value={props.value} open>
+      <Combobox.Input />
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              <Combobox.Item value="a">
+                a
+                <Combobox.ItemIndicator keepMounted={props.keepMounted} data-testid="indicator" />
+              </Combobox.Item>
+              <Combobox.Item value="b">b</Combobox.Item>
+            </Combobox.List>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox.Root>
+  );
+}

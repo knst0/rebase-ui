@@ -14,7 +14,7 @@ import { createButton } from "../../internals/create-button";
 import { createControllableSignal } from "../../internals/createControllableSignal";
 import { createChangeEventDetails, type RebaseUIChangeEventDetails, REASONS } from "../../internals/event-details";
 import { createRegisterFieldControl } from "../../internals/field-register-control";
-import { useFieldRootContext } from "../../internals/field-root-context";
+import { createSetFieldFocused, useFieldRootContext } from "../../internals/field-root-context";
 import { useFormContext } from "../../internals/form-context";
 import { createAriaLabelledBy, createLabelableId, useLabelableContext } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
@@ -63,7 +63,6 @@ export function CheckboxRoot<T extends ValidComponent = "span">(props: CheckboxR
     name: fieldName,
     setDirty,
     setFilled,
-    setFocused,
     setTouched,
     state: fieldState,
     validationMode,
@@ -140,6 +139,7 @@ export function CheckboxRoot<T extends ValidComponent = "span">(props: CheckboxR
 
   let controlElement: HTMLElement | null = null;
   let inputElement: HTMLInputElement | null = null;
+  const setFocused = createSetFieldFocused(disabled, () => controlElement);
   const [labelSource, setLabelSource] = createSignal<HTMLInputElement | null>(null);
 
   const { getButtonProps, buttonRef } = createButton({ disabled, native: () => nativeButton });
@@ -176,6 +176,7 @@ export function CheckboxRoot<T extends ValidComponent = "span">(props: CheckboxR
     labelSource,
     enableFallback: () => !nativeButton,
     labelSourceId: controlId,
+    ariaLabel: () => elementProps["aria-label"] as string | undefined,
   });
 
   createEffect(
@@ -293,9 +294,7 @@ export function CheckboxRoot<T extends ValidComponent = "span">(props: CheckboxR
     }
 
     chainHandler("onFocus", () => {
-      if (!disabled()) {
-        setFocused(true);
-      }
+      setFocused(true);
     });
 
     chainHandler("onBlur", () => {

@@ -35,6 +35,7 @@ interface ReasonToEventMap {
   [REASONS.wheel]: WheelEvent;
   [REASONS.scrub]: PointerEvent;
 
+  [REASONS.popupClose]: Event;
   [REASONS.cancelOpen]: MouseEvent;
   [REASONS.siblingOpen]: Event;
   [REASONS.disabled]: Event;
@@ -105,6 +106,14 @@ type RebaseUIGenericEventDetail<Reason extends string, CustomProperties extends 
 export type RebaseUIGenericEventDetails<Reason extends string, CustomProperties extends object = {}> = Reason extends string
   ? RebaseUIGenericEventDetail<Reason, CustomProperties> & {}
   : never;
+
+/** Highlight navigation uses mouse events for hover and pointer events for leaving an item. */
+export type RebaseUIHighlightEventDetails<
+  Reason extends string,
+  CustomProperties extends object = {},
+> = Reason extends typeof REASONS.pointer
+  ? { reason: Reason; event: MouseEvent | PointerEvent } & CustomProperties
+  : RebaseUIGenericEventDetails<Reason, CustomProperties>;
 
 const PLACEHOLDER_EVENT_TYPE = "rebase-ui";
 

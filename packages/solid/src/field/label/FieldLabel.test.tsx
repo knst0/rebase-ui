@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { screen } from "@solidjs/testing-library";
+import { Portal } from "@solidjs/web";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createRenderer, describeConformance } from "#test-utils";
@@ -63,5 +64,43 @@ describe("<Field.Label />", () => {
     ));
 
     expect(screen.getByTestId("label")).toHaveAttribute("data-disabled");
+  });
+
+  it("focuses the control in its shadow root when the outer document has a matching ID", async () => {
+    const host = document.createElement("div");
+    const shadowRoot = host.attachShadow({ mode: "open" });
+    const container = document.createElement("div");
+    shadowRoot.appendChild(container);
+    document.body.appendChild(host);
+
+    try {
+      const { user } = await render(() => (
+        <>
+          <input aria-label="Unrelated control" data-testid="unrelated" />
+          <Portal mount={container}>
+            <Field.Root>
+              <Field.Control data-testid="control" />
+              <Field.Label nativeLabel={false} as="div" data-testid="label">
+                Name
+              </Field.Label>
+            </Field.Root>
+          </Portal>
+        </>
+      ));
+
+      const control = container.querySelector('[data-testid="control"]') as HTMLElement;
+      const label = container.querySelector('[data-testid="label"]') as HTMLElement;
+      const unrelated = screen.getByTestId("unrelated") as HTMLInputElement;
+      expect(control.id).not.toBe("");
+      unrelated.id = control.id;
+
+      await user.click(label);
+
+      expect(shadowRoot.activeElement).toBe(control);
+      expect(document.activeElement).toBe(host);
+      expect(unrelated).not.toHaveFocus();
+    } finally {
+      host.remove();
+    }
   });
 });

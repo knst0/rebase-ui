@@ -1,12 +1,18 @@
 import type { JSX } from "@solidjs/web";
-import { createMemo, onSettled, type Setter, untrack } from "solid-js";
+import { createMemo, omit, onSettled, type Setter, untrack } from "solid-js";
 
-import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
+import {
+  createChangeEventDetails,
+  REASONS,
+  type RebaseUIChangeEventDetails,
+  type RebaseUIHighlightEventDetails,
+} from "../../internals/event-details";
 import { FloatingTree } from "../../internals/floating/tree/FloatingTree";
 import { stableCallback } from "../../internals/stableCallback";
+import { useMenuFilterProviderContext } from "../filter-provider/MenuFilterProviderContext";
 import type { MenuHandle } from "../store/MenuHandle";
 import { createMenuRoot } from "./createMenuRoot";
-import { MenuRootContext } from "./MenuRootContext";
+import { MenuRootContext, useMenuRootContext } from "./MenuRootContext";
 
 /**
  * Groups all parts of the menu.
@@ -15,8 +21,20 @@ import { MenuRootContext } from "./MenuRootContext";
  * Documentation: [Base UI Menu](https://base-ui.com/react/components/menu)
  */
 export function MenuRoot<Payload = unknown>(props: MenuRoot.Props<Payload>) {
+  const filterProvider = useMenuFilterProviderContext();
+  if (filterProvider) {
+    const FilterRoot = filterProvider.Root;
+    // The provider's own `children` is this root's element: omitting (not reading) it keeps the
+    // element from setting up a second time and lets this root's children through.
+    const filterOptions = omit(filterProvider.options, "children");
+    return <FilterRoot {...(props as Record<string, unknown>)} {...filterOptions} />;
+  }
+
+  const parentRootContext = useMenuRootContext(true);
+
   const onOpenChange = stableCallback(() => props.onOpenChange);
   const onOpenChangeComplete = stableCallback(() => props.onOpenChangeComplete);
+  const onItemHighlighted = stableCallback(() => props.onItemHighlighted);
 
   const menu = createMenuRoot<Payload>({
     defaultOpen: () => props.defaultOpen ?? false,
@@ -26,8 +44,12 @@ export function MenuRoot<Payload = unknown>(props: MenuRoot.Props<Payload>) {
     orientation: () => props.orientation ?? "vertical",
     highlightItemOnHover: () => props.highlightItemOnHover ?? true,
     closeParentOnEsc: () => props.closeParentOnEsc ?? false,
+    virtualFocus: () => props.virtualFocus ?? false,
+    allowEscape: () => props.allowEscape ?? true,
+    resetOnPointerLeave: () => props.resetOnPointerLeave ?? true,
     onOpenChange,
     onOpenChangeComplete,
+    onItemHighlighted,
     open: () => props.open,
     triggerId: () => props.triggerId,
   });
@@ -63,11 +85,29 @@ export function MenuRoot<Payload = unknown>(props: MenuRoot.Props<Payload>) {
     });
   }
 
+  const virtualFocusRef = untrack(() => props.virtualFocusRef);
+  if (virtualFocusRef) {
+    menu.store.context.virtualFocusRef = virtualFocusRef;
+  }
+
+  const orientation = untrack(() => props.orientation) ?? "vertical";
+  const loopFocus = untrack(() => props.loopFocus) ?? true;
+
   // Creates the children inside the provider (so parts resolve the context) without
   // subscribing to signals read while they are created. Only the payload of
   // render-prop children stays reactive.
   const content = (
-    <MenuRootContext value={{ store: menu.store, parent: menu.parent }}>
+    <MenuRootContext
+      value={{
+        store: menu.store,
+        parent: menu.parent,
+        orientation,
+        loopFocus,
+        allowEscape: untrack(() => props.allowEscape) ?? true,
+        virtualFocus: untrack(() => props.virtualFocus) ?? false,
+        parentVirtualFocus: parentRootContext?.virtualFocus ?? false,
+      }}
+    >
       <MenuRootContent payload={menu.store.useState("payload") as () => Payload | undefined}>
         {untrack(() => props.children)}
       </MenuRootContent>
@@ -157,6 +197,18 @@ export interface MenuRootProps<Payload = unknown> {
    */
   onOpenChangeComplete?: ((open: boolean) => void) | undefined;
   /**
+   * Callback fired when an item is highlighted or unhighlighted.
+   * Receives the highlighted item element (or `undefined` if no item is highlighted) and details
+   * containing the reason for the change, the event, and the item's text label.
+   * The `reason` can be:
+   * - `'keyboard'`: the highlight changed due to keyboard navigation.
+   * - `'pointer'`: the highlight changed due to pointer hovering. The event may be a `MouseEvent`
+   *   rather than a `PointerEvent`.
+   * - `'none'`: the highlight changed for another reason, such as automatic highlighting while
+   *   filtering, the item list changing, or the popup opening or closing.
+   */
+  onItemHighlighted?: ((highlightedItem: HTMLElement | undefined, eventDetails: MenuRoot.HighlightEventDetails) => void) | undefined;
+  /**
    * Whether the menu is currently open.
    */
   open?: boolean | undefined;
@@ -200,6 +252,29 @@ export interface MenuRootProps<Payload = unknown> {
    * This can be a regular node or a render function that receives the `payload` of the active trigger.
    */
   children?: JSX.Element | ((args: { payload: Payload | undefined }) => JSX.Element) | undefined;
+  /**
+   * Whether the menu uses virtual focus: real focus stays on the filter input while the highlight
+   * is exposed through `aria-activedescendant`.
+   * @internal
+   */
+  virtualFocus?: boolean | undefined;
+  /**
+   * The element that holds real focus while virtual list navigation is active.
+   * @internal
+   */
+  virtualFocusRef?: { current: HTMLElement | null } | undefined;
+  /**
+   * Whether arrow keys can step from either end of the list back to a virtual focus owner.
+   * @internal
+   * @default true
+   */
+  allowEscape?: boolean | undefined;
+  /**
+   * Whether pointer leave should clear the active item.
+   * @internal
+   * @default true
+   */
+  resetOnPointerLeave?: boolean | undefined;
 }
 
 export interface MenuRootActions {
@@ -229,6 +304,18 @@ export type MenuRootChangeEventDetails = RebaseUIChangeEventDetails<
   }
 >;
 
+export type MenuRootHighlightEventReason = typeof REASONS.keyboard | typeof REASONS.pointer | typeof REASONS.none;
+
+export type MenuRootHighlightEventDetails = RebaseUIHighlightEventDetails<
+  MenuRootHighlightEventReason,
+  {
+    /**
+     * The highlighted item's `label` prop, or its text content when the prop is not set.
+     */
+    label: string | undefined;
+  }
+>;
+
 export type MenuRootOrientation = "horizontal" | "vertical";
 
 export namespace MenuRoot {
@@ -237,5 +324,7 @@ export namespace MenuRoot {
   export type Actions = MenuRootActions;
   export type ChangeEventReason = MenuRootChangeEventReason;
   export type ChangeEventDetails = MenuRootChangeEventDetails;
+  export type HighlightEventReason = MenuRootHighlightEventReason;
+  export type HighlightEventDetails = MenuRootHighlightEventDetails;
   export type Orientation = MenuRootOrientation;
 }

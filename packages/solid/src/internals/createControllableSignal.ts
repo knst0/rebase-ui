@@ -12,7 +12,8 @@ export interface ControllablePropsWithDefaultValue<T> extends Omit<ControllableP
 
 export function createControllableSignal<T>(props: ControllablePropsWithDefaultValue<T>): [Accessor<T>, (next: T) => void];
 export function createControllableSignal<T>(props: ControllableProps<T>): [Accessor<T | undefined>, (next: T) => void] {
-  const [internalValue, setInternalValue] = createSignal<T | undefined>(untrack(props.defaultValue) as Exclude<T, Function> | undefined);
+  // Wrap the default so a function value is stored as-is instead of being called as an initializer.
+  const [internalValue, setInternalValue] = createSignal<T | undefined>(() => untrack(props.defaultValue));
 
   const value = createMemo(() => {
     const controlledValue = props.value();

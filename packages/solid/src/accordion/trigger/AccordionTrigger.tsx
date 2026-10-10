@@ -7,9 +7,16 @@ import { createButton } from "../../internals/create-button";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import type { AccordionItemState } from "../item/AccordionItem";
 import { useAccordionItemContext } from "../item/AccordionItemContext";
+import { accordionStateAttributesMapping } from "../item/stateAttributesMapping";
+
+const stateAttributesMapping: StateAttributesMapping<AccordionItemState> = {
+  ...accordionStateAttributesMapping,
+  ...triggerOpenStateMapping,
+};
 
 /**
  * A button that opens and closes the corresponding panel.
@@ -28,7 +35,6 @@ export function AccordionTrigger<T extends ValidComponent = "button">(props: Acc
 
   const { getButtonProps, buttonRef } = createButton({
     disabled,
-    focusableWhenDisabled: true,
     native: () => local.nativeButton ?? true,
   });
 
@@ -67,7 +73,7 @@ export function AccordionTrigger<T extends ValidComponent = "button">(props: Acc
       as={as}
       state={state}
       props={[triggerProps, elementProps, refProps, getButtonProps]}
-      stateAttributesMapping={triggerOpenStateMapping}
+      stateAttributesMapping={stateAttributesMapping}
     />
   );
 }

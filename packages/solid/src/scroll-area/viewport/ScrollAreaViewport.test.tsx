@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
 import { flush } from "solid-js";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "#test-utils";
 
@@ -84,6 +84,15 @@ function scrollViewport(viewport: HTMLElement, top: number) {
 }
 
 describe("<ScrollArea.Viewport />", () => {
+  it("does not use a presentational role on the focusable viewport", async () => {
+    const { viewport } = renderVerticalScrollArea();
+    mockViewportMetrics(viewport, { scrollHeight: 300, scrollWidth: 100, clientHeight: 100, clientWidth: 100 });
+    await settle();
+
+    expect(viewport).not.toHaveAttribute("role", "presentation");
+    expect(viewport).toHaveAttribute("tabindex", "0");
+  });
+
   it("stays out of tab order without overflow and becomes focusable with overflow", async () => {
     const { viewport } = renderVerticalScrollArea();
     mockViewportMetrics(viewport, { scrollHeight: 100, scrollWidth: 100, clientHeight: 100, clientWidth: 100 });
@@ -180,6 +189,69 @@ describe("<ScrollArea.Viewport />", () => {
 
     expect(root).toHaveAttribute(ScrollAreaRootDataAttributes.overflowYStart, "");
     expect(root).not.toHaveAttribute(ScrollAreaRootDataAttributes.overflowYEnd, "");
+  });
+
+  it.each([
+    ["no infinite animation", undefined],
+    ["infinite iterations", { iterations: Infinity }],
+    ["infinite duration", { duration: Infinity, iterations: 1 }],
+  ] as const)("recomputes overflow after a subtree animation finishes with %s", async (_description, infiniteTiming) => {
+    // jsdom has no ResizeObserver, which the viewport needs before it waits on
+    // subtree animations. Stub it so the animation path runs in jsdom too.
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    try {
+      let scrollWidth = 100;
+      const gate = Promise.withResolvers<void>();
+      const animations = [
+        { finished: gate.promise },
+        ...(infiniteTiming
+          ? [
+              {
+                finished: new Promise<void>(() => {}),
+                effect: { getTiming: () => infiniteTiming },
+              },
+            ]
+          : []),
+      ] as unknown as Animation[];
+      const getAnimations = vi.fn(() => animations);
+
+      render(() => (
+        <ScrollArea.Root>
+          <ScrollArea.Viewport data-testid="viewport">
+            <ScrollArea.Content>content</ScrollArea.Content>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar orientation="horizontal">
+            <ScrollArea.Thumb />
+          </ScrollArea.Scrollbar>
+        </ScrollArea.Root>
+      ));
+
+      const viewport = screen.getByTestId("viewport") as HTMLElement;
+      const root = viewport.parentElement as HTMLElement;
+      mockViewportMetrics(viewport, { scrollHeight: 100, scrollWidth: 100, clientHeight: 100, clientWidth: 100 });
+      Object.defineProperty(viewport, "scrollWidth", { configurable: true, get: () => scrollWidth });
+      Object.defineProperty(viewport, "getAnimations", { configurable: true, value: getAnimations });
+
+      await settle();
+      expect(getAnimations).toHaveBeenCalled();
+      expect(root).not.toHaveAttribute(ScrollAreaRootDataAttributes.hasOverflowX);
+
+      scrollWidth = 1000;
+      gate.resolve();
+      await gate.promise;
+      await settle();
+
+      expect(root).toHaveAttribute(ScrollAreaRootDataAttributes.hasOverflowX, "");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("hides the native scrollbars with the disable class while keeping user classes", async () => {

@@ -143,6 +143,16 @@ export function getMaxListIndex(list: CompositeElements, disabledIndices?: Disab
 export function sortByDocumentPosition(elements: HTMLElement[], element: HTMLElement): HTMLElement[] {
   const next = elements.slice();
   const index = next.findIndex((current) => {
+    // Adjacent siblings are the common case for lists that are already in order, and
+    // `compareDocumentPosition` scans siblings from the parent's first child, so sorting
+    // a long flat list would otherwise be quadratic.
+    if (element.nextElementSibling === current) {
+      return true;
+    }
+    if (current.nextElementSibling === element) {
+      return false;
+    }
+
     const position = current.compareDocumentPosition(element);
 
     if (position & Node.DOCUMENT_POSITION_DISCONNECTED) {

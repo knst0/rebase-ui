@@ -1,5 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
-import { untrack } from "solid-js";
+import { flush, untrack } from "solid-js";
 
 import { useCompositeListItem } from "../../internals/composite";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
@@ -28,7 +28,7 @@ export function ComboboxChip<T extends ValidComponent = "div">(props: ComboboxCh
   if (!chipsContext) {
     throw new Error("Rebase UI: ComboboxChipsContext is missing. ComboboxChip parts must be placed within <Combobox.Chips>.");
   }
-  const { setHighlightedChipIndex, chipsRef } = chipsContext;
+  const { chipsRef } = chipsContext;
 
   const { ref: listItemRef, index } = useCompositeListItem();
 
@@ -59,21 +59,26 @@ export function ComboboxChip<T extends ValidComponent = "div">(props: ComboboxCh
 
       stopEvent(event);
 
+      // Commit the removal before focusing so `chipsRef` reflects the remaining chips.
       store.context.setIndices({
         activeIndex: null,
         selectedIndex: null,
         type: REASONS.keyboard,
+        event,
       });
       store.context.setSelectedValue(
         selectedValue.filter((_: unknown, i: number) => i !== currentIndex),
         createChangeEventDetails(REASONS.none, event),
       );
+      flush();
     } else if (event.key === "Enter" || event.key === " ") {
       stopEvent(event);
       nextIndex = undefined;
     } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       stopEvent(event);
+      // The input may mount when opening.
       store.context.setOpen(true, createChangeEventDetails(REASONS.listNavigation, event));
+      flush();
       nextIndex = undefined;
     } else if (
       // Check for printable characters (letters, numbers, symbols)
@@ -105,7 +110,6 @@ export function ComboboxChip<T extends ValidComponent = "div">(props: ComboboxCh
     onKeyDown: (event: KeyboardEvent) => {
       if (!store.peek("disabled") && !store.peek("readOnly")) {
         const nextIndex = handleKeyDown(event);
-        setHighlightedChipIndex(nextIndex);
 
         if (nextIndex === undefined) {
           store.context.inputRef.current?.focus();
