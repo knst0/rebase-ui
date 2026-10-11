@@ -2,7 +2,7 @@ import { cleanup, mount, tick } from "@rezejs/testing-library";
 import { signal } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { nextFrames } from "../../test/utils";
+import { nextFrames, withRealAnimations } from "../../test/utils";
 import { createAnimationsFinishedRunner, type AnimationsFinishedRunner } from "./createAnimationsFinishedRunner";
 
 afterEach(cleanup);
@@ -38,20 +38,6 @@ function createAnimation(iterations = 1, duration = 1) {
     finish: resolveFinished,
     cancel: rejectFinished,
   };
-}
-
-/**
- * Runs `fn` with real animations enabled, restoring the previous value of
- * `globalThis.REBASE_UI_ANIMATIONS_DISABLED` afterwards.
- */
-async function withRealAnimations<T>(fn: () => T | Promise<T>): Promise<T> {
-  const previous = globalThis.REBASE_UI_ANIMATIONS_DISABLED;
-  globalThis.REBASE_UI_ANIMATIONS_DISABLED = false;
-  try {
-    return await fn();
-  } finally {
-    globalThis.REBASE_UI_ANIMATIONS_DISABLED = previous;
-  }
 }
 
 function setupRunner(element: HTMLElement, initialOpen = false) {
