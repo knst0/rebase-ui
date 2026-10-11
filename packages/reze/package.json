@@ -1,0 +1,384 @@
+{
+  "name": "@rebase-ui/reze",
+  "version": "0.0.0",
+  "description": "Headless, accessible UI primitives for Reze.js, ported from Base UI.",
+  "keywords": [
+    "accessible",
+    "base-ui",
+    "components",
+    "headless",
+    "reze",
+    "reze-js",
+    "ui"
+  ],
+  "homepage": "https://rebase.ui.knst.dev",
+  "license": "MIT",
+  "author": "Konstantin Kireyev <https://github.com/knst0>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knst0/rebase-ui.git",
+    "directory": "packages/reze"
+  },
+  "files": [
+    "dist",
+    "src",
+    "reze.json"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./alert-dialog": {
+      "reze": "./src/alert-dialog/index.ts",
+      "types": "./src/alert-dialog/index.ts",
+      "default": "./src/alert-dialog/index.ts"
+    },
+    "./button": {
+      "reze": "./src/button/index.ts",
+      "types": "./src/button/index.ts",
+      "default": "./src/button/index.ts"
+    },
+    "./dialog": {
+      "reze": "./src/dialog/index.ts",
+      "types": "./src/dialog/index.ts",
+      "default": "./src/dialog/index.ts"
+    },
+    "./separator": {
+      "reze": "./src/separator/index.ts",
+      "types": "./src/separator/index.ts",
+      "default": "./src/separator/index.ts"
+    },
+    "./meter": {
+      "reze": "./src/meter/index.ts",
+      "types": "./src/meter/index.ts",
+      "default": "./src/meter/index.ts"
+    },
+    "./fieldset": {
+      "reze": "./src/fieldset/index.ts",
+      "types": "./src/fieldset/index.ts",
+      "default": "./src/fieldset/index.ts"
+    },
+    "./form": {
+      "reze": "./src/form/index.ts",
+      "types": "./src/form/index.ts",
+      "default": "./src/form/index.ts"
+    },
+    "./avatar": {
+      "reze": "./src/avatar/index.ts",
+      "types": "./src/avatar/index.ts",
+      "default": "./src/avatar/index.ts"
+    },
+    "./scroll-area": {
+      "reze": "./src/scroll-area/index.ts",
+      "types": "./src/scroll-area/index.ts",
+      "default": "./src/scroll-area/index.ts"
+    },
+    "./collapsible": {
+      "reze": "./src/collapsible/index.ts",
+      "types": "./src/collapsible/index.ts",
+      "default": "./src/collapsible/index.ts"
+    },
+    "./field": {
+      "reze": "./src/field/index.ts",
+      "types": "./src/field/index.ts",
+      "default": "./src/field/index.ts"
+    },
+    "./input": {
+      "reze": "./src/input/index.ts",
+      "types": "./src/input/index.ts",
+      "default": "./src/input/index.ts"
+    },
+    "./checkbox": {
+      "reze": "./src/checkbox/index.ts",
+      "types": "./src/checkbox/index.ts",
+      "default": "./src/checkbox/index.ts"
+    },
+    "./checkbox-group": {
+      "reze": "./src/checkbox-group/index.ts",
+      "types": "./src/checkbox-group/index.ts",
+      "default": "./src/checkbox-group/index.ts"
+    },
+    "./switch": {
+      "reze": "./src/switch/index.ts",
+      "types": "./src/switch/index.ts",
+      "default": "./src/switch/index.ts"
+    },
+    "./radio": {
+      "reze": "./src/radio/index.ts",
+      "types": "./src/radio/index.ts",
+      "default": "./src/radio/index.ts"
+    },
+    "./radio-group": {
+      "reze": "./src/radio-group/index.ts",
+      "types": "./src/radio-group/index.ts",
+      "default": "./src/radio-group/index.ts"
+    },
+    "./number-field": {
+      "reze": "./src/number-field/index.ts",
+      "types": "./src/number-field/index.ts",
+      "default": "./src/number-field/index.ts"
+    },
+    "./toggle": {
+      "reze": "./src/toggle/index.ts",
+      "types": "./src/toggle/index.ts",
+      "default": "./src/toggle/index.ts"
+    },
+    "./toggle-group": {
+      "reze": "./src/toggle-group/index.ts",
+      "types": "./src/toggle-group/index.ts",
+      "default": "./src/toggle-group/index.ts"
+    },
+    "./accordion": {
+      "reze": "./src/accordion/index.ts",
+      "types": "./src/accordion/index.ts",
+      "default": "./src/accordion/index.ts"
+    },
+    "./tabs": {
+      "reze": "./src/tabs/index.ts",
+      "types": "./src/tabs/index.ts",
+      "default": "./src/tabs/index.ts"
+    },
+    "./popover": {
+      "reze": "./src/popover/index.ts",
+      "types": "./src/popover/index.ts",
+      "default": "./src/popover/index.ts"
+    },
+    "./tooltip": {
+      "reze": "./src/tooltip/index.ts",
+      "types": "./src/tooltip/index.ts",
+      "default": "./src/tooltip/index.ts"
+    },
+    "./preview-card": {
+      "reze": "./src/preview-card/index.ts",
+      "types": "./src/preview-card/index.ts",
+      "default": "./src/preview-card/index.ts"
+    },
+    "./toast": {
+      "reze": "./src/toast/index.ts",
+      "types": "./src/toast/index.ts",
+      "default": "./src/toast/index.ts"
+    },
+    "./menu": {
+      "reze": "./src/menu/index.ts",
+      "types": "./src/menu/index.ts",
+      "default": "./src/menu/index.ts"
+    },
+    "./select": {
+      "reze": "./src/select/index.ts",
+      "types": "./src/select/index.ts",
+      "default": "./src/select/index.ts"
+    },
+    "./combobox": {
+      "reze": "./src/combobox/index.ts",
+      "types": "./src/combobox/index.ts",
+      "default": "./src/combobox/index.ts"
+    },
+    "./slider": {
+      "reze": "./src/slider/index.ts",
+      "types": "./src/slider/index.ts",
+      "default": "./src/slider/index.ts"
+    },
+    "./drawer": {
+      "reze": "./src/drawer/index.ts",
+      "types": "./src/drawer/index.ts",
+      "default": "./src/drawer/index.ts"
+    },
+    "./otp-field": {
+      "reze": "./src/otp-field/index.ts",
+      "types": "./src/otp-field/index.ts",
+      "default": "./src/otp-field/index.ts"
+    }
+  },
+  "publishConfig": {
+    "exports": {
+      "./alert-dialog": {
+        "reze": "./src/alert-dialog/index.ts",
+        "types": "./dist/alert-dialog/index.d.ts",
+        "default": "./dist/alert-dialog/index.js"
+      },
+      "./button": {
+        "reze": "./src/button/index.ts",
+        "types": "./dist/button/index.d.ts",
+        "default": "./dist/button/index.js"
+      },
+      "./dialog": {
+        "reze": "./src/dialog/index.ts",
+        "types": "./dist/dialog/index.d.ts",
+        "default": "./dist/dialog/index.js"
+      },
+      "./separator": {
+        "reze": "./src/separator/index.ts",
+        "types": "./dist/separator/index.d.ts",
+        "default": "./dist/separator/index.js"
+      },
+      "./meter": {
+        "reze": "./src/meter/index.ts",
+        "types": "./dist/meter/index.d.ts",
+        "default": "./dist/meter/index.js"
+      },
+      "./fieldset": {
+        "reze": "./src/fieldset/index.ts",
+        "types": "./dist/fieldset/index.d.ts",
+        "default": "./dist/fieldset/index.js"
+      },
+      "./form": {
+        "reze": "./src/form/index.ts",
+        "types": "./dist/form/index.d.ts",
+        "default": "./dist/form/index.js"
+      },
+      "./avatar": {
+        "reze": "./src/avatar/index.ts",
+        "types": "./dist/avatar/index.d.ts",
+        "default": "./dist/avatar/index.js"
+      },
+      "./scroll-area": {
+        "reze": "./src/scroll-area/index.ts",
+        "types": "./dist/scroll-area/index.d.ts",
+        "default": "./dist/scroll-area/index.js"
+      },
+      "./collapsible": {
+        "reze": "./src/collapsible/index.ts",
+        "types": "./dist/collapsible/index.d.ts",
+        "default": "./dist/collapsible/index.js"
+      },
+      "./field": {
+        "reze": "./src/field/index.ts",
+        "types": "./dist/field/index.d.ts",
+        "default": "./dist/field/index.js"
+      },
+      "./input": {
+        "reze": "./src/input/index.ts",
+        "types": "./dist/input/index.d.ts",
+        "default": "./dist/input/index.js"
+      },
+      "./checkbox": {
+        "reze": "./src/checkbox/index.ts",
+        "types": "./dist/checkbox/index.d.ts",
+        "default": "./dist/checkbox/index.js"
+      },
+      "./checkbox-group": {
+        "reze": "./src/checkbox-group/index.ts",
+        "types": "./dist/checkbox-group/index.d.ts",
+        "default": "./dist/checkbox-group/index.js"
+      },
+      "./switch": {
+        "reze": "./src/switch/index.ts",
+        "types": "./dist/switch/index.d.ts",
+        "default": "./dist/switch/index.js"
+      },
+      "./radio": {
+        "reze": "./src/radio/index.ts",
+        "types": "./dist/radio/index.d.ts",
+        "default": "./dist/radio/index.js"
+      },
+      "./radio-group": {
+        "reze": "./src/radio-group/index.ts",
+        "types": "./dist/radio-group/index.d.ts",
+        "default": "./dist/radio-group/index.js"
+      },
+      "./number-field": {
+        "reze": "./src/number-field/index.ts",
+        "types": "./dist/number-field/index.d.ts",
+        "default": "./dist/number-field/index.js"
+      },
+      "./toggle": {
+        "reze": "./src/toggle/index.ts",
+        "types": "./dist/toggle/index.d.ts",
+        "default": "./dist/toggle/index.js"
+      },
+      "./toggle-group": {
+        "reze": "./src/toggle-group/index.ts",
+        "types": "./dist/toggle-group/index.d.ts",
+        "default": "./dist/toggle-group/index.js"
+      },
+      "./accordion": {
+        "reze": "./src/accordion/index.ts",
+        "types": "./dist/accordion/index.d.ts",
+        "default": "./dist/accordion/index.js"
+      },
+      "./tabs": {
+        "reze": "./src/tabs/index.ts",
+        "types": "./dist/tabs/index.d.ts",
+        "default": "./dist/tabs/index.js"
+      },
+      "./popover": {
+        "reze": "./src/popover/index.ts",
+        "types": "./dist/popover/index.d.ts",
+        "default": "./dist/popover/index.js"
+      },
+      "./tooltip": {
+        "reze": "./src/tooltip/index.ts",
+        "types": "./dist/tooltip/index.d.ts",
+        "default": "./dist/tooltip/index.js"
+      },
+      "./preview-card": {
+        "reze": "./src/preview-card/index.ts",
+        "types": "./dist/preview-card/index.d.ts",
+        "default": "./dist/preview-card/index.js"
+      },
+      "./toast": {
+        "reze": "./src/toast/index.ts",
+        "types": "./dist/toast/index.d.ts",
+        "default": "./dist/toast/index.js"
+      },
+      "./menu": {
+        "reze": "./src/menu/index.ts",
+        "types": "./dist/menu/index.d.ts",
+        "default": "./dist/menu/index.js"
+      },
+      "./select": {
+        "reze": "./src/select/index.ts",
+        "types": "./dist/select/index.d.ts",
+        "default": "./dist/select/index.js"
+      },
+      "./combobox": {
+        "reze": "./src/combobox/index.ts",
+        "types": "./dist/combobox/index.d.ts",
+        "default": "./dist/combobox/index.js"
+      },
+      "./slider": {
+        "reze": "./src/slider/index.ts",
+        "types": "./dist/slider/index.d.ts",
+        "default": "./dist/slider/index.js"
+      },
+      "./drawer": {
+        "reze": "./src/drawer/index.ts",
+        "types": "./dist/drawer/index.d.ts",
+        "default": "./dist/drawer/index.js"
+      },
+      "./otp-field": {
+        "reze": "./src/otp-field/index.ts",
+        "types": "./dist/otp-field/index.d.ts",
+        "default": "./dist/otp-field/index.js"
+      }
+    },
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "manifest": "reze-manifest",
+    "prepack": "vp pack",
+    "test": "vp test run"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "@floating-ui/utils": "^0.2.12",
+    "@rebase-ui/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@rezejs/testing-library": "link:../../../../reze-js/packages/testing-library",
+    "@rezejs/vite-plugin": "link:../../../../reze-js/packages/vite-plugin",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/user-event": "^14.6.7",
+    "happy-dom": "^20.0.0",
+    "reze-js": "link:../../../../reze-js/packages/reze-js",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "reze-js": "*"
+  },
+  "reze": {
+    "manifest": "reze.json"
+  }
+}
