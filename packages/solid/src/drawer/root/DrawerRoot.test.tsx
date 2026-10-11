@@ -1,10 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
-import { flush } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { nextFrames } from "#test-utils";
+import { isJSDOM, nextFrames } from "#test-utils";
 
 import { createDrawerHandle } from "../handle";
 import * as Drawer from "../index.parts";
@@ -414,5 +414,182 @@ describe("<Drawer.Root />", () => {
       unmount();
       expect(watcher.active).toBe(false);
     });
+  });
+});
+
+describe("<Drawer.Root /> snap point sequential swipe", () => {
+  interface TimedSwipeStep {
+    type: "down" | "move" | "up";
+    x: number;
+    y: number;
+    time: number;
+  }
+
+  function SnapPointSequentialSkipCase() {
+    const snapPoints: Drawer.Root.SnapPoint[] = ["100px", "300px", 1];
+    const [snapPoint, setSnapPoint] = createSignal<Drawer.Root.SnapPoint | null>(snapPoints[0]);
+
+    return (
+      <div>
+        <div data-testid="active-snap">{String(snapPoint())}</div>
+        <Drawer.Root
+          open
+          snapPoints={snapPoints}
+          snapPoint={snapPoint()}
+          onSnapPointChange={setSnapPoint}
+          swipeDirection="down"
+          snapToSequentialPoints
+        >
+          <Drawer.Portal>
+            <Drawer.Viewport data-testid="viewport" style={{ height: "600px" }}>
+              <Drawer.Popup data-testid="popup" style={{ height: "600px" }}>
+                Drawer
+              </Drawer.Popup>
+            </Drawer.Viewport>
+          </Drawer.Portal>
+        </Drawer.Root>
+      </div>
+    );
+  }
+
+  function setupSwipeTestEnv() {
+    const originalElementFromPoint = document.elementFromPoint?.bind(document);
+    return {
+      /** Call after rendering to point `elementFromPoint` at the given element. */
+      pointAt(element: Element) {
+        document.elementFromPoint = () => element;
+      },
+      cleanup() {
+        if (originalElementFromPoint === undefined) {
+          Reflect.deleteProperty(document, "elementFromPoint");
+        } else {
+          document.elementFromPoint = originalElementFromPoint;
+        }
+      },
+    };
+  }
+
+  function mockLayoutForJSDOM() {
+    // jsdom has no layout, and the snap math reads `offsetHeight` when the drawer mounts —
+    // synchronously during `render`, before per-element mocks could land. Gate the mock to the
+    // snap-case elements so the rest of the document keeps real geometry. A real browser
+    // resolves 600 from the inline styles instead.
+    if (!isJSDOM) {
+      return () => {};
+    }
+    const prototype = HTMLElement.prototype;
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, "offsetHeight");
+    Object.defineProperty(prototype, "offsetHeight", {
+      configurable: true,
+      get(this: HTMLElement) {
+        const testId = this.dataset?.testid;
+        if (testId === "viewport" || testId === "popup") {
+          return 600;
+        }
+        // jsdom has no layout and reports 0; per-element own-property mocks (if any)
+        // shadow this prototype getter, so they keep working.
+        return 0;
+      },
+    });
+    return () => {
+      if (descriptor) {
+        Object.defineProperty(prototype, "offsetHeight", descriptor);
+      } else {
+        Reflect.deleteProperty(prototype, "offsetHeight");
+      }
+    };
+  }
+
+  function neutralizePointerCapture(element: HTMLElement) {
+    // Synthetic pointer ids are not active pointers; capture is irrelevant to snap decisions.
+    for (const method of ["setPointerCapture", "releasePointerCapture"] as const) {
+      if (typeof element[method] === "function") {
+        element[method] = () => {};
+      }
+    }
+  }
+
+  async function renderSnapCase() {
+    const env = setupSwipeTestEnv();
+    const restoreLayout = mockLayoutForJSDOM();
+    render(() => <SnapPointSequentialSkipCase />);
+    const viewport = screen.getByTestId("viewport");
+    const popup = screen.getByTestId("popup");
+    neutralizePointerCapture(popup);
+    flush();
+    await nextFrames();
+    env.pointAt(popup);
+    // Snap resolution worked: the active `100px` point sits at offset 600 - 100.
+    expect(popup.style.getPropertyValue("--drawer-snap-point-offset")).toBe("500px");
+    return { env, restoreLayout, viewport };
+  }
+
+  async function simulateTimedSwipe(element: HTMLElement, steps: TimedSwipeStep[]) {
+    // Every step carries its own `timeStamp`, so the gesture timeline no longer depends on the wall clock.
+    for (const step of steps) {
+      const type = step.type === "down" ? "pointerdown" : step.type === "move" ? "pointermove" : "pointerup";
+      const event = new Event(type, { bubbles: true, cancelable: true, composed: true });
+      const init: Record<string, unknown> = {
+        button: 0,
+        buttons: step.type === "up" ? 0 : 1,
+        pointerId: 1,
+        pointerType: "mouse",
+        clientX: step.x,
+        clientY: step.y,
+        timeStamp: step.time,
+      };
+      for (const [key, value] of Object.entries(init)) {
+        Object.defineProperty(event, key, { value });
+      }
+      element.dispatchEvent(event);
+      flush();
+    }
+    await nextFrames();
+  }
+
+  it.each([false, true])("advances on a short flick with a trailing stationary sample: %s", async (phantom) => {
+    const { env, restoreLayout, viewport } = await renderSnapCase();
+
+    try {
+      expect(screen.getByTestId("active-snap").textContent).toBe("100px");
+
+      await simulateTimedSwipe(viewport, [
+        { type: "down", x: 100, y: 500, time: 992 },
+        { type: "move", x: 100, y: 500, time: 1000 },
+        { type: "move", x: 100, y: 488, time: 1016 },
+        { type: "move", x: 100, y: 476, time: 1032 },
+        { type: "move", x: 100, y: 464, time: 1048 },
+        ...(phantom ? [{ type: "move" as const, x: 100, y: 463.5, time: 1064 }] : []),
+        { type: "up", x: 100, y: phantom ? 463.5 : 464, time: phantom ? 1072 : 1056 },
+      ]);
+
+      expect(screen.getByTestId("active-snap").textContent).toBe("300px");
+    } finally {
+      env.cleanup();
+      restoreLayout();
+    }
+  });
+
+  it("stays on the current snap point after repeated stationary samples", async () => {
+    const { env, restoreLayout, viewport } = await renderSnapCase();
+
+    try {
+      expect(screen.getByTestId("active-snap").textContent).toBe("100px");
+
+      await simulateTimedSwipe(viewport, [
+        { type: "down", x: 100, y: 500, time: 992 },
+        { type: "move", x: 100, y: 500, time: 1000 },
+        { type: "move", x: 100, y: 460, time: 1016 },
+        { type: "move", x: 100, y: 460, time: 1032 },
+        { type: "move", x: 100, y: 460, time: 1048 },
+        { type: "move", x: 100, y: 460, time: 1064 },
+        { type: "up", x: 100, y: 460, time: 1072 },
+      ]);
+
+      expect(screen.getByTestId("active-snap").textContent).toBe("100px");
+    } finally {
+      env.cleanup();
+      restoreLayout();
+    }
   });
 });

@@ -2,6 +2,7 @@ import { type Accessor, createEffect, createMemo, createRenderEffect, createSign
 
 import { createAnimationsFinishedRunner } from "../../internals/createAnimationsFinishedRunner";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
+import type { StateAttributesMapping } from "../../internals/stateToAttributes";
 import type { TransitionStatus } from "../../internals/transition-status";
 import { CollapsibleRoot } from "../root/CollapsibleRoot";
 import * as CollapsiblePanelCssVars from "./CollapsiblePanelCssVars";
@@ -58,8 +59,43 @@ export interface CreateCollapsiblePanelReturnValue {
   panelElement: Accessor<HTMLElement | null>;
   props: Record<string, any>;
   setPanelElement: (element: HTMLElement | null) => void;
+  shouldPersistHiddenTransitionStyles: () => boolean;
   shouldRender: () => boolean;
   transitionStatus: Accessor<TransitionStatus>;
+}
+
+const PERSISTED_STARTING_HOOK = { [CollapsiblePanelDataAttributes.startingStyle]: "" };
+const PERSISTED_ENDING_HOOK = { [CollapsiblePanelDataAttributes.endingStyle]: "" };
+
+/**
+ * Transition-status mapping that additionally persists `data-starting-style`
+ * on closed `hiddenUntilFound` panels (upstream
+ * `shouldPersistHiddenTransitionStyles`). The persist read stays inside `map`,
+ * so state-attribute applies subscribe to it like any other state derivation.
+ */
+export function createPanelTransitionStatusMapping(
+  shouldPersistHiddenTransitionStyles: () => boolean,
+): StateAttributesMapping<{ transitionStatus: TransitionStatus }> {
+  return {
+    transitionStatus: {
+      keys: [CollapsiblePanelDataAttributes.startingStyle, CollapsiblePanelDataAttributes.endingStyle],
+      map: (value) => {
+        if (value === "starting") {
+          return PERSISTED_STARTING_HOOK;
+        }
+
+        if (value === "ending") {
+          return PERSISTED_ENDING_HOOK;
+        }
+
+        if (shouldPersistHiddenTransitionStyles()) {
+          return PERSISTED_STARTING_HOOK;
+        }
+
+        return null;
+      },
+    },
+  };
 }
 
 export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParameters): CreateCollapsiblePanelReturnValue {
@@ -108,6 +144,13 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
   };
 
   const panelTransitionStatus = () => (forcePanelIdle() ? "idle" : transitionStatus());
+
+  // Upstream `shouldPersistHiddenTransitionStyles`: a closed `hiddenUntilFound`
+  // panel keeps its collapsed starting styles (keyframe panels drop them once
+  // the animation type is detected) so a find-in-page reveal never flashes at
+  // full height before the open commits. `handleBeforeMatch` still drops the
+  // attribute synchronously so the browser can measure the match.
+  const shouldPersistHiddenTransitionStyles = () => hiddenUntilFound && !open() && !mounted() && animationType() !== "css-animation";
 
   const shouldPreventOpenAnimation = createMemo(() => open() && shouldPreventMountAnimation());
 
@@ -487,6 +530,7 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
     },
     setPanelElement,
     panelElement,
+    shouldPersistHiddenTransitionStyles,
     shouldRender,
     transitionStatus: panelTransitionStatus,
   };

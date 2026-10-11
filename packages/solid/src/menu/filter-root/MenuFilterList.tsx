@@ -123,6 +123,14 @@ export function MenuFilterList<T extends ValidComponent = "div">(props: MenuList
   const activeTriggerId = () => store.select("activeTriggerId") as string | null;
   const activeTriggerElement = () => store.select("activeTriggerElement") as Element | null;
 
+  // Mirror upstream `mergeProps`: the list's own key handling runs first, then the user's.
+  const { onKeyDown: userOnKeyDown, ...restElementProps } = elementProps as Record<string, unknown>;
+
+  function onKeyDown(event: KeyboardEvent & { currentTarget: HTMLElement }) {
+    handleKeyDown(event);
+    (userOnKeyDown as ((event: KeyboardEvent) => void) | undefined)?.(event);
+  }
+
   const listProps: Record<string, unknown> = {
     as,
     id,
@@ -135,8 +143,8 @@ export function MenuFilterList<T extends ValidComponent = "div">(props: MenuList
     get "aria-labelledby"() {
       return resolvePopupLabel({}, activeTriggerElement(), activeTriggerId());
     },
-    onKeyDown: handleKeyDown,
-    ...(elementProps as Record<string, unknown>),
+    ...restElementProps,
+    onKeyDown,
   };
 
   return <FilterDropdownList {...listProps} />;

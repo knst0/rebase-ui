@@ -49,10 +49,34 @@ export function MenuFilterPopup<T extends ValidComponent = "div">(props: MenuPop
 
   const initialFocus = (_openType: FloatingFocusManagerInteractionType) => resolveInitialFocus();
 
+  // RenderElement layers are last-wins: spreading the filter interaction props would drop the
+  // dismiss and list-navigation popup handlers from the store. Chain them explicitly, mirroring
+  // upstream `mergeProps` (store first, then filter, then user).
+  const { onKeyDown: filterOnKeyDown, onMouseDown: filterOnMouseDown, ...restInteractionProps } = interactionProps;
+  const userProps = props as Record<string, unknown>;
+
+  function getStoreHandler(key: "onKeyDown" | "onMouseDown") {
+    return (store.peek("popupProps") as Record<string, (...args: never[]) => void> | undefined)?.[key];
+  }
+
+  function onKeyDown(event: KeyboardEvent) {
+    (getStoreHandler("onKeyDown") as ((event: KeyboardEvent) => void) | undefined)?.(event);
+    (filterOnKeyDown as ((event: KeyboardEvent) => void) | undefined)?.(event);
+    (userProps.onKeyDown as ((event: KeyboardEvent) => void) | undefined)?.(event);
+  }
+
+  function onMouseDown(event: MouseEvent) {
+    (getStoreHandler("onMouseDown") as ((event: MouseEvent) => void) | undefined)?.(event);
+    (filterOnMouseDown as ((event: MouseEvent) => void) | undefined)?.(event);
+    (userProps.onMouseDown as ((event: MouseEvent) => void) | undefined)?.(event);
+  }
+
   return (
     <MenuPopupPlain
-      {...(interactionProps as Record<string, unknown>)}
-      {...(props as Record<string, unknown>)}
+      {...(restInteractionProps as Record<string, unknown>)}
+      {...userProps}
+      onKeyDown={onKeyDown}
+      onMouseDown={onMouseDown}
       role="dialog"
       initialFocus={props.initialFocus ?? initialFocus}
     />

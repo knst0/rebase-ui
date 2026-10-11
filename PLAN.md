@@ -20,6 +20,8 @@ Upstream-диффы: `gh pr diff <N> -R mui/base-ui`.
 - [x] #5787 `internals/labelable-provider/createAriaLabelledBy.ts`: параметр `ariaLabel`, непустой → игнорировать `labelId` и fallback; передать из `CheckboxRoot.tsx:173`, `RadioRoot.tsx:124`, `SwitchRoot.tsx:111`; тесты в трёх компонентах
 - [x] #5775 `radio-group/RadioGroup.tsx` (~89–135): убрать cleanup-return у `inputRef`, добавить эффект на `local.inputRef` (повторный вызов с текущим input, старый ref с `null` не вызывать); тест
 - [x] #5643 стрелки при refocus — уже есть (`RadioGroup.tsx:282-291`)
+- [x] #5787 OTP: wont-port — upstream ограничил `ariaLabel` тремя toggle-контролами (Checkbox/Radio/Switch); `OTPFieldRoot.tsx` на HEAD по-прежнему вызывает `useAriaLabelledBy` без `ariaLabel`, а `OTPFieldInput` игнорирует `aria-label` на первом слоте по дизайну (dev-ошибка ведёт на `<label>`/`<Field.Label>`); прокидывание сняло бы `inputAriaLabelledBy` у слотов без upstream-спеки
+- [x] #5787 mount/unmount-тест: портирован вариант `Field.Label` (`CheckboxRoot.test.tsx`, реактивен через `labelId` + ноль `STRICT_READ_UNTRACKED`); вариант нативного `<label>` не выразим — fallback-`createRenderEffect` перезапускается только при смене трекаемых deps, а монтирование нативного label не меняет ни одну (upstream работает за счёт layout-эффекта без deps после каждого коммита; см. комментарий в `createAriaLabelledBy.ts`)
 
 ## 3. Field / Label / фокус
 
@@ -114,7 +116,8 @@ Upstream-диффы: `gh pr diff <N> -R mui/base-ui`.
 
 - [x] добавить `export * as XDataAttributes` / `export * as XCssVariables` в `index.ts` всех портированных компонентов (122 файла `*DataAttributes`, 25 `*CssVars`)
 - [x] создать `dialog/viewport/DialogViewportDataAttributes.ts` и `alert-dialog/trigger/AlertDialogTriggerDataAttributes.ts`
-- [x] docs: `types.md`
+- [x] #5901 (в окне v1.9.0, вне #5243): `fieldset/legend/FieldsetLegendDataAttributes.ts` + экспорт в `fieldset/index.ts`; `data-disabled` уже рендерился через дефолтный маппинг `stateToAttributes`; тесты в `FieldsetLegend.test.tsx`, покрытие в `metadata-exports.test.ts` (161 неймспейс)
+- [x] docs: `types.md` → локальный эквивалент: generated `<ApiReference>` (`collectApi` сканирует `*DataAttributes.ts` из исходников, тест в `collect.test.ts`); отдельные `types.md` не портируются; блоки добавлены на страницы dialog и fieldset (остальные 20 страниц без блока — выкат вне скоупа §10)
 - [x] проверить сборку и package-контракт (`pnpm test:package`)
 
 ## 11. Menu filtering (#5527), preview — отдельной задачей

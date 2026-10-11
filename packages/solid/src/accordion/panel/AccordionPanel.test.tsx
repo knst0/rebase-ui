@@ -63,6 +63,13 @@ describe("<Accordion.Panel />", () => {
     expect(panel()).toHaveAttribute("hidden", "until-found");
   });
 
+  it("persists starting styles while a `hiddenUntilFound` panel stays closed", () => {
+    const { panel } = renderPanel({}, { hiddenUntilFound: true, keepMounted: true });
+
+    expect(panel()).toHaveAttribute("hidden", "until-found");
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.startingStyle, "");
+  });
+
   it("applies the panel size custom properties", () => {
     const { panel } = renderPanel({ defaultValue: ["one"] });
     flush();

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { flush, onCleanup, Show } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import { describeConformance, nextFrames } from "#test-utils";
+import { describeConformance, isJSDOM, nextFrames } from "#test-utils";
 
 import * as Collapsible from "../index.parts";
 import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
@@ -125,6 +125,30 @@ describe("<Collapsible.Panel />", () => {
     expect(panel()).not.toHaveAttribute("hidden");
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(container.contains(panel())).toBe(true);
+  });
+
+  it("persists starting styles while a `hiddenUntilFound` panel stays closed", () => {
+    const { panel } = renderCollapsible({}, { hiddenUntilFound: true });
+
+    // Upstream `shouldPersistHiddenTransitionStyles`: the closed panel keeps its
+    // collapsed starting styles so a find-in-page reveal never flashes at full
+    // height before the open commits.
+    expect(panel()).toHaveAttribute("hidden", "until-found");
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.startingStyle, "");
+  });
+
+  it("drops the persisted starting styles once the panel opens", async () => {
+    const user = userEvent.setup();
+    const { trigger, panel } = renderCollapsible({}, { hiddenUntilFound: true });
+
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.startingStyle, "");
+
+    await clickTrigger(user, trigger);
+
+    expect(panel()).toHaveAttribute(CollapsiblePanelDataAttributes.open, "");
+    await vi.waitFor(() => {
+      expect(panel()).not.toHaveAttribute(CollapsiblePanelDataAttributes.startingStyle);
+    });
   });
 
   it("supports canceling the `beforematch` open change", () => {
@@ -272,5 +296,62 @@ describe("<Collapsible.Panel />", () => {
     expect(panel).toHaveAttribute("data-open");
     // The next open animates normally: no mount-animation suppression is left.
     expect(panel.style.getPropertyValue("animation-name")).toBe("");
+  });
+
+  // Upstream #5891 runs this against real CSS animations; jsdom cannot run
+  // them, so the stronger assertions below only execute in browser mode while
+  // the inline-style test above covers the same path in jsdom.
+  it.skipIf(isJSDOM)("runs a real animation on reopen after an initially open panel is removed by the render function", async () => {
+    const user = userEvent.setup();
+    render(() => (
+      <>
+        <style>{`
+          @keyframes removable-panel-open {
+            from {
+              opacity: 0;
+            }
+
+            to {
+              opacity: 1;
+            }
+          }
+
+          .removable-animation-panel[data-open] {
+            animation: removable-panel-open 10s linear;
+          }
+        `}</style>
+
+        <Collapsible.Root defaultOpen>
+          <Collapsible.Trigger>Trigger</Collapsible.Trigger>
+          <Collapsible.Panel as={RemovablePanel} class="removable-animation-panel" data-testid="panel">
+            Content
+          </Collapsible.Panel>
+        </Collapsible.Root>
+      </>
+    ));
+
+    const trigger = screen.getByRole("button", { name: "Trigger" });
+
+    // The initial mount animation is suppressed while the panel starts open.
+    expect(screen.getByTestId("panel").getAnimations()).toHaveLength(0);
+
+    await user.click(trigger);
+    flush();
+    await nextFrames();
+    await nextFrames();
+
+    expect(screen.queryByTestId("panel")).toBe(null);
+
+    await user.click(trigger);
+    flush();
+    await nextFrames();
+
+    const panel = screen.getByTestId("panel");
+
+    expect(panel).toHaveAttribute("data-open");
+    await vi.waitFor(() => {
+      expect(panel.getAnimations()).toHaveLength(1);
+    });
+    expect(getComputedStyle(panel).animationName).toBe("removable-panel-open");
   });
 });

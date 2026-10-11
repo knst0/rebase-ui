@@ -9,7 +9,7 @@ import type { RebaseUIComponentProps } from "../../internals/types";
 import type { CollapsibleRootState } from "../root/CollapsibleRoot";
 import { useCollapsibleRootContext } from "../root/CollapsibleRootContext";
 import { collapsibleStateAttributesMapping } from "../root/stateAttributesMapping";
-import { createCollapsiblePanel } from "./createCollapsiblePanel";
+import { createCollapsiblePanel, createPanelTransitionStatusMapping } from "./createCollapsiblePanel";
 
 /**
  * A panel with the collapsible contents.
@@ -73,13 +73,18 @@ export function CollapsiblePanel<T extends ValidComponent = "div">(props: Collap
     ref: mergeRefs<HTMLElement>(externalProps.ref, panel.setPanelElement),
   });
 
+  const stateAttributesMapping = {
+    ...collapsibleStateAttributesMapping,
+    ...createPanelTransitionStatusMapping(panel.shouldPersistHiddenTransitionStyles),
+  };
+
   return (
     <RenderElement
       as={as}
       enabled={shouldRender}
       state={state}
       props={[panel.props, elementProps, refProps]}
-      stateAttributesMapping={collapsibleStateAttributesMapping}
+      stateAttributesMapping={stateAttributesMapping}
     />
   );
 }

@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { screen } from "@solidjs/testing-library";
-import { createSignal, flush } from "solid-js";
-import { describe, expect, it } from "vite-plus/test";
+import { createSignal, flush, Show } from "solid-js";
+import { describe, expect, it, vi } from "vite-plus/test";
 
 import { createRenderer } from "#test-utils";
 
@@ -166,5 +166,63 @@ describe("<Checkbox.Root /> native state", () => {
     setAriaLabel(undefined);
     flush();
     expect(checkbox).toHaveAccessibleName("Associated label");
+  });
+
+  it("updates the accessible name when the associated field label mounts and unmounts", async () => {
+    const diagnostics: string[] = [];
+    const recordDiagnostic = (...args: unknown[]) => {
+      if (typeof args[0] === "string" && args[0].includes("STRICT_READ_UNTRACKED")) {
+        diagnostics.push(args[0]);
+      }
+    };
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(recordDiagnostic);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(recordDiagnostic);
+
+    try {
+      const [showLabel, setShowLabel] = createSignal(false);
+      const [ariaLabel, setAriaLabel] = createSignal<string | undefined>(undefined);
+      await render(() => (
+        <Field.Root>
+          <Show when={showLabel()}>
+            <Field.Label>Associated label</Field.Label>
+          </Show>
+          <CheckboxRoot id="dynamic-label" aria-label={ariaLabel()} />
+        </Field.Root>
+      ));
+
+      const checkbox = screen.getByRole("checkbox");
+      expect(checkbox).toHaveAccessibleName("");
+
+      setShowLabel(true);
+      flush();
+      expect(checkbox).toHaveAccessibleName("Associated label");
+
+      setShowLabel(false);
+      flush();
+      expect(checkbox).toHaveAccessibleName("");
+      expect(checkbox).not.toHaveAttribute("aria-labelledby");
+
+      setAriaLabel("Custom name");
+      flush();
+      expect(checkbox).toHaveAccessibleName("Custom name");
+
+      setShowLabel(true);
+      flush();
+      expect(checkbox).toHaveAccessibleName("Custom name");
+
+      setShowLabel(false);
+      flush();
+      expect(checkbox).toHaveAccessibleName("Custom name");
+
+      setShowLabel(true);
+      setAriaLabel(undefined);
+      flush();
+      expect(checkbox).toHaveAccessibleName("Associated label");
+
+      expect(diagnostics).toEqual([]);
+    } finally {
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 });

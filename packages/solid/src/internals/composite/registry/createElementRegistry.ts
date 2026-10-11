@@ -7,6 +7,12 @@ export type ElementMetadata<Metadata> = Metadata | Accessor<Metadata | undefined
 export interface ElementRegistry<Metadata> {
   register: (element: HTMLElement, metadata?: ElementMetadata<Metadata>) => void;
   unregister: (element: HTMLElement) => void;
+  /**
+   * Re-sorts the registered elements. Call once the owner mounts: refs can register elements
+   * while they are still detached (or in separate fragments), and a sort computed then caches
+   * the disconnected order until the next registration.
+   */
+  refresh: () => void;
   /** Registered elements in document order. Recomputed once per batch, not per registration. */
   elements: Accessor<HTMLElement[]>;
   /** Document-order position of an element, or `-1`. Reactive, but O(1) per read. */
@@ -28,6 +34,10 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
     if (!entries.delete(element)) {
       return;
     }
+    setVersion((current) => current + 1);
+  };
+
+  const refresh = () => {
     setVersion((current) => current + 1);
   };
 
@@ -62,5 +72,5 @@ export function createElementRegistry<Metadata>(): ElementRegistry<Metadata> {
     return typeof metadata === "function" ? (metadata as Accessor<Metadata | undefined>)() : metadata;
   };
 
-  return { register, unregister, elements, indexOf, metadataOf };
+  return { register, unregister, refresh, elements, indexOf, metadataOf };
 }

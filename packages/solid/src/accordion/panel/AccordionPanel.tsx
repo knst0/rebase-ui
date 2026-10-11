@@ -1,7 +1,7 @@
 import type { JSX, ValidComponent } from "@solidjs/web";
 import { type Accessor, createEffect, untrack } from "solid-js";
 
-import { createCollapsiblePanel } from "../../collapsible/panel/createCollapsiblePanel";
+import { createCollapsiblePanel, createPanelTransitionStatusMapping } from "../../collapsible/panel/createCollapsiblePanel";
 import { useCollapsibleRootContext } from "../../collapsible/root/CollapsibleRootContext";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
@@ -92,13 +92,18 @@ export function AccordionPanel<T extends ValidComponent = "div">(props: Accordio
     ref: mergeRefs<HTMLElement>(externalProps.ref, panel.setPanelElement),
   });
 
+  const stateAttributesMapping = {
+    ...panelStateAttributesMapping,
+    ...createPanelTransitionStatusMapping(panel.shouldPersistHiddenTransitionStyles),
+  };
+
   return (
     <RenderElement
       as={as}
       enabled={panel.shouldRender}
       state={state}
       props={[panel.props, ariaAndStyleProps, elementProps, refProps]}
-      stateAttributesMapping={panelStateAttributesMapping}
+      stateAttributesMapping={stateAttributesMapping}
     />
   );
 }

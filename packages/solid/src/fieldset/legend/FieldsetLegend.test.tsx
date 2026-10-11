@@ -44,6 +44,26 @@ describe("<Fieldset.Legend />", () => {
     expect(screen.getByRole("group")).toHaveAttribute("aria-labelledby", "legend-id");
   });
 
+  it("reflects the disabled state", async () => {
+    await render(() => (
+      <Fieldset.Root disabled>
+        <Fieldset.Legend data-testid="legend">Legend</Fieldset.Legend>
+      </Fieldset.Root>
+    ));
+
+    expect(screen.getByTestId("legend")).toHaveAttribute("data-disabled");
+  });
+
+  it("omits data-disabled when enabled", async () => {
+    await render(() => (
+      <Fieldset.Root>
+        <Fieldset.Legend data-testid="legend">Legend</Fieldset.Legend>
+      </Fieldset.Root>
+    ));
+
+    expect(screen.getByTestId("legend")).not.toHaveAttribute("data-disabled");
+  });
+
   it("updates and clears the legend association", async () => {
     const [legendId, setLegendId] = createSignal("legend-a");
     const [showLegend, setShowLegend] = createSignal(true);

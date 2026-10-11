@@ -34,7 +34,12 @@ function stateOf(text: string, name: string): ApiType | undefined {
   return { name: name + "State", source: text.slice(match.index, close + 1).trim() };
 }
 
-function parseAttributes(text: string, constants: Map<string, string>): ApiAttribute[] {
+function attributeType(tag: string | undefined): string | undefined {
+  const type = tag?.replace(/^\{(.+)\}$/, "$1").trim();
+  return type === undefined || type === "" ? undefined : type;
+}
+
+export function parseAttributes(text: string, constants: Map<string, string>): ApiAttribute[] {
   const attributes: ApiAttribute[] = [];
   const pattern = /export\s+const\s+[A-Za-z0-9_]+\s*=\s*(?:"([^"]+)"|([A-Za-z0-9_.]+))\s*;?/g;
 
@@ -45,6 +50,7 @@ function parseAttributes(text: string, constants: Map<string, string>): ApiAttri
     const doc = docBefore(text, match.index);
     attributes.push({
       name,
+      type: attributeType(doc.tags.type),
       description: doc.text === "" ? undefined : doc.text,
     });
   }

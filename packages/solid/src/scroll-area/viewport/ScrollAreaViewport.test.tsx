@@ -83,6 +83,34 @@ function scrollViewport(viewport: HTMLElement, top: number) {
   viewport.dispatchEvent(new Event("scroll", { bubbles: false, cancelable: false }));
 }
 
+/**
+ * Reads the Y translation of a `translate3d`/`matrix`/`matrix3d` transform
+ * without `DOMMatrixReadOnly`, which jsdom does not implement. Real browsers
+ * serialize the thumb's `translate3d` to `matrix3d`; jsdom returns it as specified.
+ */
+function translateYOf(transform: string): number {
+  if (transform === "" || transform === "none") {
+    return 0;
+  }
+
+  const translate = /translate3d\(\s*[^,]+,\s*([+-]?(?:\d+\.?\d*|\.\d+))(?:px)?\s*,/.exec(transform);
+  if (translate) {
+    return Number.parseFloat(translate[1]);
+  }
+
+  const matrix = /^matrix\((.+)\)$/.exec(transform);
+  if (matrix) {
+    return Number(matrix[1].split(",")[5]);
+  }
+
+  const matrix3d = /^matrix3d\((.+)\)$/.exec(transform);
+  if (matrix3d) {
+    return Number(matrix3d[1].split(",")[13]);
+  }
+
+  throw new Error(`Unsupported transform: ${transform}`);
+}
+
 describe("<ScrollArea.Viewport />", () => {
   it("does not use a presentational role on the focusable viewport", async () => {
     const { viewport } = renderVerticalScrollArea();
@@ -140,7 +168,7 @@ describe("<ScrollArea.Viewport />", () => {
 
     const maxThumbOffset = 100 - 100 * (100 / 300);
     const expectedOffset = (50 / 200) * maxThumbOffset;
-    expect(new DOMMatrixReadOnly(getComputedStyle(thumb).transform).m42).toBeCloseTo(expectedOffset, 3);
+    expect(translateYOf(getComputedStyle(thumb).transform)).toBeCloseTo(expectedOffset, 3);
   });
 
   it("clears the scrolling state once scrolling rests", async () => {

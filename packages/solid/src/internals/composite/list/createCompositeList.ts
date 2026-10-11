@@ -7,6 +7,8 @@ export interface CreateCompositeListReturnValue<Metadata> {
   contextValue: CompositeListContext<Metadata>;
   elements: Accessor<HTMLElement[]>;
   map: Accessor<Map<HTMLElement, CompositeMetadata<Metadata>>>;
+  /** Re-sorts the registered elements once they are attached. See `ElementRegistry.refresh`. */
+  refresh: () => void;
 }
 
 /**
@@ -36,5 +38,5 @@ export function createCompositeList<Metadata>(): CreateCompositeListReturnValue<
     map,
   };
 
-  return { contextValue, elements: registry.elements, map };
+  return { contextValue, elements: registry.elements, map, refresh: registry.refresh };
 }

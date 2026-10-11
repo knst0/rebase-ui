@@ -49,7 +49,8 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
       return (store.select("open") as boolean) && highlighted() ? 0 : -1;
     },
     get "aria-selected"() {
-      return commonItemProps?.ariaSelected();
+      // Rendered as an explicit string: Solid would serialize a boolean as an empty attribute.
+      return commonItemProps?.ariaSelected() ? "true" : undefined;
     },
     // Real focus stays on the input or list that owns virtual navigation.
     onMouseDown:

@@ -1,6 +1,6 @@
 import type { Padding, VirtualElement } from "@floating-ui/dom";
 import type { JSX, ValidComponent } from "@solidjs/web";
-import { createEffect, createSignal, onCleanup, untrack } from "solid-js";
+import { createEffect, createSignal, onCleanup, onSettled, untrack } from "solid-js";
 
 import {
   createAnchorPositioning,
@@ -214,6 +214,12 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
   });
 
   const compositeList = createCompositeList<{ label?: string | null }>();
+
+  // Item refs can register while detached (and out of document order, e.g. a submenu trigger
+  // behind wrapper components). Re-sort once attached so navigation follows the document.
+  onSettled(() => {
+    compositeList.refresh();
+  });
 
   // Mirrors the composite registry into the store refs that keyboard navigation
   // and typeahead consume.

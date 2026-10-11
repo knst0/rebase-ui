@@ -35,6 +35,31 @@ describe("<Popover.Popup />", () => {
     expect(popup.getAttribute("aria-describedby")).toBe(details.getAttribute("id"));
   });
 
+  it.each([false, true])("does not start an entry phase when initially open (controlled=%s)", async (controlled) => {
+    const openProps = controlled ? { open: true as const } : { defaultOpen: true };
+    render(() => (
+      <Popover.Root {...openProps}>
+        <Popover.Trigger>Toggle</Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner>
+            <Popover.Popup data-testid="popup">Content</Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ));
+
+    // The Root-owned store is seeded synchronously: even the first paint must not
+    // report the starting phase for an initially open popup.
+    expect(screen.getByTestId("popup")).not.toHaveAttribute("data-starting-style");
+
+    flush();
+    await nextFrames();
+
+    const popup = screen.getByTestId("popup");
+    expect(popup).not.toHaveAttribute("data-starting-style");
+    expect(popup).not.toHaveAttribute("data-ending-style");
+  });
+
   it("renders a backdrop beneath a modal popover", async () => {
     render(() => (
       <Popover.Root modal>

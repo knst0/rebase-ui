@@ -2,14 +2,32 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@solidjs/testing-library";
 import type { ValidComponent } from "@solidjs/web";
 import userEvent from "@testing-library/user-event";
-import { flush, omit } from "solid-js";
+import { flush, omit, onSettled } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "#test-utils";
 
 import { Button as ButtonPrimitive } from "../../button";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import * as Menu from "../index.parts";
 import { createMenuHandle } from "../store/MenuHandle";
+import type { MenuStore } from "../store/MenuStore";
+import type { MenuRoot } from "./MenuRoot";
+import { useMenuRootContext } from "./MenuRootContext";
+
+function MenuStoreProbe(props: { onStore: (store: MenuStore<unknown>) => void }) {
+  const { store } = useMenuRootContext();
+  onSettled(() => {
+    props.onStore(store as MenuStore<unknown>);
+  });
+  return null;
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 // A custom `as` wrapper like apps build: pulls its own props out with `omit` in the
 // body, computes `class` in JSX, and forwards the rest. Feeds the inner Button a
@@ -496,6 +514,78 @@ describe("<Menu.Root />", () => {
       const details = onItemHighlighted.mock.lastCall?.[1];
       expect(details.reason).toBe("pointer");
       expect(details.event).toBeInstanceOf(MouseEvent);
+    });
+  });
+
+  // The 300ms touch-click cooldown guards against delayed click events on mobile: a tap
+  // fires focus first (opening the menu) and the click only later. In production the
+  // focus-open is produced by the menubar (unported), so these tests arm the cooldown by
+  // driving the store directly with a trigger-focus open — the same `setOpen` path the
+  // focus interaction takes. The menubar-level integration test
+  // (upstream `Menubar.test.tsx`, "closes on a touch item click immediately after focus
+  // opens another menu") has no port target until Menubar is ported.
+  describe("touch-click close guard", () => {
+    function renderCooldownMenu() {
+      let menuStore: MenuStore<unknown> | undefined;
+      render(() => (
+        <Menu.Root>
+          <Menu.Trigger>Open menu</Menu.Trigger>
+          <MenuStoreProbe onStore={(store) => (menuStore = store)} />
+          <Menu.Portal>
+            <Menu.Positioner>
+              <Menu.Popup data-testid="popup">
+                <Menu.Item>Profile</Menu.Item>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      ));
+      flush();
+      expect(menuStore).toBeDefined();
+      return { store: menuStore! };
+    }
+
+    function focusOpen(store: MenuStore<unknown>) {
+      store.setOpen(true, createChangeEventDetails(REASONS.triggerFocus, new FocusEvent("focus")));
+      flush();
+    }
+
+    function touchClickClose(store: MenuStore<unknown>, reason: MenuRoot.ChangeEventReason) {
+      store.setOpen(
+        false,
+        createChangeEventDetails(reason, new PointerEvent("click", { bubbles: true, cancelable: true, pointerType: "touch" })),
+      );
+      flush();
+    }
+
+    it("ignores a non-item touch click close within 300ms of a focus open, then honors it", async () => {
+      const { store } = renderCooldownMenu();
+      focusOpen(store);
+      expect(screen.getByTestId("popup")).toBeInTheDocument();
+
+      touchClickClose(store, REASONS.triggerPress);
+      await nextFrames();
+      expect(screen.getByTestId("popup")).toBeInTheDocument();
+      expect(store.peek("open")).toBe(true);
+
+      await sleep(350);
+      touchClickClose(store, REASONS.triggerPress);
+      await nextFrames();
+      expect(screen.queryByTestId("popup")).toBe(null);
+      expect(store.peek("open")).toBe(false);
+    });
+
+    it("closes on a touch item press while the cooldown is armed", async () => {
+      const { store } = renderCooldownMenu();
+      focusOpen(store);
+      expect(screen.getByTestId("popup")).toBeInTheDocument();
+
+      // Item presses bypass the guard (#5789): the menu must close even though the
+      // 300ms cooldown started by the focus open is still active.
+      touchClickClose(store, REASONS.itemPress);
+      await nextFrames();
+      expect(screen.queryByTestId("popup")).toBe(null);
+      expect(store.peek("open")).toBe(false);
     });
   });
 });

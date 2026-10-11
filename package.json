@@ -10,12 +10,12 @@
     "test": "pnpm test:chromium",
     "test:browsers": "cross-env VITEST_ENV=all-browsers pnpm test:unit",
     "test:chromium": "cross-env VITEST_ENV=chromium pnpm test:unit",
-    "test:ci": "vp test run --project @rebase-ui/docs && cross-env VITEST_ENV=chromium vp test run --project @rebase-ui/solid",
+    "test:ci": "vp test run --project @rebase-ui/docs && cross-env VITEST_ENV=chromium vp test run --project @rebase-ui/solid && vp test run --project @rebase-ui/reze",
     "test:firefox": "cross-env VITEST_ENV=firefox pnpm test:unit",
     "test:package": "pnpm build && vp test run --project @rebase-ui/solid-package",
     "test:unit": "vp test --project @rebase-ui/solid",
     "test:webkit": "cross-env VITEST_ENV=webkit pnpm test:unit",
-    "typecheck": "tsc --noEmit -p packages/solid/tsconfig.json && tsc --noEmit -p docs/tsconfig.json",
+    "typecheck": "tsc --noEmit -p packages/solid/tsconfig.json && tsc --noEmit -p docs/tsconfig.json && tsc --noEmit -p packages/reze/tsconfig.json",
     "version": "changeset version"
   },
   "devDependencies": {

@@ -3,9 +3,8 @@ import { fireEvent, render, screen } from "@solidjs/testing-library";
 import userEvent from "@testing-library/user-event";
 import { flush } from "solid-js";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { userEvent as browserUser } from "vite-plus/test/browser";
 
-import { nextFrames } from "#test-utils";
+import { isJSDOM, nextFrames } from "#test-utils";
 
 import * as Popover from "../index.parts";
 
@@ -13,6 +12,20 @@ function sleep(ms: number) {
   return new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+/**
+ * Parks the real cursor off-canvas so hover state from a previous test cannot
+ * leak into the next one. Browser-only: jsdom has no cursor to park, and
+ * `vite-plus/test/browser` cannot even be imported outside browser mode, so
+ * the import stays lazy behind the environment guard.
+ */
+async function parkCursor() {
+  if (isJSDOM) {
+    return;
+  }
+  const { userEvent: browserUser } = await import("vite-plus/test/browser");
+  await browserUser.hover(document.documentElement, { position: { x: innerWidth - 1, y: innerHeight - 1 }, force: true });
 }
 
 describe("<Popover.Trigger />", () => {
@@ -45,7 +58,7 @@ describe("<Popover.Trigger />", () => {
   });
 
   it("mounts a closed hover trigger without opening and keeps its hover config", async () => {
-    await browserUser.hover(document.documentElement, { position: { x: innerWidth - 1, y: innerHeight - 1 }, force: true });
+    await parkCursor();
     const onOpenChange = vi.fn();
     render(() => (
       <Popover.Root onOpenChange={onOpenChange}>

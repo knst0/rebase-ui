@@ -23,6 +23,13 @@ export function createAriaLabelledBy(params: CreateAriaLabelledByParameters): Ac
     return labelSourceId ? `${labelSourceId}-label` : generatedId;
   };
 
+  // Known divergence from upstream `useAriaLabelledBy`: React runs the fallback
+  // derivation after every commit (no dep array), so a native `<label>` mounting
+  // or unmounting is picked up. This effect only re-runs when a tracked dep
+  // changes, and a native label mounting/unmounting changes none of them, so the
+  // fallback goes stale until the next dep change. `Field.Label` mount/unmount
+  // is reactive through `labelId` and stays fresh. Closing the native-label gap
+  // would need a MutationObserver, which upstream does not have.
   createRenderEffect(
     () => ({
       explicit: params.ariaLabelledBy(),

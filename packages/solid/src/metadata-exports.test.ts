@@ -11,6 +11,7 @@ import * as Combobox from "./combobox/index";
 import * as Dialog from "./dialog/index";
 import * as Drawer from "./drawer/index";
 import * as Field from "./field/index";
+import * as Fieldset from "./fieldset/index";
 import * as Input from "./input/index";
 import * as Menu from "./menu/index";
 import * as NumberField from "./number-field/index";
@@ -85,6 +86,7 @@ const EXPECTED: Array<[Record<string, unknown>, string, string]> = [
   [Field, "FieldDescriptionDataAttributes", "field"],
   [Field, "FieldControlDataAttributes", "field"],
   [Field, "FieldItemDataAttributes", "field"],
+  [Fieldset, "FieldsetLegendDataAttributes", "fieldset"],
   [Input, "InputDataAttributes", "input"],
   [Menu, "MenuArrowDataAttributes", "menu"],
   [Menu, "MenuBackdropDataAttributes", "menu"],
@@ -195,7 +197,7 @@ const EXPECTED: Array<[Record<string, unknown>, string, string]> = [
 
 describe("metadata namespace exports (#5243)", () => {
   it("exposes every DataAttributes/CssVariables namespace from its component entrypoint", () => {
-    expect(EXPECTED.length).toBe(160);
+    expect(EXPECTED.length).toBe(161);
 
     for (const [module, name, component] of EXPECTED) {
       const namespace = module[name] as Record<string, unknown> | undefined;

@@ -149,6 +149,132 @@ describe("<Menu.FilterProvider />", () => {
     expect(input).toHaveAttribute("aria-activedescendant", screen.getByRole("menuitem", { name: "Banana" }).id);
   });
 
+  it("highlights the first item on keyboard open and keeps the input in the arrow loop", async () => {
+    render(() => <FilterMenu />);
+    const user = userEvent.setup();
+
+    const trigger = screen.getByRole("button", { name: "Open menu" });
+    trigger.focus();
+    await user.keyboard("{Enter}");
+    flush();
+    await nextFrames();
+
+    const input = screen.getByRole("searchbox", { name: "Filter actions" });
+    expect(input).toHaveFocus();
+    const apple = screen.getByRole("menuitem", { name: "Apple" });
+    expect(input).toHaveAttribute("aria-activedescendant", apple.id);
+
+    // Past the last item the highlight escapes back to the input.
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    flush();
+    expect(input).toHaveAttribute("aria-activedescendant", screen.getByRole("menuitem", { name: "Cherry" }).id);
+
+    await user.keyboard("{ArrowDown}");
+    flush();
+    expect(input).not.toHaveAttribute("aria-activedescendant");
+    expect(input).toHaveAttribute("data-highlighted", "");
+    expect(input).toHaveFocus();
+
+    await user.keyboard("{ArrowUp}");
+    flush();
+    expect(input).toHaveAttribute("aria-activedescendant", screen.getByRole("menuitem", { name: "Cherry" }).id);
+  });
+
+  it("closes with Escape and returns focus to the trigger", async () => {
+    const user = await renderOpenMenu();
+    const trigger = screen.getByRole("button", { name: "Open menu" });
+
+    const input = screen.getByRole("searchbox", { name: "Filter actions" });
+    await user.click(input);
+    await user.keyboard("{Escape}");
+    flush();
+    await nextFrames();
+
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("closes with Shift+Tab and returns focus to the trigger", async () => {
+    const user = await renderOpenMenu();
+    const trigger = screen.getByRole("button", { name: "Open menu" });
+
+    const input = screen.getByRole("searchbox", { name: "Filter actions" });
+    await user.click(input);
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    flush();
+    await nextFrames();
+
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("resets the query when the popup closes and keeps it when the reset is canceled", async () => {
+    const user = userEvent.setup();
+    const changes: Array<{ value: string; reason: string }> = [];
+    let cancelNextReset = false;
+
+    render(() => (
+      <Menu.FilterProvider
+        onValueChange={(value, details) => {
+          changes.push({ value, reason: details.reason });
+          if (cancelNextReset && value === "") {
+            details.cancel();
+          }
+        }}
+      >
+        <Menu.Root>
+          <Menu.Trigger>Actions</Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner>
+              <Menu.Popup>
+                <Menu.Input aria-label="Filter actions" />
+                <Menu.List>
+                  <Menu.Item>Apple</Menu.Item>
+                  <Menu.Item>Banana</Menu.Item>
+                </Menu.List>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+      </Menu.FilterProvider>
+    ));
+
+    await user.click(screen.getByRole("button", { name: "Actions" }));
+    flush();
+    await nextFrames();
+
+    const input = screen.getByRole("searchbox", { name: "Filter actions" });
+    await user.click(input);
+    await user.type(input, "a");
+    flush();
+    expect(input).toHaveValue("a");
+
+    await user.keyboard("{Escape}");
+    flush();
+    await nextFrames();
+
+    expect(changes.at(-1)).toEqual({ value: "", reason: "popup-close" });
+
+    // Reopen with a query, then cancel the close reset: the query stays for the next open.
+    await user.click(screen.getByRole("button", { name: "Actions" }));
+    flush();
+    await nextFrames();
+    cancelNextReset = true;
+
+    const reopened = screen.getByRole("searchbox", { name: "Filter actions" });
+    await user.click(reopened);
+    await user.type(reopened, "b");
+    flush();
+    await user.keyboard("{Escape}");
+    flush();
+    await nextFrames();
+
+    await user.click(screen.getByRole("button", { name: "Actions" }));
+    flush();
+    await nextFrames();
+    expect(screen.getByRole("searchbox", { name: "Filter actions" })).toHaveValue("b");
+  });
+
   it("auto-highlights the first match", async () => {
     const user = await renderOpenMenu({ autoHighlight: true });
 
