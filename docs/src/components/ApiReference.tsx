@@ -3,6 +3,7 @@ import { api } from "virtual:api-reference";
 
 import type { ApiPart, ApiProp, ReferenceRow } from "../../plugins";
 import { API_SECTION_ID, slugifyWithin } from "../../plugins/shared/text";
+import { useFramework } from "../framework";
 import { Heading } from "./Heading";
 import { ReferenceTable } from "./ReferenceTable";
 
@@ -62,7 +63,8 @@ function Part(props: { part: ApiPart; single?: boolean }) {
 }
 
 export function ApiReference(props: { slug: string }) {
-  const component = createMemo(() => api[props.slug]);
+  const framework = useFramework();
+  const component = createMemo(() => api[framework().id][props.slug]);
 
   return (
     <Show when={component()}>

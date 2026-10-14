@@ -29,6 +29,12 @@ describe("<Button />", () => {
     expect(button.getAttribute("type")).toBe("button");
   });
 
+  it("lets the type prop override the default button type", () => {
+    const { el } = mount(() => <Button type="submit">Submit</Button>);
+
+    expect(getButton(el, "Submit").getAttribute("type")).toBe("submit");
+  });
+
   it("does not render state attributes when enabled", () => {
     const { el } = mount(() => <Button>Submit</Button>);
 

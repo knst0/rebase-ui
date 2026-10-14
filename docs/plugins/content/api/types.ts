@@ -46,5 +46,7 @@ export type ApiComponent = {
 
 export type ApiReferenceOptions = {
   dir: string;
+  /** Package the sources ship as, e.g. `@rebase-ui/solid`. */
+  packageName: string;
   shared?: string[];
 };

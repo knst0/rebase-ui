@@ -74,32 +74,22 @@ export function mdxJsxDataElement(name: string, props: Record<string, unknown>):
   } as unknown as HastContent;
 }
 
-export function mdxjsEsmImport(name: string, from: string): HastContent {
-  return {
-    type: "mdxjsEsm",
-    value: `import ${name} from ${JSON.stringify(from)};`,
-    data: {
-      estree: {
-        type: "Program",
-        sourceType: "module",
-        comments: [],
-        body: [
-          {
-            type: "ImportDeclaration",
-            specifiers: [{ type: "ImportDefaultSpecifier", local: { type: "Identifier", name } }],
-            source: { type: "Literal", value: from, raw: JSON.stringify(from) },
-            attributes: [],
-          },
-        ],
-      },
-    },
-  } as unknown as HastContent;
-}
-
-export function identifierArrayExpression(names: string[]): unknown {
+/** `{ key: [() => import("spec"), …], … }` as a JSX attribute value: lazily loaded modules per key. */
+export function importLoadersExpression(specifiers: Record<string, string[]>): unknown {
+  const loader = (specifier: string) => ({
+    type: "ArrowFunctionExpression",
+    params: [],
+    async: false,
+    generator: false,
+    expression: true,
+    body: { type: "ImportExpression", source: { type: "Literal", value: specifier, raw: JSON.stringify(specifier) } },
+  });
+  const value = `{ ${Object.entries(specifiers)
+    .map(([key, list]) => `${JSON.stringify(key)}: [${list.map((specifier) => `() => import(${JSON.stringify(specifier)})`).join(", ")}]`)
+    .join(", ")} }`;
   return {
     type: "mdxJsxAttributeValueExpression",
-    value: `[${names.join(", ")}]`,
+    value,
     data: {
       estree: {
         type: "Program",
@@ -109,8 +99,16 @@ export function identifierArrayExpression(names: string[]): unknown {
           {
             type: "ExpressionStatement",
             expression: {
-              type: "ArrayExpression",
-              elements: names.map((name) => ({ type: "Identifier", name })),
+              type: "ObjectExpression",
+              properties: Object.entries(specifiers).map(([key, list]) => ({
+                type: "Property",
+                key: { type: "Literal", value: key, raw: JSON.stringify(key) },
+                value: { type: "ArrayExpression", elements: list.map(loader) },
+                kind: "init",
+                method: false,
+                shorthand: false,
+                computed: false,
+              })),
             },
           },
         ],

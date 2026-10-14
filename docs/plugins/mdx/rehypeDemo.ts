@@ -1,7 +1,8 @@
-import { relative } from "node:path";
+import { dirname, relative } from "node:path";
 
-import { collectDemo, DEMOS_DIR, type Demo, type DemoVariant } from "../content/demos";
-import { identifierArrayExpression, mdxJsxElement, mdxjsEsmImport, type HastContent, type HastRoot } from "../shared/hast";
+import { collectDemo, demosDir, type Demo, type DemoVariant } from "../content/demos";
+import { FRAMEWORK_IDS, type FrameworkId } from "../shared/frameworks";
+import { importLoadersExpression, mdxJsxElement, type HastContent, type HastRoot } from "../shared/hast";
 
 type JsxNode = {
   type: "mdxJsxFlowElement";
@@ -30,19 +31,10 @@ function demoName(node: JsxNode): string | undefined {
   return explicit ?? shorthand;
 }
 
-function importSpecifier(demo: Demo, variant: DemoVariant): string {
+function importSpecifier(mdxFile: string, demo: Demo, variant: DemoVariant): string {
   const entry = variant.files[0].name;
-  return demo.nested ? `./${DEMOS_DIR}/${demo.name}/${entry}` : `./${DEMOS_DIR}/${entry}`;
-}
-
-function identifier(demoName: string, variantId: string): string {
-  const clean = (value: string) =>
-    value
-      .split(/[^a-zA-Z0-9]+/)
-      .filter(Boolean)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join("");
-  return `Demo_${clean(demoName)}_${clean(variantId)}`;
+  const dir = relative(dirname(mdxFile), demo.dir).split("\\").join("/");
+  return `./${dir}/${entry}`;
 }
 
 export type RehypeDemoOptions = {
@@ -55,53 +47,41 @@ type DemoTransformer = (tree: HastRoot, file: DemoVFile) => Promise<undefined>;
 
 type UnifiedPlugin = () => DemoTransformer;
 
+/**
+ * Replaces `<Demo name />` with a demo carrying every framework's port of it: sources for the code
+ * view and lazy loaders for the preview. Each framework must provide the demo.
+ */
 export function rehypeDemo(options: RehypeDemoOptions = {}): UnifiedPlugin {
   const transform: DemoTransformer = async (tree, file) => {
     const mdxFile = file.path ?? file.history?.[0];
     if (mdxFile === undefined) return;
+    const where = relative(options.cwd ?? process.cwd(), mdxFile);
 
-    const children = tree.children;
-    const next: HastContent[] = [];
-    const imports: HastContent[] = [];
+    tree.children = await Promise.all(
+      tree.children.map(async (node) => {
+        if (!isDemo(node)) return node;
 
-    for (const node of children) {
-      if (!isDemo(node)) {
-        next.push(node);
-        continue;
-      }
+        const name = demoName(node);
+        if (name === undefined) throw new Error(`<Demo /> in ${where} is missing a demo name.`);
 
-      const name = demoName(node);
-      if (name === undefined) {
-        throw new Error(`<Demo /> in ${relative(options.cwd ?? process.cwd(), mdxFile)} is missing a demo name.`);
-      }
+        const variants = {} as Record<FrameworkId, DemoVariant[]>;
+        const loaders = {} as Record<FrameworkId, string[]>;
+        for (const framework of FRAMEWORK_IDS) {
+          const demo = await collectDemo(mdxFile, name, framework);
+          if (demo === undefined || demo.variants.length === 0) {
+            throw new Error(
+              `<Demo ${name} /> in ${where} has no ${framework} source in ${relative(dirname(mdxFile), demosDir(mdxFile, framework))}/${name}.`,
+            );
+          }
+          variants[framework] = demo.variants.map((variant) => ({ id: variant.id, title: variant.title, files: variant.files }));
+          loaders[framework] = demo.variants.map((variant) => importSpecifier(mdxFile, demo, variant));
+        }
 
-      const demo = await collectDemo(mdxFile, name);
-      if (demo === undefined || demo.variants.length === 0) {
-        throw new Error(`<Demo ${name} /> in ${relative(options.cwd ?? process.cwd(), mdxFile)} has no source in ${DEMOS_DIR}/${name}.`);
-      }
-
-      const identifiers: string[] = [];
-      for (const variant of demo.variants) {
-        const local = identifier(demo.name, variant.id);
-        identifiers.push(local);
-        imports.push(mdxjsEsmImport(local, importSpecifier(demo, variant)));
-      }
-
-      const element = mdxJsxElement("Demo", {
-        name: demo.name,
-        variants: demo.variants.map((variant) => ({ id: variant.id, title: variant.title, files: variant.files })),
-      }) as unknown as JsxNode;
-
-      element.attributes.push({
-        type: "mdxJsxAttribute",
-        name: "components",
-        value: identifierArrayExpression(identifiers),
-      });
-
-      next.push(element as unknown as HastContent);
-    }
-
-    tree.children = [...imports, ...next];
+        const element = mdxJsxElement("Demo", { name, variants }) as unknown as JsxNode;
+        element.attributes.push({ type: "mdxJsxAttribute", name: "loaders", value: importLoadersExpression(loaders) });
+        return element as unknown as HastContent;
+      }),
+    );
   };
 
   return () => transform;

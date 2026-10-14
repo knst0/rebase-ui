@@ -14,6 +14,7 @@ import type { Plugin } from "vite";
 import { collectApi } from "../content/api/collect";
 import type { ApiReferenceOptions } from "../content/api/types";
 import { parseFrontmatter, stripFrontmatter, type SectionId } from "../content/frontmatter";
+import { FRAMEWORK_IDS, mapFrameworks, type FrameworkId } from "../shared/frameworks";
 import { API_SECTION_ID, slugifyWithin, titleFromSlug } from "../shared/text";
 
 const VIRTUAL_ID = "virtual:components-nav";
@@ -28,9 +29,11 @@ export type NavHeading = {
 
 export type NavItem = {
   title: string;
+  /** Framework-relative path, e.g. `/components/dialog`. */
   path: string;
   top?: string;
-  headings: NavHeading[];
+  /** Page headings; the generated API reference headings differ per framework package. */
+  headings: Record<FrameworkId, NavHeading[]>;
   children?: NavItem[];
 };
 
@@ -119,7 +122,9 @@ function apiHeadings(parts: { name: string }[]): NavHeading[] {
   }));
 }
 
-async function scan(dir: string, base: string, api: Record<string, { parts: { name: string }[] }>): Promise<NavItem[]> {
+type ApiParts = Record<FrameworkId, Record<string, { parts: { name: string }[] }>>;
+
+async function scan(dir: string, base: string, api: ApiParts): Promise<NavItem[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   const items: NavItem[] = [];
 
@@ -131,7 +136,7 @@ async function scan(dir: string, base: string, api: Record<string, { parts: { na
       const pageIndex = children.findIndex((child) => child.path === dirPath);
       if (children.length === 0) continue;
       if (pageIndex === -1) {
-        items.push({ title: titleFromSlug(entry.name), path: dirPath, headings: [], children });
+        items.push({ title: titleFromSlug(entry.name), path: dirPath, headings: mapFrameworks(() => []), children });
         continue;
       }
       const [page] = children.splice(pageIndex, 1);
@@ -142,25 +147,29 @@ async function scan(dir: string, base: string, api: Record<string, { parts: { na
     if (extname(entry.name) !== ".mdx") continue;
     const slug = entry.name.slice(0, -".mdx".length);
     const componentSlug = slug === "index" ? (base.split("/").pop() ?? slug) : slug;
-    const generated: Record<SectionId, NavHeading[]> = {
-      demo: [],
-      anatomy: [],
-      api: apiHeadings(api[componentSlug]?.parts ?? []),
-      types: [],
-    };
-    const { title, top, headings } = parse(await readFile(source, "utf8"), source, generated);
+    const text = await readFile(source, "utf8");
+    const pages = mapFrameworks((framework) => {
+      const generated: Record<SectionId, NavHeading[]> = {
+        demo: [],
+        anatomy: [],
+        api: apiHeadings(api[framework][componentSlug]?.parts ?? []),
+        types: [],
+      };
+      return parse(text, source, generated);
+    });
+    const first = pages[FRAMEWORK_IDS[0]];
     items.push({
-      title: title || titleFromSlug(slug),
+      title: first.title || titleFromSlug(slug),
       path: slug === "index" ? base : `${base}/${slug}`,
-      top,
-      headings,
+      top: first.top,
+      headings: mapFrameworks((framework) => pages[framework].headings),
     });
   }
 
   return items.sort((a, b) => a.title.localeCompare(b.title));
 }
 
-export function componentsNav(options: { dir: string; base?: string; api?: ApiReferenceOptions }): Plugin {
+export function componentsNav(options: { dir: string; base?: string; api: Record<FrameworkId, ApiReferenceOptions> }): Plugin {
   const base = options.base ?? "/components";
   let root = process.cwd();
 
@@ -176,13 +185,15 @@ export function componentsNav(options: { dir: string; base?: string; api?: ApiRe
       if (id !== RESOLVED_ID) return;
       const dir = join(root, options.dir);
       this.addWatchFile(dir);
-      const api = options.api ? await collectApi(root, options.api) : {};
+      const api: ApiParts = mapFrameworks(() => ({}));
+      for (const framework of FRAMEWORK_IDS) api[framework] = await collectApi(root, options.api[framework]);
       const tree = await scan(dir, base, api);
       return `export const nav = ${JSON.stringify(tree)};\nexport default nav;`;
     },
     handleHotUpdate({ file, server }) {
       const dir = join(root, options.dir);
-      if (relative(dir, file).startsWith("..")) return;
+      // The nav is built from the MDX pages only; demo edits hot-update on their own.
+      if (relative(dir, file).startsWith("..") || extname(file) !== ".mdx") return;
       const mod = server.moduleGraph.getModuleById(RESOLVED_ID);
       if (mod) server.moduleGraph.invalidateModule(mod);
       server.ws.send({ type: "full-reload" });

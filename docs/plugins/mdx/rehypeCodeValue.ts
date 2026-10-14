@@ -1,4 +1,5 @@
 import type { Element as HastElement, Root as HastRoot } from "hast";
+import { SKIP, visit } from "unist-util-visit";
 
 import { hastText } from "../shared/hast";
 
@@ -22,23 +23,18 @@ function hastMeta(node: HastElement): Record<string, string> {
 
 export function rehypeCodeValue() {
   return (tree: HastRoot) => {
-    const walk = (parent: HastRoot | HastElement) => {
-      for (const child of parent.children) {
-        if (child.type !== "element") continue;
-        const [first] = child.children;
-        if (child.tagName === "pre" && first?.type === "element" && first.tagName === "code") {
-          child.properties = {
-            ...child.properties,
-            ...hastMeta(first),
-            value: hastText(first),
-            language: hastLanguage(first),
-          };
-          continue;
-        }
-        walk(child);
-      }
-    };
-    walk(tree);
+    // `visit` also descends into MDX JSX elements, so fences inside `<Framework only>` blocks get their value.
+    visit(tree, "element", (node: HastElement) => {
+      const [first] = node.children;
+      if (node.tagName !== "pre" || first?.type !== "element" || first.tagName !== "code") return;
+      node.properties = {
+        ...node.properties,
+        ...hastMeta(first),
+        value: hastText(first),
+        language: hastLanguage(first),
+      };
+      return SKIP;
+    });
   };
 }
 

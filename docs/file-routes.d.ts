@@ -33,211 +33,217 @@ declare module "virtual:file-routes" {
   /** The flat route manifest, in scan order. */
   const routes: readonly [
     {
-      path: "/(main)";
+      path: "/:framework";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/[framework]")>;
       $$route?: undefined;
     },
     {
-      path: "/(main)/*404";
+      path: "/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/[...404]")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/index")>;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components";
+      path: "/:framework/*404";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/[framework]/[...404]")>;
       $$route?: undefined;
     },
     {
-      path: "/(main)/";
+      path: "/:framework/components";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/[framework]/components")>;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/accordion/";
+      path: "/:framework/";
       page: true;
-      $component: FileRouteLazyRef;
+      $component: FileRouteLazyRef<typeof import("./src/routes/[framework]/index")>;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/alert-dialog/";
-      page: true;
-      $component: FileRouteLazyRef;
-      $$route?: undefined;
-    },
-    {
-      path: "/(main)/components/avatar/";
+      path: "/:framework/components/accordion/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/button/";
+      path: "/:framework/components/alert-dialog/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/checkbox/";
+      path: "/:framework/components/avatar/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/checkbox-group/";
+      path: "/:framework/components/button/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/collapsible/";
+      path: "/:framework/components/checkbox/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/combobox/";
+      path: "/:framework/components/checkbox-group/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/dialog/";
+      path: "/:framework/components/collapsible/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/drawer/";
+      path: "/:framework/components/combobox/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/field/";
+      path: "/:framework/components/dialog/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/fieldset/";
+      path: "/:framework/components/drawer/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/form/";
+      path: "/:framework/components/field/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/input/";
+      path: "/:framework/components/fieldset/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/menu/";
+      path: "/:framework/components/form/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/meter/";
+      path: "/:framework/components/input/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/number-field/";
+      path: "/:framework/components/menu/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/otp-field/";
+      path: "/:framework/components/meter/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/popover/";
+      path: "/:framework/components/number-field/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/preview-card/";
+      path: "/:framework/components/otp-field/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/radio/";
+      path: "/:framework/components/popover/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/scroll-area/";
+      path: "/:framework/components/preview-card/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/select/";
+      path: "/:framework/components/radio/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/separator/";
+      path: "/:framework/components/scroll-area/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/slider/";
+      path: "/:framework/components/select/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/switch/";
+      path: "/:framework/components/separator/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/tabs/";
+      path: "/:framework/components/slider/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/toast/";
+      path: "/:framework/components/switch/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/toggle/";
+      path: "/:framework/components/tabs/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/toggle-group/";
+      path: "/:framework/components/toast/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
     },
     {
-      path: "/(main)/components/tooltip/";
+      path: "/:framework/components/toggle/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/:framework/components/toggle-group/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/:framework/components/tooltip/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -249,16 +255,24 @@ declare module "virtual:file-routes" {
   export const pageRoutes: readonly [
     {
       path: "/";
-      id: "/(main)";
+      id: "/";
       page: true;
-      $component: FileRouteLazyRef<typeof import("./src/routes/(main)")>;
+      $component: FileRouteLazyRef<typeof import("./src/routes/index")>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
+      path: "/:framework";
+      id: "/:framework";
+      page: true;
+      $component: FileRouteLazyRef<typeof import("./src/routes/[framework]")>;
       $$route?: undefined;
       children: readonly [
         {
           path: "/";
           id: "/";
           page: true;
-          $component: FileRouteLazyRef<typeof import("./src/routes/(main)/index")>;
+          $component: FileRouteLazyRef<typeof import("./src/routes/[framework]/index")>;
           $$route?: undefined;
           children?: undefined;
         },
@@ -266,7 +280,7 @@ declare module "virtual:file-routes" {
           path: "/*404";
           id: "/*404";
           page: true;
-          $component: FileRouteLazyRef<typeof import("./src/routes/(main)/[...404]")>;
+          $component: FileRouteLazyRef<typeof import("./src/routes/[framework]/[...404]")>;
           $$route?: undefined;
           children?: undefined;
         },
@@ -274,7 +288,7 @@ declare module "virtual:file-routes" {
           path: "/components";
           id: "/components";
           page: true;
-          $component: FileRouteLazyRef<typeof import("./src/routes/(main)/components")>;
+          $component: FileRouteLazyRef<typeof import("./src/routes/[framework]/components")>;
           $$route?: undefined;
           children: readonly [
             {

@@ -12,5 +12,11 @@
     "znaki.d.ts",
     "file-routes.d.ts",
     "../packages/solid/src/global.d.ts"
+  ],
+  "exclude": ["src/routes/**/_demos/reze"],
+  "references": [
+    {
+      "path": "./tsconfig.reze.json"
+    }
   ]
 }

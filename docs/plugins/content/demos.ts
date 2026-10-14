@@ -1,9 +1,15 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
 
+import type { FrameworkId } from "../shared/frameworks";
 import { titleFromSlug } from "../shared/text";
 
 export const DEMOS_DIR = "_demos";
+
+/** Solid demos live in `_demos/`, the other frameworks' ports in `_demos/<framework>/` under the same names. */
+export function demosDir(mdxFile: string, framework: FrameworkId): string {
+  return framework === "solid" ? join(dirname(mdxFile), DEMOS_DIR) : join(dirname(mdxFile), DEMOS_DIR, framework);
+}
 
 export type DemoFile = {
   name: string;
@@ -89,8 +95,8 @@ async function readDirectoryDemo(dir: string, name: string): Promise<Demo | unde
   return { name, dir, nested: true, variants };
 }
 
-export async function collectDemo(mdxFile: string, name: string): Promise<Demo | undefined> {
-  const root = join(dirname(mdxFile), DEMOS_DIR);
+export async function collectDemo(mdxFile: string, name: string, framework: FrameworkId): Promise<Demo | undefined> {
+  const root = demosDir(mdxFile, framework);
 
   const asDirectory = join(root, name);
   if (await isDirectory(asDirectory)) return readDirectoryDemo(asDirectory, name);

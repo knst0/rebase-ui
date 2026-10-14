@@ -1,27 +1,29 @@
 import { Collapsible } from "@rebase-ui/solid/collapsible";
-import { Dynamic } from "@solidjs/web";
 import { For, Show, createMemo, createSignal } from "solid-js";
-import type { Component } from "solid-js";
 import { Icon } from "znaki/solid";
 
 import type { DemoVariant } from "../../plugins";
+import { useFramework, type FrameworkId } from "../framework";
 import { CodeBlock } from "./CodeBlock";
+import { DemoPreview, type DemoLoader } from "./DemoPreview";
 
-export function Demo(props: { name: string; variants: DemoVariant[]; components: Component[] }) {
+export function Demo(props: { name: string; variants: Record<FrameworkId, DemoVariant[]>; loaders: Record<FrameworkId, DemoLoader[]> }) {
+  const framework = useFramework();
   const [variant, setVariant] = createSignal(0);
   const [file, setFile] = createSignal(0);
   const [open, setOpen] = createSignal(false);
-  const index = createMemo(() => Math.min(variant(), props.variants.length - 1));
-  const files = createMemo(() => props.variants[index()]?.files ?? []);
+  const variants = createMemo(() => props.variants[framework().id]);
+  const index = createMemo(() => Math.min(variant(), variants().length - 1));
+  const files = createMemo(() => variants()[index()]?.files ?? []);
   const fileIndex = createMemo(() => Math.min(file(), Math.max(files().length - 1, 0)));
-  const preview = createMemo(() => props.components[index()]);
+  const preview = createMemo(() => props.loaders[framework().id][index()]);
 
   return (
     <div class="my-6">
       <Show when={preview()}>
-        {(component) => (
+        {(load) => (
           <div class="squircle border-border bg-bg flex min-h-40 items-center justify-center rounded-lg border p-8 shadow">
-            <Dynamic component={component()} />
+            <DemoPreview framework={framework().id} load={load()} />
           </div>
         )}
       </Show>
@@ -56,9 +58,9 @@ export function Demo(props: { name: string; variants: DemoVariant[]; components:
                 </For>
               </div>
             </Show>
-            <Show when={props.variants.length > 1}>
+            <Show when={variants().length > 1}>
               <div class="ml-auto flex items-center gap-0.5">
-                <For each={props.variants}>
+                <For each={variants()}>
                   {(item, at) => (
                     <button
                       type="button"

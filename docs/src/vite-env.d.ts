@@ -11,8 +11,8 @@ declare module "virtual:components-nav" {
 }
 
 declare module "virtual:api-reference" {
-  import type { ApiComponent } from "../plugins";
+  import type { ApiComponent, FrameworkId } from "../plugins";
 
-  export const api: Record<string, ApiComponent>;
+  export const api: Record<FrameworkId, Record<string, ApiComponent>>;
   export default api;
 }

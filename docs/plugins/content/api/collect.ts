@@ -409,6 +409,16 @@ export async function collectApi(root: string, options: ApiReferenceOptions): Pr
 
     try {
       const partsText = await readFile(join(dir, slug, "index.parts.ts"), "utf8");
+      const exported = new Set([...partsText.matchAll(PARTS_EXPORT)].map((match) => match[1]));
+      // Internal helpers exported for sibling files (e.g. `DialogRootContent`) are not parts.
+      if (exported.size > 0) {
+        for (let index = parts.length - 1; index >= 0; index--) {
+          if (!exported.has(parts[index].base)) {
+            owners.delete(parts[index].base);
+            parts.splice(index, 1);
+          }
+        }
+      }
       for (const match of partsText.matchAll(PARTS_EXPORT)) {
         const [, base, alias, from] = match;
         if (!from.startsWith(".") || owners.has(base)) continue;
@@ -448,7 +458,7 @@ export async function collectApi(root: string, options: ApiReferenceOptions): Pr
       name: componentName,
       slug,
       parts: parts.map(({ base: _base, ...part }): ApiPart => part),
-      importSpecifier: `@rebase-ui/solid/${slug}`,
+      importSpecifier: `${options.packageName}/${slug}`,
       exportGroups,
       canonicalTypes: canonicalTypesFor(exportGroups, sources),
     };

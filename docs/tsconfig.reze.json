@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "outDir": "node_modules/.cache/tsconfig.reze",
+    "jsxImportSource": "reze-js",
+    "types": ["node", "vite/client"]
+  },
+  "include": ["src/routes/**/_demos/reze", "../packages/reze/src/global.d.ts"]
+}

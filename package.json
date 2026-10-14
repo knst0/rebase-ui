@@ -15,7 +15,7 @@
     "test:package": "pnpm build && vp test run --project @rebase-ui/solid-package",
     "test:unit": "vp test --project @rebase-ui/solid",
     "test:webkit": "cross-env VITEST_ENV=webkit pnpm test:unit",
-    "typecheck": "tsc --noEmit -p packages/solid/tsconfig.json && tsc --noEmit -p docs/tsconfig.json && tsc --noEmit -p packages/reze/tsconfig.json",
+    "typecheck": "tsc --noEmit -p packages/solid/tsconfig.json && tsc --noEmit -p docs/tsconfig.json && tsc --noEmit -p docs/tsconfig.reze.json && tsc --noEmit -p packages/reze/tsconfig.json",
     "version": "changeset version"
   },
   "devDependencies": {

@@ -16,7 +16,7 @@ export function Button<T extends JSX.ElementType = "button">(props: Button.Props
   return (
     <Tag
       {...(rest as Record<string, unknown>)}
-      type={button.type}
+      type={props.type ?? button.type}
       role={button.role}
       bool:disabled={button.disabled}
       tabindex={button.tabIndex}

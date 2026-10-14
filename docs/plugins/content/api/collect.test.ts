@@ -46,7 +46,7 @@ describe("parseAttributes", () => {
 describe("collectApi", () => {
   it("collects the accordion trigger data-index row", async () => {
     const root = new URL("../../..", import.meta.url).pathname;
-    const api = await collectApi(root, { dir: "../packages/solid/src" });
+    const api = await collectApi(root, { dir: "../packages/solid/src", packageName: "@rebase-ui/solid" });
 
     const trigger = api.accordion.parts.find((part) => part.name === "Trigger");
 
@@ -59,7 +59,7 @@ describe("collectApi", () => {
 
   it("collects metadata namespaces added by the v1.9.0 sync (#5243, #5901)", async () => {
     const root = new URL("../../..", import.meta.url).pathname;
-    const api = await collectApi(root, { dir: "../packages/solid/src" });
+    const api = await collectApi(root, { dir: "../packages/solid/src", packageName: "@rebase-ui/solid" });
 
     const viewport = api.dialog.parts.find((part) => part.name === "Viewport");
     expect(viewport?.attributes).toContainEqual({

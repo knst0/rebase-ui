@@ -170,6 +170,9 @@ importers:
       '@plausible-analytics/tracker':
         specifier: ^0.4.6
         version: 0.4.6
+      '@rebase-ui/reze':
+        specifier: workspace:*
+        version: link:../packages/reze
       '@rebase-ui/solid':
         specifier: workspace:*
         version: link:../packages/solid
@@ -182,6 +185,9 @@ importers:
       '@solidjs/web':
         specifier: ^2.0.0-rc.9
         version: 2.0.0-rc.9(solid-js@2.0.0-rc.9)
+      reze-js:
+        specifier: ^0.1.0
+        version: 0.1.0
       solid-js:
         specifier: ^2.0.0-rc.9
         version: 2.0.0-rc.9
@@ -192,6 +198,9 @@ importers:
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.63.2)
+      '@rezejs/vite-plugin':
+        specifier: ^0.1.0
+        version: 0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(reze-js@0.1.0)(rollup@4.63.2)
       '@solidjs/vite-plugin':
         specifier: ^3.0.0-next.44
         version: 3.0.0-next.44(@solidjs/web@2.0.0-rc.9(solid-js@2.0.0-rc.9))(@testing-library/jest-dom@7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3))(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(solid-js@2.0.0-rc.9)
@@ -282,7 +291,7 @@ importers:
         version: 0.1.0
       '@rezejs/vite-plugin':
         specifier: ^0.1.0
-        version: 0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(reze-js@0.1.0)
+        version: 0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(reze-js@0.1.0)(rollup@4.63.2)
       '@testing-library/dom':
         specifier: ^10.4.2
         version: 10.4.2
@@ -4402,7 +4411,7 @@ snapshots:
     dependencies:
       reze-js: 0.1.0
 
-  '@rezejs/vite-plugin@0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(reze-js@0.1.0)':
+  '@rezejs/vite-plugin@0.1.0(@voidzero-dev/vite-plus-core@1.1.0(@types/node@26.6.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(reze-js@0.1.0)(rollup@4.63.2)':
     dependencies:
       '@noble/hashes': 1.8.0
       '@rezejs/compiler': 0.1.0
