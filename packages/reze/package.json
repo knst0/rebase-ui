@@ -365,18 +365,18 @@
     "@rebase-ui/core": "workspace:*"
   },
   "devDependencies": {
-    "@rezejs/testing-library": "link:../../../../reze-js/packages/testing-library",
-    "@rezejs/vite-plugin": "link:../../../../reze-js/packages/vite-plugin",
+    "@rezejs/testing-library": "^0.1.0",
+    "@rezejs/vite-plugin": "^0.1.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.7",
     "happy-dom": "^20.0.0",
-    "reze-js": "link:../../../../reze-js/packages/reze-js",
+    "reze-js": "^0.1.0",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "reze-js": "*"
+    "reze-js": ">=0.1,<1"
   },
   "reze": {
     "manifest": "reze.json"
