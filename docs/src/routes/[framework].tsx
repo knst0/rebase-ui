@@ -201,16 +201,16 @@ function FrameworkSwitch(props: { path: () => string; class?: string }) {
 
 function SidebarFooter(props: { framework: Framework; class?: string }) {
   return (
-    <div class={["flex shrink-0 items-center gap-4", props.class]}>
+    <div class={["flex flex-col shrink-0 gap-2", props.class]}>
+      <FooterLink href={`https://github.com/${GITHUB_REPO}`} label={`${GITHUB_REPO} on GitHub`} text={GITHUB_REPO}>
+        <Icon name="tabler:brand-github" size={16} />
+      </FooterLink>
       <FooterLink
         href={`https://www.npmjs.com/package/${props.framework.packageName}`}
         label={`${props.framework.packageName} v${props.framework.version} on npm`}
         text={`v${props.framework.version}`}
       >
         <Icon name="tabler:brand-npm" size={16} />
-      </FooterLink>
-      <FooterLink href={`https://github.com/${GITHUB_REPO}`} label={`${GITHUB_REPO} on GitHub`} text={GITHUB_REPO}>
-        <Icon name="tabler:brand-github" size={16} />
       </FooterLink>
     </div>
   );
