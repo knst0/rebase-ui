@@ -27,7 +27,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vp pack"
+    "build": "vp pack",
+    "prepack": "vp pack"
   },
   "devDependencies": {
     "vite-plus": "catalog:",
