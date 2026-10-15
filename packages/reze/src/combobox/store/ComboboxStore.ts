@@ -4,8 +4,8 @@ import { effect, store as createStore, untrack } from "reze-js";
 import type { Side } from "../../internals/anchor-positioning/createAnchorPositioning";
 import type { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import type { TransitionStatus } from "../../internals/transition-status/createTransitionStatus";
-import type { AriaCombobox } from "../root/AriaCombobox";
 import { hasNullItemLabel } from "../../select/utils/resolveValueLabel";
+import type { AriaCombobox } from "../root/AriaCombobox";
 
 const EMPTY_OBJECT: Record<string, unknown> = {};
 
@@ -264,9 +264,7 @@ export class ComboboxStore {
     this.snapshot = initialState;
     this.context = context;
 
-    this.keyVersions = createStore(
-      Object.fromEntries(Object.keys(initialState).map((key) => [key, 0])) as Record<string, number>,
-    );
+    this.keyVersions = createStore(Object.fromEntries(Object.keys(initialState).map((key) => [key, 0])) as Record<string, number>);
 
     this.trackingSnapshot = new Proxy({} as ComboboxStoreState, {
       get: (_target, prop) => {

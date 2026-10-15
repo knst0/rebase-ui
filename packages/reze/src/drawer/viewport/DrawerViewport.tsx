@@ -1014,13 +1014,37 @@ export function DrawerViewport<T extends JSX.ElementType = "div">(props: DrawerV
           {...(rest as Record<string, unknown>)}
           role="presentation"
           hidden={!dialog.mounted() || undefined}
-          onPointerDown={chainHandlers(props.onPointerDown as ((event: PointerEvent) => void) | undefined, handlePointerDown) as (event: PointerEvent) => void}
-          onPointerMove={chainHandlers(props.onPointerMove as ((event: PointerEvent) => void) | undefined, handlePointerMove) as (event: PointerEvent) => void}
-          onPointerUp={chainHandlers(props.onPointerUp as ((event: PointerEvent) => void) | undefined, handlePointerUp) as (event: PointerEvent) => void}
-          onPointerCancel={chainHandlers(props.onPointerCancel as ((event: PointerEvent) => void) | undefined, handlePointerCancel) as (event: PointerEvent) => void}
-          onTouchStart={chainHandlers(props.onTouchStart as ((event: TouchEvent) => void) | undefined, handleTouchStart) as (event: TouchEvent) => void}
-          onTouchEnd={chainHandlers(props.onTouchEnd as ((event: TouchEvent) => void) | undefined, handleTouchEnd) as (event: TouchEvent) => void}
-          onTouchCancel={chainHandlers(props.onTouchCancel as ((event: TouchEvent) => void) | undefined, handleTouchCancel) as (event: TouchEvent) => void}
+          onPointerDown={
+            chainHandlers(props.onPointerDown as ((event: PointerEvent) => void) | undefined, handlePointerDown) as (
+              event: PointerEvent,
+            ) => void
+          }
+          onPointerMove={
+            chainHandlers(props.onPointerMove as ((event: PointerEvent) => void) | undefined, handlePointerMove) as (
+              event: PointerEvent,
+            ) => void
+          }
+          onPointerUp={
+            chainHandlers(props.onPointerUp as ((event: PointerEvent) => void) | undefined, handlePointerUp) as (
+              event: PointerEvent,
+            ) => void
+          }
+          onPointerCancel={
+            chainHandlers(props.onPointerCancel as ((event: PointerEvent) => void) | undefined, handlePointerCancel) as (
+              event: PointerEvent,
+            ) => void
+          }
+          onTouchStart={
+            chainHandlers(props.onTouchStart as ((event: TouchEvent) => void) | undefined, handleTouchStart) as (event: TouchEvent) => void
+          }
+          onTouchEnd={
+            chainHandlers(props.onTouchEnd as ((event: TouchEvent) => void) | undefined, handleTouchEnd) as (event: TouchEvent) => void
+          }
+          onTouchCancel={
+            chainHandlers(props.onTouchCancel as ((event: TouchEvent) => void) | undefined, handleTouchCancel) as (
+              event: TouchEvent,
+            ) => void
+          }
           ref={mergeRefs(
             (element: HTMLElement | null) => {
               dialog.setViewportElement(element as HTMLDivElement | null);
@@ -1033,10 +1057,7 @@ export function DrawerViewport<T extends JSX.ElementType = "div">(props: DrawerV
           data-ending-style={dialog.transitionStatus() === "ending" ? "" : undefined}
           data-nested={dialog.nested ? "" : undefined}
           class={resolveClassValue(props.class, snapshot())}
-          style={mergeStyleValue(
-            { "pointer-events": dialog.open() ? undefined : "none" },
-            resolveStyleValue(props.style, snapshot()),
-          )}
+          style={mergeStyleValue({ "pointer-events": dialog.open() ? undefined : "none" }, resolveStyleValue(props.style, snapshot()))}
         >
           {/* The provider lives inside the tag: context does not flow through dynamicElement,
               so providing above it would leave the popup without context. Children
@@ -1090,7 +1111,8 @@ export interface DrawerViewportOwnProps {
   onTouchCancel?: ((event: TouchEvent) => void) | undefined;
 }
 
-export type DrawerViewportProps<T extends JSX.ElementType = "div"> = DrawerViewportOwnProps & RebaseUIComponentProps<T, DrawerViewportState>;
+export type DrawerViewportProps<T extends JSX.ElementType = "div"> = DrawerViewportOwnProps &
+  RebaseUIComponentProps<T, DrawerViewportState>;
 
 export namespace DrawerViewport {
   export type State = DrawerViewportState;

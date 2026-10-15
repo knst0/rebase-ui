@@ -583,13 +583,7 @@ describe("<Field.Root />", () => {
     });
 
     it("keeps field context visible to render-prop children", () => {
-      const { el } = mount(() => (
-        <Field.Root>
-          {() => (
-            <Field.Control data-testid="control" />
-          )}
-        </Field.Root>
-      ));
+      const { el } = mount(() => <Field.Root>{() => <Field.Control data-testid="control" />}</Field.Root>);
 
       // A zero-argument function passes through untouched; the control resolves
       // inside the field context and links up with the root.

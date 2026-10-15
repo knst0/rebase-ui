@@ -247,8 +247,7 @@ export interface AccordionItemOwnProps {
   onOpenChange?: ((open: boolean, eventDetails: AccordionItemChangeEventDetails) => void) | undefined;
 }
 
-export type AccordionItemProps<T extends JSX.ElementType = "div"> = AccordionItemOwnProps &
-  RebaseUIComponentProps<T, AccordionItemState>;
+export type AccordionItemProps<T extends JSX.ElementType = "div"> = AccordionItemOwnProps & RebaseUIComponentProps<T, AccordionItemState>;
 
 export type AccordionItemChangeEventReason = typeof REASONS.triggerPress | typeof REASONS.none;
 

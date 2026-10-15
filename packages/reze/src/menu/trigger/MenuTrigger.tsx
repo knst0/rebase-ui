@@ -74,7 +74,8 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
 
   // The store that owns this trigger: the closest root, or the root attached to the handle
   // for detached triggers. Undefined while a detached trigger waits for its root.
-  const store = (): MenuStore<Payload> | undefined => (rootContext?.store ?? handle?.attached ?? undefined) as MenuStore<Payload> | undefined;
+  const store = (): MenuStore<Payload> | undefined =>
+    (rootContext?.store ?? handle?.attached ?? undefined) as MenuStore<Payload> | undefined;
 
   const elements = createStore({ triggerElement: null as Element | null });
   const triggerElement = () => elements.triggerElement;
@@ -534,10 +535,7 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
  * directly in the trigger's fragment would drop the trigger's focus, listeners, and
  * element identity every time the focus guards appear or disappear.
  */
-function MenuTriggerCustomTag(props: {
-  as: JSX.ElementType;
-  element: (Tag: (props: Record<string, any>) => JSX.Element) => JSX.Element;
-}) {
+function MenuTriggerCustomTag(props: { as: JSX.ElementType; element: (Tag: (props: Record<string, any>) => JSX.Element) => JSX.Element }) {
   const Tag = dynamicElement<JSX.ElementType>(() => props.as);
   return props.element(Tag);
 }

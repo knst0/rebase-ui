@@ -23,7 +23,17 @@ function getComboboxPopupId(rootId: string | null | undefined) {
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
 export function ComboboxPopup<T extends JSX.ElementType = "div">(props: ComboboxPopup.Props<T>) {
-  const rest = omitProps(props as Record<string, unknown>, "as", "initialFocus", "finalFocus", "onFocus", "class", "style", "children", "ref");
+  const rest = omitProps(
+    props as Record<string, unknown>,
+    "as",
+    "initialFocus",
+    "finalFocus",
+    "onFocus",
+    "class",
+    "style",
+    "children",
+    "ref",
+  );
   // Read once: invoking the children getter per binding run would recreate child components.
   const children = props.children;
 

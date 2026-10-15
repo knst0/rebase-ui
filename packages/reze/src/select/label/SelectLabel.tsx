@@ -1,8 +1,8 @@
 import { dynamicElement, omitProps, untrack, type JSX } from "reze-js";
 
+import type { FieldRootState } from "../../field/root/FieldRoot";
 import { getFieldStateSnapshot, type FieldRootStateSelectors } from "../../internals/field-constants";
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
-import type { FieldRootState } from "../../field/root/FieldRoot";
 import { createLabel } from "../../internals/labelable-provider";
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";

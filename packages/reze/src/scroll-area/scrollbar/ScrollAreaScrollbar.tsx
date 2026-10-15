@@ -264,35 +264,33 @@ function ScrollAreaScrollbarElement<T extends JSX.ElementType>(props: ScrollArea
 
   function renderTag(): JSX.Element {
     if (tagNode === undefined) {
-      tagNode = runWithOwner(
-        owner,
-        () =>
-          evaluateTag(
-            <Tag
-              {...(rest as Record<string, unknown>)}
-              aria-hidden="true"
-              onPointerDown={outer.onPointerDown ?? props.onTrackPointerDown}
-              onMouseDown={outer.onMouseDown ?? props.onMouseDownInternal}
-              onPointerUp={outer.onPointerUp ?? root.handlePointerUp}
-              // Mirror `onPointerUp` so a browser-cancelled gesture on the track (no thumb
-              // child captures the pointer) still clears the drag state.
-              onPointerCancel={outer.onPointerCancel ?? root.handlePointerUp}
-              data-orientation={orientation}
-              data-hovering={root.hovering() ? "" : undefined}
-              data-scrolling={(vertical ? root.scrollingY() : root.scrollingX()) ? "" : undefined}
-              data-has-overflow-x={root.hiddenState().x ? undefined : ""}
-              data-has-overflow-y={root.hiddenState().y ? undefined : ""}
-              data-overflow-x-start={root.overflowEdges().xStart ? "" : undefined}
-              data-overflow-x-end={root.overflowEdges().xEnd ? "" : undefined}
-              data-overflow-y-start={root.overflowEdges().yStart ? "" : undefined}
-              data-overflow-y-end={root.overflowEdges().yEnd ? "" : undefined}
-              class={resolveClassValue(outer.class, snapshot())}
-              style={mergeStyleValue(scrollbarStyle(), resolveStyleValue(outer.style, snapshot()))}
-              ref={mergeRefs(props.setScrollbarRef, outer.ref as ((element: HTMLElement | null) => void) | undefined)}
-            >
-              {resolveScrollbarChildren(children, snapshot)}
-            </Tag>,
-          ),
+      tagNode = runWithOwner(owner, () =>
+        evaluateTag(
+          <Tag
+            {...(rest as Record<string, unknown>)}
+            aria-hidden="true"
+            onPointerDown={outer.onPointerDown ?? props.onTrackPointerDown}
+            onMouseDown={outer.onMouseDown ?? props.onMouseDownInternal}
+            onPointerUp={outer.onPointerUp ?? root.handlePointerUp}
+            // Mirror `onPointerUp` so a browser-cancelled gesture on the track (no thumb
+            // child captures the pointer) still clears the drag state.
+            onPointerCancel={outer.onPointerCancel ?? root.handlePointerUp}
+            data-orientation={orientation}
+            data-hovering={root.hovering() ? "" : undefined}
+            data-scrolling={(vertical ? root.scrollingY() : root.scrollingX()) ? "" : undefined}
+            data-has-overflow-x={root.hiddenState().x ? undefined : ""}
+            data-has-overflow-y={root.hiddenState().y ? undefined : ""}
+            data-overflow-x-start={root.overflowEdges().xStart ? "" : undefined}
+            data-overflow-x-end={root.overflowEdges().xEnd ? "" : undefined}
+            data-overflow-y-start={root.overflowEdges().yStart ? "" : undefined}
+            data-overflow-y-end={root.overflowEdges().yEnd ? "" : undefined}
+            class={resolveClassValue(outer.class, snapshot())}
+            style={mergeStyleValue(scrollbarStyle(), resolveStyleValue(outer.style, snapshot()))}
+            ref={mergeRefs(props.setScrollbarRef, outer.ref as ((element: HTMLElement | null) => void) | undefined)}
+          >
+            {resolveScrollbarChildren(children, snapshot)}
+          </Tag>,
+        ),
       );
     }
 
@@ -311,7 +309,10 @@ function ScrollAreaScrollbarElement<T extends JSX.ElementType>(props: ScrollArea
  * Zero-argument functions pass through untouched: Reze control-flow primitives return
  * thunks, and invoking one here would resolve the subtree one-shot instead of binding it.
  */
-function resolveScrollbarChildren(children: ChildrenValue<ScrollAreaScrollbarState> | undefined, snapshot: () => ScrollAreaScrollbarState): JSX.Element {
+function resolveScrollbarChildren(
+  children: ChildrenValue<ScrollAreaScrollbarState> | undefined,
+  snapshot: () => ScrollAreaScrollbarState,
+): JSX.Element {
   if (typeof children === "function" && children.length >= 1) {
     const render = children as (state: ScrollAreaScrollbarState) => JSX.Element;
     // The thunk runs later under the renderer's owner, so re-enter this owner

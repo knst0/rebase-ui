@@ -1,12 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, mount, tick } from "@rezejs/testing-library";
 import { screen } from "@testing-library/dom";
-import type { JSX } from "reze-js";
 import userEvent from "@testing-library/user-event";
+import type { JSX } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Menu from "../index.parts";
 
 afterEach(cleanup);

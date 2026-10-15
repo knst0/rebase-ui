@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, mount, tick } from "@rezejs/testing-library";
 import { screen } from "@testing-library/dom";
-import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { store } from "reze-js";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import * as Combobox from "../index.parts";
 import { ComboboxItemContext } from "../item/ComboboxItemContext";

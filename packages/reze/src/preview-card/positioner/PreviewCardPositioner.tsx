@@ -1,6 +1,5 @@
-import { dynamicElement, getOwner, omitProps, runWithOwner, untrack, type JSX } from "reze-js";
-
 import type { Padding, VirtualElement } from "@floating-ui/dom";
+import { dynamicElement, getOwner, omitProps, runWithOwner, untrack, type JSX } from "reze-js";
 
 import {
   createAnchorPositioning,

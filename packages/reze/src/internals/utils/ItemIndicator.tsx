@@ -132,8 +132,7 @@ export interface ItemIndicatorOwnProps {
   selected: () => boolean;
 }
 
-export type ItemIndicatorProps<T extends JSX.ElementType = "span"> = ItemIndicatorOwnProps &
-  RebaseUIComponentProps<T, ItemIndicatorState>;
+export type ItemIndicatorProps<T extends JSX.ElementType = "span"> = ItemIndicatorOwnProps & RebaseUIComponentProps<T, ItemIndicatorState>;
 
 export namespace ItemIndicator {
   export type State = ItemIndicatorState;

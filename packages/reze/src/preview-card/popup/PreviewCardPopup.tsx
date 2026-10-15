@@ -75,15 +75,11 @@ export function PreviewCardPopup<T extends JSX.ElementType = "div">(props: Previ
         (store.select("transitionStatus") as string | undefined) === "starting" ? { transition: "none" } : {},
         resolveStyleValue(props.style, snapshot()),
       )}
-      onKeyDown={
-        (rest as Record<string, unknown>).onKeyDown as ((event: KeyboardEvent) => void) | undefined ?? popupProps().onKeyDown
-      }
+      onKeyDown={((rest as Record<string, unknown>).onKeyDown as ((event: KeyboardEvent) => void) | undefined) ?? popupProps().onKeyDown}
       onPointerDown={
-        (rest as Record<string, unknown>).onPointerDown as ((event: PointerEvent) => void) | undefined ?? popupProps().onPointerDown
+        ((rest as Record<string, unknown>).onPointerDown as ((event: PointerEvent) => void) | undefined) ?? popupProps().onPointerDown
       }
-      onMouseDown={
-        (rest as Record<string, unknown>).onMouseDown as ((event: MouseEvent) => void) | undefined ?? popupProps().onMouseDown
-      }
+      onMouseDown={((rest as Record<string, unknown>).onMouseDown as ((event: MouseEvent) => void) | undefined) ?? popupProps().onMouseDown}
       ref={mergeRefs(
         (element: HTMLElement | null) => {
           store.context.popupRef.current = element;

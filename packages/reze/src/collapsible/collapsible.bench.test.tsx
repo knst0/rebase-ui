@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { countCalls, countLayoutReads, median } from "../../test/perf";
 import { isJSDOM, nextFrames, withRealAnimations } from "../../test/utils";
-
 import * as Collapsible from "./index.parts";
 
 afterEach(cleanup);

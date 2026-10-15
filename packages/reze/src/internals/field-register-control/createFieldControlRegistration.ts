@@ -54,17 +54,8 @@ function readValidityDataDeep(data: FieldValidityData): unknown[] {
 export function createFieldControlRegistration(
   params: CreateFieldControlRegistrationParameters,
 ): CreateFieldControlRegistrationReturnValue {
-  const {
-    change,
-    commit,
-    invalid,
-    setMarkedDirty,
-    name,
-    setRegisteredFieldName,
-    setRegisteredFieldId,
-    setValidityData,
-    validityData,
-  } = params;
+  const { change, commit, invalid, setMarkedDirty, name, setRegisteredFieldName, setRegisteredFieldId, setValidityData, validityData } =
+    params;
 
   const { fields } = useFormContext();
 

@@ -1,16 +1,5 @@
 import { serializeValue } from "@rebase-ui/core/serializeValue";
-import {
-  createUniqueId,
-  dynamicElement,
-  effect,
-  getOwner,
-  omitProps,
-  onCleanup,
-  runWithOwner,
-  store,
-  untrack,
-  type JSX,
-} from "reze-js";
+import { createUniqueId, dynamicElement, effect, getOwner, omitProps, onCleanup, runWithOwner, store, untrack, type JSX } from "reze-js";
 
 import { isEligibleInput } from "../field/root/createFieldValidation";
 import type { FieldRootState } from "../field/root/FieldRoot";
@@ -338,8 +327,7 @@ export function RadioGroup<Value, T extends JSX.ElementType = "div">(props: Radi
       return;
     }
 
-    const dir =
-      group.closest("[dir]")?.getAttribute("dir") ?? group.ownerDocument?.documentElement.getAttribute("dir");
+    const dir = group.closest("[dir]")?.getAttribute("dir") ?? group.ownerDocument?.documentElement.getAttribute("dir");
     const isRtl = dir === "rtl";
     const forwardKey = isRtl ? "ArrowLeft" : "ArrowRight";
     const backwardKey = isRtl ? "ArrowRight" : "ArrowLeft";
@@ -355,12 +343,7 @@ export function RadioGroup<Value, T extends JSX.ElementType = "div">(props: Radi
     setTouched(true);
 
     const currentIndex = radios.indexOf(current);
-    const nextIndex =
-      currentIndex === -1
-        ? delta > 0
-          ? 0
-          : radios.length - 1
-        : (currentIndex + delta + radios.length) % radios.length;
+    const nextIndex = currentIndex === -1 ? (delta > 0 ? 0 : radios.length - 1) : (currentIndex + delta + radios.length) % radios.length;
     (radios[nextIndex] as HTMLElement).focus();
   }
 
@@ -386,15 +369,18 @@ export function RadioGroup<Value, T extends JSX.ElementType = "div">(props: Radi
     }
   }
 
-  const ref = mergeRefs((element: HTMLElement | null) => {
-    if (groupElement && element !== groupElement) {
-      groupElement.removeEventListener("focusout", handleFocusOut);
-    }
-    groupElement = element;
-    if (element) {
-      element.addEventListener("focusout", handleFocusOut);
-    }
-  }, props.ref as ((element: HTMLElement | null) => void) | undefined);
+  const ref = mergeRefs(
+    (element: HTMLElement | null) => {
+      if (groupElement && element !== groupElement) {
+        groupElement.removeEventListener("focusout", handleFocusOut);
+      }
+      groupElement = element;
+      if (element) {
+        element.addEventListener("focusout", handleFocusOut);
+      }
+    },
+    props.ref as ((element: HTMLElement | null) => void) | undefined,
+  );
 
   onCleanup(() => {
     groupElement?.removeEventListener("focusout", handleFocusOut);

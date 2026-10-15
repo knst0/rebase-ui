@@ -3,8 +3,8 @@ import { dynamicElement, omitProps, type JSX } from "reze-js";
 import { getFieldStateSnapshot } from "../../internals/field-constants";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { useSwitchRootContext } from "../root/SwitchRootContext";
 import type { SwitchRootState } from "../root/SwitchRoot";
+import { useSwitchRootContext } from "../root/SwitchRootContext";
 
 /**
  * The thumb of the switch.

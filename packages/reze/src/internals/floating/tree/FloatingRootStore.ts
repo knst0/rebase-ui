@@ -89,9 +89,7 @@ export class FloatingRootStore {
       domReferenceElement: initialState.referenceElement as Element | null,
     };
 
-    this.keyVersions = store(
-      Object.fromEntries(Object.keys(this.snapshot).map((key) => [key, 0])) as Record<string, number>,
-    );
+    this.keyVersions = store(Object.fromEntries(Object.keys(this.snapshot).map((key) => [key, 0])) as Record<string, number>);
 
     this.trackingSnapshot = new Proxy({} as FloatingRootState, {
       get: (_target, prop) => {

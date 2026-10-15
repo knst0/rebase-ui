@@ -27,7 +27,10 @@ function isTouchLikePointerType(pointerType: string | undefined): boolean {
  * Shared implementation for the increment and decrement stepper buttons. They differ only in the
  * direction they step and the boundary (`max` vs `min`) at which they become disabled.
  */
-export function useNumberFieldStepperButton<T extends JSX.ElementType>(componentProps: StepperButtonProps<T>, isIncrement: boolean): JSX.Element {
+export function useNumberFieldStepperButton<T extends JSX.ElementType>(
+  componentProps: StepperButtonProps<T>,
+  isIncrement: boolean,
+): JSX.Element {
   const rest = omitProps(
     componentProps,
     "as",

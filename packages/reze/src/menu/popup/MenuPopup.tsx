@@ -2,6 +2,7 @@ import { isHTMLElement } from "@floating-ui/utils/dom";
 import { dynamicElement, omitProps, onCleanup, untrack, useContext, type JSX } from "reze-js";
 
 import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
 import { createChangeEventDetails } from "../../internals/event-details";
 import { FloatingFocusManager } from "../../internals/floating";
 import type { FloatingFocusManagerInteractionType } from "../../internals/floating/components/FloatingFocusManager";
@@ -12,7 +13,6 @@ import { mergeStyleValue, resolveClassValue, resolveStyleValue } from "../../int
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
 import type { RebaseUIEvent } from "../../types";
 import { useMenuFilterImpl, type MenuFilterParentHandoff } from "../filter-root/MenuFilterContext";
 import { MenuPositionerContext, useMenuPositionerContext } from "../positioner/MenuPositionerContext";
@@ -293,9 +293,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
   // internal menu semantics, mirroring `RenderElement`. A dialog never carries
   // `aria-orientation`, so it resolves to `undefined` there.
   function role(): "presentation" | "menu" | "dialog" {
-    return (
-      (restRecord.role as "presentation" | "menu" | "dialog" | undefined) ?? (listElement() ? "presentation" : "menu")
-    );
+    return (restRecord.role as "presentation" | "menu" | "dialog" | undefined) ?? (listElement() ? "presentation" : "menu");
   }
   function ariaOrientation(): "horizontal" | undefined {
     if (role() === "dialog") {

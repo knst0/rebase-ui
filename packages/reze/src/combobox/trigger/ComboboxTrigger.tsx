@@ -160,8 +160,7 @@ export function ComboboxTrigger<T extends JSX.ElementType = "button">(props: Com
       pressed: pressed(),
       popupSide: popupSide(),
       listEmpty: derivedItems.filteredItems.length === 0,
-      placeholder:
-        (store.select("selectionMode") as string) === "none" ? false : !(store.select("hasSelectedValue") as boolean),
+      placeholder: (store.select("selectionMode") as string) === "none" ? false : !(store.select("hasSelectedValue") as boolean),
     };
   }
 
@@ -427,11 +426,7 @@ export function ComboboxTrigger<T extends JSX.ElementType = "button">(props: Com
         }
         class={resolveClassValue(props.class, snapshot())}
         style={resolveStyleValue(props.style, snapshot())}
-        ref={mergeRefs(
-          props.ref as ((element: HTMLElement | null) => void) | undefined,
-          button.buttonRef,
-          setTriggerRef,
-        )}
+        ref={mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, button.buttonRef, setTriggerRef)}
       >
         {resolveChildrenValue(children, snapshot)}
       </button>
@@ -481,11 +476,7 @@ export function ComboboxTrigger<T extends JSX.ElementType = "button">(props: Com
       }
       class={resolveClassValue(props.class, snapshot())}
       style={resolveStyleValue(props.style, snapshot())}
-      ref={mergeRefs(
-        props.ref as ((element: HTMLElement | null) => void) | undefined,
-        button.buttonRef,
-        setTriggerRef,
-      )}
+      ref={mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, button.buttonRef, setTriggerRef)}
     >
       {resolveChildrenValue(children, snapshot)}
     </Tag>

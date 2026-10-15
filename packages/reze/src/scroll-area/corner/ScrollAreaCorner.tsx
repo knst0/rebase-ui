@@ -31,34 +31,32 @@ export function ScrollAreaCorner<T extends JSX.ElementType = "div">(props: Scrol
 
   function renderTag(): JSX.Element {
     if (tagNode === undefined) {
-      tagNode = runWithOwner(
-        owner,
-        () =>
-          evaluateTag(
-            <Tag
-              {...(rest as Record<string, unknown>)}
-              aria-hidden="true"
-              class={resolveClassValue(props.class, {})}
-              style={mergeStyleValue(
-                {
-                  position: "absolute",
-                  bottom: "0px",
-                  // NB: kebab-case is required. Object styles are applied via `CSSStyleDeclaration.setProperty`,
-                  // which silently ignores camelCase names.
-                  "inset-inline-end": "0px",
-                  // NB: strings are required. The renderer passes style values to
-                  // `CSSStyleDeclaration.setProperty` as-is, which stringifies numbers
-                  // without units.
-                  width: `${root.cornerSize().width}px`,
-                  height: `${root.cornerSize().height}px`,
-                },
-                resolveStyleValue(props.style, {}),
-              )}
-              ref={mergeRefs(root.setCornerElement, props.ref as ((element: HTMLElement | null) => void) | undefined)}
-            >
-              {resolveChildrenValue(children, () => ({}))}
-            </Tag>,
-          ),
+      tagNode = runWithOwner(owner, () =>
+        evaluateTag(
+          <Tag
+            {...(rest as Record<string, unknown>)}
+            aria-hidden="true"
+            class={resolveClassValue(props.class, {})}
+            style={mergeStyleValue(
+              {
+                position: "absolute",
+                bottom: "0px",
+                // NB: kebab-case is required. Object styles are applied via `CSSStyleDeclaration.setProperty`,
+                // which silently ignores camelCase names.
+                "inset-inline-end": "0px",
+                // NB: strings are required. The renderer passes style values to
+                // `CSSStyleDeclaration.setProperty` as-is, which stringifies numbers
+                // without units.
+                width: `${root.cornerSize().width}px`,
+                height: `${root.cornerSize().height}px`,
+              },
+              resolveStyleValue(props.style, {}),
+            )}
+            ref={mergeRefs(root.setCornerElement, props.ref as ((element: HTMLElement | null) => void) | undefined)}
+          >
+            {resolveChildrenValue(children, () => ({}))}
+          </Tag>,
+        ),
       );
     }
 

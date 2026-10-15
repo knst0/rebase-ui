@@ -2,11 +2,7 @@ import { dynamicElement, effect, getOwner, omitProps, onCleanup, runWithOwner, s
 
 import { useFieldsetRootContext } from "../../fieldset/root/FieldsetRootContext";
 import type { Form } from "../../form/Form";
-import {
-  DEFAULT_VALIDITY_STATE,
-  getFieldStateSnapshot,
-  type FieldRootStateSelectors,
-} from "../../internals/field-constants";
+import { DEFAULT_VALIDITY_STATE, getFieldStateSnapshot, type FieldRootStateSelectors } from "../../internals/field-constants";
 import { createFieldControlRegistration } from "../../internals/field-register-control";
 import { FieldRootContext, useFieldRootContext } from "../../internals/field-root-context";
 import { FormContext, useFormContext } from "../../internals/form-context";

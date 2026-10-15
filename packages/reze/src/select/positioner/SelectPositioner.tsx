@@ -70,7 +70,8 @@ export function SelectPositioner<T extends JSX.ElementType = "div">(props: Selec
   const alignItemWithTriggerState = createStore({ value: untrack(() => props.alignItemWithTrigger) ?? true });
 
   function setControlledAlignItemWithTrigger(next: boolean | ((prev: boolean) => boolean)): void {
-    const resolved = typeof next === "function" ? untrack(() => (next as (prev: boolean) => boolean)(alignItemWithTriggerState.value)) : next;
+    const resolved =
+      typeof next === "function" ? untrack(() => (next as (prev: boolean) => boolean)(alignItemWithTriggerState.value)) : next;
     if (alignItemWithTriggerState.value !== resolved) {
       alignItemWithTriggerState.value = resolved;
     }
@@ -301,13 +302,10 @@ export function SelectPositioner<T extends JSX.ElementType = "div">(props: Selec
           data-align={positioning.align()}
           class={resolveClassValue(props.class, snapshot())}
           style={positionerStyle()}
-          ref={mergeRefs(
-            (props.ref as ((element: HTMLElement | null) => void) | undefined),
-            (element: HTMLElement | null) => {
-              positioning.refs.setFloating(element);
-              store.set("positionerElement", element);
-            },
-          )}
+          ref={mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, (element: HTMLElement | null) => {
+            positioning.refs.setFloating(element);
+            store.set("positionerElement", element);
+          })}
         >
           <CompositeListContext value={compositeList.contextValue}>
             <SelectPositionerContext value={contextValue}>
@@ -341,13 +339,10 @@ export function SelectPositioner<T extends JSX.ElementType = "div">(props: Selec
         data-align={positioning.align()}
         class={resolveClassValue(props.class, snapshot())}
         style={positionerStyle()}
-        ref={mergeRefs(
-          (props.ref as ((element: HTMLElement | null) => void) | undefined),
-          (element: HTMLElement | null) => {
-            positioning.refs.setFloating(element);
-            store.set("positionerElement", element);
-          },
-        )}
+        ref={mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, (element: HTMLElement | null) => {
+          positioning.refs.setFloating(element);
+          store.set("positionerElement", element);
+        })}
       >
         <CompositeListContext value={compositeList.contextValue}>
           <SelectPositionerContext value={contextValue}>

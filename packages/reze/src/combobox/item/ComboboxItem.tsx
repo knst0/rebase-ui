@@ -155,7 +155,10 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
       element.addEventListener("pointerdown", handlePointerDownCapture, true);
       const itemIndex = untrack(index);
       syncStoreRefs(element, itemIndex);
-      syncValueRef(itemIndex, untrack(() => componentProps.value ?? null));
+      syncValueRef(
+        itemIndex,
+        untrack(() => componentProps.value ?? null),
+      );
     }
   }
 
@@ -355,14 +358,15 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
         data-highlighted={highlighted() ? "" : undefined}
         class={resolveClassValue(componentProps.class, snapshot())}
         style={resolveStyleValue(componentProps.style, snapshot())}
-        ref={mergeRefs(button.buttonRef, listItem?.ref, setItemElement, componentProps.ref as ((element: HTMLElement | null) => void) | undefined)}
+        ref={mergeRefs(
+          button.buttonRef,
+          listItem?.ref,
+          setItemElement,
+          componentProps.ref as ((element: HTMLElement | null) => void) | undefined,
+        )}
       >
         <ComboboxItemContext value={contextValue}>
-          <ComboboxItemContent
-            disabled={disabled()}
-            selected={selected()}
-            highlighted={highlighted()}
-          >
+          <ComboboxItemContent disabled={disabled()} selected={selected()} highlighted={highlighted()}>
             {componentProps.children}
           </ComboboxItemContent>
         </ComboboxItemContext>
@@ -393,7 +397,12 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
       data-highlighted={highlighted() ? "" : undefined}
       class={resolveClassValue(componentProps.class, snapshot())}
       style={resolveStyleValue(componentProps.style, snapshot())}
-      ref={mergeRefs(button.buttonRef, listItem?.ref, setItemElement, componentProps.ref as ((element: HTMLElement | null) => void) | undefined)}
+      ref={mergeRefs(
+        button.buttonRef,
+        listItem?.ref,
+        setItemElement,
+        componentProps.ref as ((element: HTMLElement | null) => void) | undefined,
+      )}
     >
       <ComboboxItemContext value={contextValue}>
         <ComboboxItemContent disabled={disabled()} selected={selected()} highlighted={highlighted()}>
@@ -402,7 +411,6 @@ function ComboboxItemInner(props: ComboboxItemInnerProps) {
       </ComboboxItemContext>
     </Tag>
   );
-
 }
 
 /**

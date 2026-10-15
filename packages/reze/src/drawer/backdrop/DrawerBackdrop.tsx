@@ -1,10 +1,10 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
+import { useDialogRootContext } from "../../dialog/root/DialogRootContext";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { useDialogRootContext } from "../../dialog/root/DialogRootContext";
 import * as DrawerPopupCssVars from "../popup/DrawerPopupCssVars";
 import * as DrawerBackdropCssVars from "./DrawerBackdropCssVars";
 

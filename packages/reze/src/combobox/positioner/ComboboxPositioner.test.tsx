@@ -1,11 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, mount, tick } from "@rezejs/testing-library";
 import { screen } from "@testing-library/dom";
-import { afterEach, describe, expect, it } from "vite-plus/test";
 import { store } from "reze-js";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import * as Combobox from "../index.parts";
 import { useComboboxRootContext } from "../root/ComboboxRootContext";

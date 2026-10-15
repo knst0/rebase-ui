@@ -182,7 +182,8 @@ export interface ScrollAreaRootOwnProps {
   onPointerDown?: ((event: RebaseUIEvent<PointerEvent>) => void) | undefined;
 }
 
-export type ScrollAreaRootProps<T extends JSX.ElementType = "div"> = ScrollAreaRootOwnProps & RebaseUIComponentProps<T, ScrollAreaRootState>;
+export type ScrollAreaRootProps<T extends JSX.ElementType = "div"> = ScrollAreaRootOwnProps &
+  RebaseUIComponentProps<T, ScrollAreaRootState>;
 
 export namespace ScrollAreaRoot {
   export type State = ScrollAreaRootState;

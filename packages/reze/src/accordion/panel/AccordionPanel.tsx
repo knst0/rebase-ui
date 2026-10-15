@@ -107,9 +107,7 @@ export function AccordionPanel<T extends JSX.ElementType = "div">(props: Accordi
             data-index={String(itemState.index())}
             data-disabled={itemState.disabled() ? "" : undefined}
             data-hidden={itemState.hidden() ? "" : undefined}
-            data-starting-style={
-              panel.transitionStatus() === "starting" || shouldPersistHiddenTransitionStyles() ? "" : undefined
-            }
+            data-starting-style={panel.transitionStatus() === "starting" || shouldPersistHiddenTransitionStyles() ? "" : undefined}
             data-ending-style={panel.transitionStatus() === "ending" ? "" : undefined}
             class={resolveClassValue(props.class, snapshot())}
             style={style()}
@@ -136,9 +134,7 @@ export function AccordionPanel<T extends JSX.ElementType = "div">(props: Accordi
           data-index={String(itemState.index())}
           data-disabled={itemState.disabled() ? "" : undefined}
           data-hidden={itemState.hidden() ? "" : undefined}
-          data-starting-style={
-            panel.transitionStatus() === "starting" || shouldPersistHiddenTransitionStyles() ? "" : undefined
-          }
+          data-starting-style={panel.transitionStatus() === "starting" || shouldPersistHiddenTransitionStyles() ? "" : undefined}
           data-ending-style={panel.transitionStatus() === "ending" ? "" : undefined}
           class={resolveClassValue(props.class, snapshot())}
           style={style()}

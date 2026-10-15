@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Menu from "../index.parts";
 
 // Upstream #5868: `aria-selected` is invalid on `menuitem`, but Safari VoiceOver needs it for

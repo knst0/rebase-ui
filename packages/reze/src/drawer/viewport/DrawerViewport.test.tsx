@@ -6,7 +6,6 @@ import { signal, type JSX } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Drawer from "../index.parts";
 
 afterEach(cleanup);

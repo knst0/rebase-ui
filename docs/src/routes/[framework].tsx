@@ -106,7 +106,9 @@ function MainLayout(props: ParentProps<{ framework: Framework }>) {
                             <figcaption textContent={group.label} class="text-fg/40 mb-2 inline-block text-xs" />
                           </Show>
                           <ul class="space-y-1">
-                            <For each={group.pages}>{(page) => <MobileNavLink name={page.name} href={frameworkHref(props.framework.id, page.path)} />}</For>
+                            <For each={group.pages}>
+                              {(page) => <MobileNavLink name={page.name} href={frameworkHref(props.framework.id, page.path)} />}
+                            </For>
                           </ul>
                         </figure>
                       )}
@@ -146,7 +148,11 @@ function SidebarNav(props: { framework: FrameworkId; path: () => string }) {
           onMouseLeave={hover.handlers.onMouseLeave}
           onClick={hover.handlers.onClick}
         >
-          <FluidHoverHighlight hover={hover} from={() => hover.rectOf("[data-fluid-hover-item][aria-current=page]")} class="bg-fg/5 rounded" />
+          <FluidHoverHighlight
+            hover={hover}
+            from={() => hover.rectOf("[data-fluid-hover-item][aria-current=page]")}
+            class="bg-fg/5 rounded"
+          />
           <For each={GROUPS}>
             {(group) => (
               <figure class="px-5">
@@ -201,7 +207,7 @@ function FrameworkSwitch(props: { path: () => string; class?: string }) {
 
 function SidebarFooter(props: { framework: Framework; class?: string }) {
   return (
-    <div class={["flex flex-col shrink-0 gap-2", props.class]}>
+    <div class={["flex shrink-0 flex-col gap-2", props.class]}>
       <FooterLink href={`https://github.com/${GITHUB_REPO}`} label={`${GITHUB_REPO} on GitHub`} text={GITHUB_REPO}>
         <Icon name="tabler:brand-github" size={16} />
       </FooterLink>

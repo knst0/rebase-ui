@@ -4,7 +4,6 @@ import { screen } from "@testing-library/dom";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Combobox from "../index.parts";
 import { ComboboxBackdrop } from "./ComboboxBackdrop";
 

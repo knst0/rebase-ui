@@ -5,7 +5,6 @@ import { For } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import { Combobox } from "../index";
 
 afterEach(cleanup);

@@ -1,5 +1,6 @@
-import type { Align, CreateAnchorPositioningReturnValue, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
 import { createContext, useContext } from "reze-js";
+
+import type { Align, CreateAnchorPositioningReturnValue, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
 
 export interface ComboboxPositionerContext extends Pick<
   CreateAnchorPositioningReturnValue,

@@ -52,7 +52,10 @@ export function ScrollAreaThumb<T extends JSX.ElementType = "div">(props: Scroll
         },
         resolveStyleValue(props.style, snapshot()),
       )}
-      ref={mergeRefs(vertical ? root.setThumbYElement : root.setThumbXElement, props.ref as ((element: HTMLElement | null) => void) | undefined)}
+      ref={mergeRefs(
+        vertical ? root.setThumbYElement : root.setThumbXElement,
+        props.ref as ((element: HTMLElement | null) => void) | undefined,
+      )}
     >
       {resolveChildrenValue(children, snapshot)}
     </Tag>
@@ -82,7 +85,8 @@ export interface ScrollAreaThumbOwnProps {
   onPointerDown?: ((event: RebaseUIEvent<PointerEvent>) => void) | undefined;
 }
 
-export type ScrollAreaThumbProps<T extends JSX.ElementType = "div"> = ScrollAreaThumbOwnProps & RebaseUIComponentProps<T, ScrollAreaThumbState>;
+export type ScrollAreaThumbProps<T extends JSX.ElementType = "div"> = ScrollAreaThumbOwnProps &
+  RebaseUIComponentProps<T, ScrollAreaThumbState>;
 
 export namespace ScrollAreaThumb {
   export type State = ScrollAreaThumbState;

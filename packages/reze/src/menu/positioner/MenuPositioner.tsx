@@ -321,9 +321,7 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
   if (props.as == null) {
     return (
       <>
-        {showInternalBackdrop() && (
-          <InternalBackdrop cutout={(store.select("activeTriggerElement") as Element | null) ?? undefined} />
-        )}
+        {showInternalBackdrop() && <InternalBackdrop cutout={(store.select("activeTriggerElement") as Element | null) ?? undefined} />}
         <FloatingNode id={floatingNodeId}>
           <div
             {...(rest as Record<string, unknown>)}
@@ -545,7 +543,8 @@ export interface MenuPositionerOwnProps {
   collisionAvoidance?: CollisionAvoidance | undefined;
 }
 
-export type MenuPositionerProps<T extends JSX.ElementType = "div"> = MenuPositionerOwnProps & RebaseUIComponentProps<T, MenuPositionerState>;
+export type MenuPositionerProps<T extends JSX.ElementType = "div"> = MenuPositionerOwnProps &
+  RebaseUIComponentProps<T, MenuPositionerState>;
 
 export namespace MenuPositioner {
   export type State = MenuPositionerState;

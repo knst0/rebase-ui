@@ -158,7 +158,7 @@ const [snapPoint, setSnapPoint] = (createSignal < Drawer.Root.SnapPoint) | (null
 
 ```jsx title="Controlled snap point"
 const snapPoints = ["148px", 1];
-let snapPoint = signal<Drawer.Root.SnapPoint>(snapPoints[0]);
+let snapPoint = signal < Drawer.Root.SnapPoint > snapPoints[0];
 
 <Drawer.Root snapPoints={snapPoints} snapPoint={snapPoint} onSnapPointChange={(next) => (snapPoint = next)}>
   {/* ... */}

@@ -470,8 +470,7 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
 
     if (!mounted && event.key === "Escape") {
       const selectedValue = store.peek("selectedValue") as unknown;
-      const isClear =
-        selectionMode === "multiple" && Array.isArray(selectedValue) ? selectedValue.length === 0 : selectedValue === null;
+      const isClear = selectionMode === "multiple" && Array.isArray(selectedValue) ? selectedValue.length === 0 : selectedValue === null;
 
       const details = createChangeEventDetails(REASONS.escapeKey, event);
       const value = selectionMode === "multiple" ? [] : null;
@@ -608,7 +607,7 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
 
   function inputRequired(): boolean | undefined {
     const selectionMode = store.select("selectionMode") as string;
-    return selectionMode === "none" ? ((store.select("required") as boolean) || undefined) : undefined;
+    return selectionMode === "none" ? (store.select("required") as boolean) || undefined : undefined;
   }
 
   const Tag = dynamicElement<JSX.ElementType>(() => props.as ?? "input");
@@ -631,7 +630,7 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
           )}
           <FieldRootContext value={DEFAULT_FIELD_ROOT_CONTEXT}>
             <input
-        {...(rest as Record<string, unknown>)}
+              {...(rest as Record<string, unknown>)}
               role={mergedInteractionProp("role") as "combobox" | undefined}
               autocomplete={mergedInteractionProp("autoComplete") as "off" | undefined}
               spellcheck={mergedInteractionProp("spellCheck") as "true" | "false" | undefined}
@@ -696,73 +695,73 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
     }
     return (
       <>
-          {showDismissButton() && (
-            <InternalDismissButton
-              ref={(element) => {
-                store.context.startDismissRef.current = element;
-              }}
-            />
-          )}
-        <input
-        {...(rest as Record<string, unknown>)}
-        role={mergedInteractionProp("role") as "combobox" | undefined}
-        autocomplete={mergedInteractionProp("autoComplete") as "off" | undefined}
-        spellcheck={mergedInteractionProp("spellCheck") as "true" | "false" | undefined}
-        autocorrect={mergedInteractionProp("autoCorrect") as "off" | undefined}
-        autocapitalize={mergedInteractionProp("autoCapitalize") as "none" | undefined}
-        aria-expanded={mergedInteractionProp("aria-expanded") as "true" | "false" | undefined}
-        aria-haspopup={mergedInteractionProp("aria-haspopup") as "listbox" | "grid" | undefined}
-        aria-controls={mergedInteractionProp("aria-controls") as string | undefined}
-        aria-autocomplete={mergedInteractionProp("aria-autocomplete") as "both" | "inline" | "list" | "none" | undefined}
-        aria-activedescendant={mergedInteractionProp("aria-activedescendant") as string | undefined}
-        value={composingValue() ?? inputValue()}
-        aria-readonly={readOnly() ? "true" : undefined}
-        aria-required={(store.select("required") as boolean) ? "true" : undefined}
-        aria-labelledby={fieldLabelId()}
-        aria-describedby={validationProps["aria-describedby"] as string | undefined}
-        aria-invalid={validationProps["aria-invalid"] as "true" | undefined}
-        bool:disabled={disabled()}
-        readonly={readOnly()}
-        required={inputRequired()}
-        form={store.select("form") as string | undefined}
-        name={inputName()}
-        id={inputId()}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        onInput={handleInput}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onPointerMove={handlePointerMove}
-        onPointerDown={handlePointerDown}
-        onPointerEnter={handlePointerEnter}
-        onMouseDown={handleMouseDown}
-        onClick={handleClick}
-        data-disabled={selectors.disabled() ? "" : undefined}
-        data-valid={selectors.valid() === true ? "" : undefined}
-        data-invalid={selectors.valid() === false ? "" : undefined}
-        data-touched={selectors.touched() ? "" : undefined}
-        data-dirty={selectors.dirty() ? "" : undefined}
-        data-filled={selectors.filled() ? "" : undefined}
-        data-focused={selectors.focused() ? "" : undefined}
-        data-validating={selectors.validating() ? "" : undefined}
-        data-popup-open={open() ? "" : undefined}
-        data-readonly={readOnly() ? "" : undefined}
-        data-popup-side={popupSide() ?? undefined}
-        data-list-empty={listEmpty() ? "" : undefined}
-        class={resolveClassValue(props.class, snapshot())}
-        style={resolveStyleValue(props.style, snapshot())}
-        ref={mergeRefs(
-          props.ref as ((element: HTMLElement | null) => void) | undefined,
-          (element: HTMLInputElement | null) => {
-            store.context.inputRef.current = element;
-          },
-          setInputElement,
+        {showDismissButton() && (
+          <InternalDismissButton
+            ref={(element) => {
+              store.context.startDismissRef.current = element;
+            }}
+          />
         )}
-      >
-        {resolveChildrenValue(children, snapshot)}
-      </input>
+        <input
+          {...(rest as Record<string, unknown>)}
+          role={mergedInteractionProp("role") as "combobox" | undefined}
+          autocomplete={mergedInteractionProp("autoComplete") as "off" | undefined}
+          spellcheck={mergedInteractionProp("spellCheck") as "true" | "false" | undefined}
+          autocorrect={mergedInteractionProp("autoCorrect") as "off" | undefined}
+          autocapitalize={mergedInteractionProp("autoCapitalize") as "none" | undefined}
+          aria-expanded={mergedInteractionProp("aria-expanded") as "true" | "false" | undefined}
+          aria-haspopup={mergedInteractionProp("aria-haspopup") as "listbox" | "grid" | undefined}
+          aria-controls={mergedInteractionProp("aria-controls") as string | undefined}
+          aria-autocomplete={mergedInteractionProp("aria-autocomplete") as "both" | "inline" | "list" | "none" | undefined}
+          aria-activedescendant={mergedInteractionProp("aria-activedescendant") as string | undefined}
+          value={composingValue() ?? inputValue()}
+          aria-readonly={readOnly() ? "true" : undefined}
+          aria-required={(store.select("required") as boolean) ? "true" : undefined}
+          aria-labelledby={fieldLabelId()}
+          aria-describedby={validationProps["aria-describedby"] as string | undefined}
+          aria-invalid={validationProps["aria-invalid"] as "true" | undefined}
+          bool:disabled={disabled()}
+          readonly={readOnly()}
+          required={inputRequired()}
+          form={store.select("form") as string | undefined}
+          name={inputName()}
+          id={inputId()}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          onInput={handleInput}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onPointerMove={handlePointerMove}
+          onPointerDown={handlePointerDown}
+          onPointerEnter={handlePointerEnter}
+          onMouseDown={handleMouseDown}
+          onClick={handleClick}
+          data-disabled={selectors.disabled() ? "" : undefined}
+          data-valid={selectors.valid() === true ? "" : undefined}
+          data-invalid={selectors.valid() === false ? "" : undefined}
+          data-touched={selectors.touched() ? "" : undefined}
+          data-dirty={selectors.dirty() ? "" : undefined}
+          data-filled={selectors.filled() ? "" : undefined}
+          data-focused={selectors.focused() ? "" : undefined}
+          data-validating={selectors.validating() ? "" : undefined}
+          data-popup-open={open() ? "" : undefined}
+          data-readonly={readOnly() ? "" : undefined}
+          data-popup-side={popupSide() ?? undefined}
+          data-list-empty={listEmpty() ? "" : undefined}
+          class={resolveClassValue(props.class, snapshot())}
+          style={resolveStyleValue(props.style, snapshot())}
+          ref={mergeRefs(
+            props.ref as ((element: HTMLElement | null) => void) | undefined,
+            (element: HTMLInputElement | null) => {
+              store.context.inputRef.current = element;
+            },
+            setInputElement,
+          )}
+        >
+          {resolveChildrenValue(children, snapshot)}
+        </input>
       </>
     );
   }
@@ -770,16 +769,16 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
   if (hasPositionerParent) {
     return (
       <>
-          {showDismissButton() && (
-            <InternalDismissButton
-              ref={(element) => {
-                store.context.startDismissRef.current = element;
-              }}
-            />
-          )}
+        {showDismissButton() && (
+          <InternalDismissButton
+            ref={(element) => {
+              store.context.startDismissRef.current = element;
+            }}
+          />
+        )}
         <FieldRootContext value={DEFAULT_FIELD_ROOT_CONTEXT}>
           <Tag
-        {...(rest as Record<string, unknown>)}
+            {...(rest as Record<string, unknown>)}
             role={mergedInteractionProp("role") as "combobox" | undefined}
             autocomplete={mergedInteractionProp("autoComplete") as "off" | undefined}
             spellcheck={mergedInteractionProp("spellCheck") as "true" | "false" | undefined}
@@ -844,13 +843,13 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
   }
   return (
     <>
-          {showDismissButton() && (
-            <InternalDismissButton
-              ref={(element) => {
-                store.context.startDismissRef.current = element;
-              }}
-            />
-          )}
+      {showDismissButton() && (
+        <InternalDismissButton
+          ref={(element) => {
+            store.context.startDismissRef.current = element;
+          }}
+        />
+      )}
       <Tag
         {...(rest as Record<string, unknown>)}
         role={mergedInteractionProp("role") as "combobox" | undefined}
@@ -908,9 +907,9 @@ export function ComboboxInput<T extends JSX.ElementType = "input">(props: Combob
           },
           setInputElement,
         )}
-    >
-      {resolveChildrenValue(children, snapshot)}
-    </Tag>
+      >
+        {resolveChildrenValue(children, snapshot)}
+      </Tag>
     </>
   );
 }

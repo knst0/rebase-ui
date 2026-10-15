@@ -8,14 +8,17 @@ import type { RebaseUIChangeEventDetails, RebaseUIGenericEventDetails } from "..
  * Highlight navigation uses mouse events for hover and pointer events for leaving an item.
  * Local mirror of the upstream internals type, which the reze internals do not export yet.
  */
-export type RebaseUIHighlightEventDetails<Reason extends string, CustomProperties extends object = {}> = Reason extends typeof REASONS.pointer
+export type RebaseUIHighlightEventDetails<
+  Reason extends string,
+  CustomProperties extends object = {},
+> = Reason extends typeof REASONS.pointer
   ? { reason: Reason; event: MouseEvent | PointerEvent } & CustomProperties
   : RebaseUIGenericEventDetails<Reason, CustomProperties>;
 import { useFieldRootContext } from "../../internals/field-root-context/FieldRootContext";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
-import type { ComboboxItemCollection, ItemCollection } from "../items/itemCollection";
 import { stringifyAsValue, type Group } from "../../select/utils/resolveValueLabel";
+import type { ComboboxItemCollection, ItemCollection } from "../items/itemCollection";
 import {
   ComboboxDerivedItemsContext,
   ComboboxFloatingContext,

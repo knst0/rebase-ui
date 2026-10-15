@@ -40,12 +40,9 @@ export function NumberFieldScrubAreaCursor<T extends JSX.ElementType = "span">(p
     return isScrubbing() && !isWebKit() && !isTouchInput() && !isPointerLockDenied();
   }
 
-  const ref = mergeRefs(
-    props.ref as ((element: HTMLElement | null) => void) | undefined,
-    (element: HTMLElement | null) => {
-      setScrubAreaCursorElement(element as HTMLSpanElement | null);
-    },
-  );
+  const ref = mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, (element: HTMLElement | null) => {
+    setScrubAreaCursorElement(element as HTMLSpanElement | null);
+  });
 
   const mount = typeof document === "undefined" ? undefined : document.body;
 
@@ -81,7 +78,10 @@ export function NumberFieldScrubAreaCursor<T extends JSX.ElementType = "span">(p
 
 export interface NumberFieldScrubAreaCursorState extends NumberFieldRootState {}
 
-export type NumberFieldScrubAreaCursorProps<T extends JSX.ElementType = "span"> = RebaseUIComponentProps<T, NumberFieldScrubAreaCursorState>;
+export type NumberFieldScrubAreaCursorProps<T extends JSX.ElementType = "span"> = RebaseUIComponentProps<
+  T,
+  NumberFieldScrubAreaCursorState
+>;
 
 export namespace NumberFieldScrubAreaCursor {
   export type State = NumberFieldScrubAreaCursorState;

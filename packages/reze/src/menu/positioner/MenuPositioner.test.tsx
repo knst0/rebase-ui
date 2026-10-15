@@ -6,7 +6,6 @@ import { store } from "reze-js";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Menu from "../index.parts";
 
 afterEach(cleanup);

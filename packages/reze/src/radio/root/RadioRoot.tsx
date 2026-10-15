@@ -1,20 +1,8 @@
 import { serializeValue } from "@rebase-ui/core/serializeValue";
-import {
-  createUniqueId,
-  dynamicElement,
-  effect,
-  getOwner,
-  omitProps,
-  onCleanup,
-  runWithOwner,
-  store,
-  untrack,
-  type JSX,
-} from "reze-js";
+import { createUniqueId, dynamicElement, effect, getOwner, omitProps, onCleanup, runWithOwner, store, untrack, type JSX } from "reze-js";
 
 import { useFieldItemContext } from "../../field/item/FieldItemContext";
 import type { FieldRootState } from "../../field/root/FieldRoot";
-import { useRadioGroupContext } from "../../radio-group/RadioGroupContext";
 import { createButton } from "../../internals/create-button";
 import { dispatchClickWithModifiers } from "../../internals/dispatchClickWithModifiers";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
@@ -24,13 +12,9 @@ import { createAriaLabelledBy, createLabelableId, useLabelableContext, type Labe
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
-import type {
-  ButtonEventHandlers,
-  ChildrenValue,
-  NonNativeButtonProps,
-  RebaseUIComponentProps,
-} from "../../internals/types";
+import type { ButtonEventHandlers, ChildrenValue, NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
+import { useRadioGroupContext } from "../../radio-group/RadioGroupContext";
 import type { RebaseUIEvent } from "../../types";
 import { RadioRootContext, useRadioRootContext } from "./RadioRootContext";
 
@@ -76,9 +60,7 @@ export function RadioRoot<Value, T extends JSX.ElementType = "span">(props: Radi
   const { labelId } = useLabelableContext();
 
   function disabled(): boolean {
-    return (
-      field.disabled() === true || itemDisabled() === true || groupContext?.disabled() === true || props.disabled === true
-    );
+    return field.disabled() === true || itemDisabled() === true || groupContext?.disabled() === true || props.disabled === true;
   }
 
   function readOnly(): boolean {

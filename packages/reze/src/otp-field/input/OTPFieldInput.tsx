@@ -401,13 +401,9 @@ export function OTPFieldInput<T extends JSX.ElementType = "input">(props: OTPFie
     context.handleInputBlur(event);
   }
 
-  const ref = mergeRefs(
-    listItemRef,
-    props.ref as ((element: HTMLElement | null) => void) | undefined,
-    (element: HTMLElement | null) => {
-      inputElement = element as HTMLInputElement | null;
-    },
-  );
+  const ref = mergeRefs(listItemRef, props.ref as ((element: HTMLElement | null) => void) | undefined, (element: HTMLElement | null) => {
+    inputElement = element as HTMLInputElement | null;
+  });
 
   const Tag = dynamicElement<JSX.ElementType>(() => props.as ?? "input");
 

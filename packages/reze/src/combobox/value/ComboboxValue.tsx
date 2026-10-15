@@ -1,8 +1,8 @@
 import type { JSX } from "reze-js";
 
 import { createScopedRender } from "../../internals/renderProps";
-import { useComboboxRootContext } from "../root/ComboboxRootContext";
 import { resolveSelectedLabel, type SelectItemsInput } from "../../select/utils/resolveValueLabel";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
 
 function resolveMultipleLabels(
   value: ReadonlyArray<unknown>,

@@ -47,9 +47,7 @@ function resolveAriaLabelledBy(fieldLabelId: string | undefined, localLabelId: s
  *
  * Documentation: [Rebase UI Slider](https://rebase-ui.knst.dev/components/slider)
  */
-export function SliderRoot<Value extends number | readonly number[], T extends JSX.ElementType = "div">(
-  props: SliderRoot.Props<Value, T>,
-) {
+export function SliderRoot<Value extends number | readonly number[], T extends JSX.ElementType = "div">(props: SliderRoot.Props<Value, T>) {
   const rest = omitProps(
     props,
     "as",
@@ -85,15 +83,7 @@ export function SliderRoot<Value extends number | readonly number[], T extends J
   const form = useFormContext();
   const parentLabelable = useLabelableContext();
   const { clearErrors } = form;
-  const {
-    state: fieldState,
-    disabled: fieldDisabled,
-    name: fieldName,
-    setTouched,
-    setDirty,
-    validityData,
-    validation,
-  } = field;
+  const { state: fieldState, disabled: fieldDisabled, name: fieldName, setTouched, setDirty, validityData, validation } = field;
   const { labelId: fieldLabelId } = parentLabelable;
 
   const generatedId = createUniqueId();
@@ -117,7 +107,8 @@ export function SliderRoot<Value extends number | readonly number[], T extends J
     return labelState.labelId;
   }
   function setLabelId(next: string | undefined | ((prev: string | undefined) => string | undefined)): void {
-    const resolved = typeof next === "function" ? untrack(() => (next as (prev: string | undefined) => string | undefined)(labelState.labelId)) : next;
+    const resolved =
+      typeof next === "function" ? untrack(() => (next as (prev: string | undefined) => string | undefined)(labelState.labelId)) : next;
     // Actions never subscribe: the store write below must not subscribe a reactive caller.
     untrack(() => {
       if (labelState.labelId !== resolved) {
@@ -238,7 +229,8 @@ export function SliderRoot<Value extends number | readonly number[], T extends J
 
   function setIndicatorPosition(next: (number | undefined)[] | ((prev: (number | undefined)[]) => (number | undefined)[])): void {
     untrack(() => {
-      const resolved = typeof next === "function" ? (next as (prev: (number | undefined)[]) => (number | undefined)[])(indicatorState.position) : next;
+      const resolved =
+        typeof next === "function" ? (next as (prev: (number | undefined)[]) => (number | undefined)[])(indicatorState.position) : next;
       const prev = indicatorState.position;
       if (prev.length !== resolved.length || prev.some((entry, index) => entry !== resolved[index])) {
         indicatorState.position = resolved;

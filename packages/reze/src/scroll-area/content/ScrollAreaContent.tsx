@@ -5,8 +5,8 @@ import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleV
 import type { RebaseUIComponentProps } from "../../internals/types";
 import type { ScrollAreaRootState } from "../root/ScrollAreaRoot";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
-import { useScrollAreaViewportContext } from "../viewport/ScrollAreaViewportContext";
 import { evaluateTag } from "../utils/evaluateTag";
+import { useScrollAreaViewportContext } from "../viewport/ScrollAreaViewportContext";
 
 /**
  * A container for the content of the scroll area.

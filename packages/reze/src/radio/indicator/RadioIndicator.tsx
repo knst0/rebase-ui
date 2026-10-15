@@ -1,10 +1,10 @@
 import { dynamicElement, omitProps, store, type JSX } from "reze-js";
 
+import type { FieldRootState } from "../../field/root/FieldRoot";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import { createTransitionStatus, type TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import type { FieldRootState } from "../../field/root/FieldRoot";
 import { useRadioRootContext } from "../root/RadioRootContext";
 
 /**

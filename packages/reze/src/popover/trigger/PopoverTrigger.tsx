@@ -4,7 +4,10 @@ import { createButton } from "../../internals/create-button";
 import { REASONS } from "../../internals/event-details";
 import { safePolygon } from "../../internals/floating";
 import { createClick, type ClickReferenceProps } from "../../internals/floating/interactions/createClick";
-import { createHoverReferenceInteraction, type HoverReferenceProps } from "../../internals/floating/interactions/createHoverReferenceInteraction";
+import {
+  createHoverReferenceInteraction,
+  type HoverReferenceProps,
+} from "../../internals/floating/interactions/createHoverReferenceInteraction";
 import { FocusGuard } from "../../internals/focus-guard/FocusGuard";
 import { getRootFloatingContext, setupTrigger } from "../../internals/popups/popupStoreUtils";
 import { createTriggerFocusGuards, type TriggerFocusGuards } from "../../internals/popups/popupTriggerFocusGuards";

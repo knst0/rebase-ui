@@ -4,9 +4,9 @@ import { screen } from "@testing-library/dom";
 import { signal } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
+import type { RebaseUIEvent } from "../../types";
 import * as Avatar from "../index.parts";
 import type { ImageLoadingStatus } from "../root/AvatarRoot";
-import type { RebaseUIEvent } from "../../types";
 
 afterEach(cleanup);
 

@@ -402,7 +402,8 @@ export interface FloatingPortalOwnProps {
   children?: JSX.Element | undefined;
 }
 
-export type FloatingPortalProps<T extends JSX.ElementType = "div"> = FloatingPortalOwnProps & RebaseUIComponentProps<T, FloatingPortalState>;
+export type FloatingPortalProps<T extends JSX.ElementType = "div"> = FloatingPortalOwnProps &
+  RebaseUIComponentProps<T, FloatingPortalState>;
 
 export namespace FloatingPortal {
   export type State = FloatingPortalState;

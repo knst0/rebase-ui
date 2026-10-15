@@ -78,10 +78,7 @@ export function DrawerIndent<T extends JSX.ElementType = "div">(props: DrawerInd
       data-active={active() ? "" : undefined}
       data-inactive={active() ? undefined : ""}
       class={resolveClassValue(props.class, { active: active() })}
-      style={mergeStyleValue(
-        { [DrawerBackdropCssVars.swipeProgress]: "0" },
-        resolveStyleValue(props.style, { active: active() }),
-      )}
+      style={mergeStyleValue({ [DrawerBackdropCssVars.swipeProgress]: "0" }, resolveStyleValue(props.style, { active: active() }))}
       ref={ref}
     >
       {resolveChildrenValue(children, () => ({ active: active() }))}

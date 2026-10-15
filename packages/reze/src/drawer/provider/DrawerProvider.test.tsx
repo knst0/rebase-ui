@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Drawer from "../index.parts";
 
 afterEach(cleanup);

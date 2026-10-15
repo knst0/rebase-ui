@@ -24,7 +24,8 @@ export function SelectGroup<T extends JSX.ElementType = "div">(props: SelectGrou
   function setLabelId(next: string | undefined | ((prev: string | undefined) => string | undefined)): void {
     // Actions never subscribe: read the previous id untracked so a call from a
     // reactive scope does not subscribe the caller to the id it writes.
-    labelState.labelId = typeof next === "function" ? untrack(() => (next as (prev: string | undefined) => string | undefined)(labelState.labelId)) : next;
+    labelState.labelId =
+      typeof next === "function" ? untrack(() => (next as (prev: string | undefined) => string | undefined)(labelState.labelId)) : next;
   }
 
   const contextValue: SelectGroupContext = { labelId: undefined, setLabelId };

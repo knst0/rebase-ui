@@ -78,9 +78,7 @@ describe("<Field.Description />", () => {
     tick();
 
     const description = Array.from(el.querySelectorAll("p")).find((element) => element.textContent === "Message") as HTMLElement;
-    expect((el.querySelector("input") as HTMLInputElement).getAttribute("aria-describedby")).toBe(
-      `external-description ${description.id}`,
-    );
+    expect((el.querySelector("input") as HTMLInputElement).getAttribute("aria-describedby")).toBe(`external-description ${description.id}`);
   });
 
   it("reflects the disabled state from Field.Item", () => {

@@ -73,10 +73,10 @@ export function createScopedRender(): ScopedRender {
         return result;
       }
       const capture = result as T;
-      return ((() => {
+      return (() => {
         subscribe();
         return evaluate(() => capture);
-      }) as unknown) as T;
+      }) as unknown as T;
     },
     call<T>(render: () => T): T {
       return evaluate(render);

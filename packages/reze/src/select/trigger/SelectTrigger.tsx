@@ -315,7 +315,7 @@ export function SelectTrigger<T extends JSX.ElementType = "button">(props: Selec
 
   function ref(element: HTMLElement | null): void {
     mergeRefs<HTMLElement | null>(
-      (props.ref as ((element: HTMLElement | null) => void) | undefined),
+      props.ref as ((element: HTMLElement | null) => void) | undefined,
       button.buttonRef,
       setTriggerRef,
     )(element);

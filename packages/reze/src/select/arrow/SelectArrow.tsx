@@ -53,7 +53,10 @@ export function SelectArrow<T extends JSX.ElementType = "div">(props: SelectArro
             data-align={positioner.align()}
             data-uncentered={positioner.arrowUncentered() ? "" : undefined}
             class={resolveClassValue(props.class, snapshot())}
-            style={mergeStyleValue(positioner.arrowStyles() as Record<string, string | undefined>, resolveStyleValue(props.style, snapshot()))}
+            style={mergeStyleValue(
+              positioner.arrowStyles() as Record<string, string | undefined>,
+              resolveStyleValue(props.style, snapshot()),
+            )}
             ref={ref}
           >
             {resolveChildrenValue(children, snapshot)}
@@ -76,7 +79,10 @@ export function SelectArrow<T extends JSX.ElementType = "div">(props: SelectArro
           data-align={positioner.align()}
           data-uncentered={positioner.arrowUncentered() ? "" : undefined}
           class={resolveClassValue(props.class, snapshot())}
-          style={mergeStyleValue(positioner.arrowStyles() as Record<string, string | undefined>, resolveStyleValue(props.style, snapshot()))}
+          style={mergeStyleValue(
+            positioner.arrowStyles() as Record<string, string | undefined>,
+            resolveStyleValue(props.style, snapshot()),
+          )}
           ref={ref}
         >
           {resolveChildrenValue(children, snapshot)}

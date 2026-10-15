@@ -67,7 +67,19 @@ function resolveFocusTarget(
  * Documentation: [Rebase UI Popover](https://rebase-ui.knst.dev/components/popover)
  */
 export function PopoverPopup<T extends JSX.ElementType = "div">(props: PopoverPopup.Props<T>) {
-  const rest = omitProps(props, "as", "initialFocus", "finalFocus", "onKeyDown", "onPointerDown", "onMouseDown", "class", "style", "children", "ref");
+  const rest = omitProps(
+    props,
+    "as",
+    "initialFocus",
+    "finalFocus",
+    "onKeyDown",
+    "onPointerDown",
+    "onMouseDown",
+    "class",
+    "style",
+    "children",
+    "ref",
+  );
   // Deliberately not hoisted: popup children must be created inside the close-part
   // context provider below (so `Popover.Close` registers), not in this body.
 

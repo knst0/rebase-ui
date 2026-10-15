@@ -27,6 +27,7 @@ import { attachPreventUnmountOnClose, FOCUSABLE_POPUP_PROPS, getRootFloatingCont
 import { stableCallback } from "../../internals/stableCallback";
 import { error } from "../../internals/utils/error";
 import { getHighlightReason } from "../../internals/utils/getHighlightReason";
+import { flattenLeafItems, isGroupedItems, stringifyAsLabel, stringifyAsValue, type Group } from "../../select/utils/resolveValueLabel";
 import type { ItemCollection } from "../items/itemCollection";
 import { findCollectionItem } from "../items/itemCollection";
 import {
@@ -36,7 +37,6 @@ import {
   type ComboboxInteractionType,
   type ComboboxStoreState,
 } from "../store/ComboboxStore";
-import { flattenLeafItems, isGroupedItems, stringifyAsLabel, stringifyAsValue, type Group } from "../../select/utils/resolveValueLabel";
 import type { AriaCombobox } from "./AriaCombobox";
 import type { ComboboxDerivedItemsContextValue } from "./ComboboxRootContext";
 import { createCollatorItemFilter, type FilterItemToString } from "./utils";

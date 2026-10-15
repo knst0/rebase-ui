@@ -1,15 +1,4 @@
-import {
-  createUniqueId,
-  dynamicElement,
-  effect,
-  getOwner,
-  omitProps,
-  onCleanup,
-  runWithOwner,
-  store,
-  untrack,
-  type JSX,
-} from "reze-js";
+import { createUniqueId, dynamicElement, effect, getOwner, omitProps, onCleanup, runWithOwner, store, untrack, type JSX } from "reze-js";
 
 import { useFieldItemContext } from "../../field/item/FieldItemContext";
 import type { FieldRootState } from "../../field/root/FieldRoot";
@@ -26,12 +15,7 @@ import { createAriaLabelledBy, createLabelableId, useLabelableContext } from "..
 import { makeEventPreventable } from "../../internals/makeEventPreventable";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
-import type {
-  ButtonEventHandlers,
-  ChildrenValue,
-  NonNativeButtonProps,
-  RebaseUIComponentProps,
-} from "../../internals/types";
+import type { ButtonEventHandlers, ChildrenValue, NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { visuallyHidden, visuallyHiddenInput } from "../../internals/utils/visuallyHidden";
 import type { RebaseUIEvent } from "../../types";
 import { SwitchRootContext, useSwitchRootContext } from "./SwitchRootContext";

@@ -5,6 +5,7 @@ import { dynamicElement, effect, getOwner, omitProps, onCleanup, runWithOwner, t
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { ChildrenValue, RebaseUIComponentProps } from "../../internals/types";
+import { getFiniteAnimations } from "../../internals/utils/getFiniteAnimations";
 import type { RebaseUIEvent } from "../../types";
 import { MIN_THUMB_SIZE } from "../constants";
 import type { HiddenState, ScrollAreaRootState } from "../root/ScrollAreaRoot";
@@ -12,7 +13,6 @@ import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { scrollAreaThumbHeight, scrollAreaThumbWidth } from "../scrollbar/ScrollAreaScrollbarCssVars";
 import { DISABLE_SCROLLBAR_CLASS_NAME } from "../utils/disableScrollbar";
 import { evaluateTag } from "../utils/evaluateTag";
-import { getFiniteAnimations } from "../../internals/utils/getFiniteAnimations";
 import { getOffset } from "../utils/getOffset";
 import { createTimeout } from "../utils/timeout";
 import { ScrollAreaViewportContext } from "./ScrollAreaViewportContext";
@@ -378,7 +378,12 @@ export function ScrollAreaViewport<T extends JSX.ElementType = "div">(props: Scr
   // must be read in the element body, not here.
   return (
     <ScrollAreaViewportContext value={contextValue}>
-      <ScrollAreaViewportElement elementProps={props} setViewportRef={setViewportRef} onScroll={handleScrollEvent} onUserInteraction={handleUserInteraction}>
+      <ScrollAreaViewportElement
+        elementProps={props}
+        setViewportRef={setViewportRef}
+        onScroll={handleScrollEvent}
+        onUserInteraction={handleUserInteraction}
+      >
         {props.children}
       </ScrollAreaViewportElement>
     </ScrollAreaViewportContext>
@@ -444,7 +449,10 @@ function ScrollAreaViewportElement<T extends JSX.ElementType>(props: ScrollAreaV
  * Zero-argument functions pass through untouched: Reze control-flow primitives return
  * thunks, and invoking one here would resolve the subtree one-shot instead of binding it.
  */
-function resolveViewportChildren(children: ChildrenValue<ScrollAreaViewportState> | undefined, snapshot: () => ScrollAreaViewportState): JSX.Element {
+function resolveViewportChildren(
+  children: ChildrenValue<ScrollAreaViewportState> | undefined,
+  snapshot: () => ScrollAreaViewportState,
+): JSX.Element {
   if (typeof children === "function" && children.length >= 1) {
     const render = children as (state: ScrollAreaViewportState) => JSX.Element;
     // The thunk runs later under the renderer's owner, so re-enter this owner

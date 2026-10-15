@@ -92,7 +92,8 @@ export function PopoverPositioner<T extends JSX.ElementType = "div">(props: Popo
   });
 
   const isModalNonHover = () =>
-    (store.select("modal") as boolean | "trap-focus") === true && (store.select("openChangeReason") as string | null) !== REASONS.triggerHover;
+    (store.select("modal") as boolean | "trap-focus") === true &&
+    (store.select("openChangeReason") as string | null) !== REASONS.triggerHover;
 
   const isOpenModalNonHover = () => (store.select("open") as boolean) && isModalNonHover();
 

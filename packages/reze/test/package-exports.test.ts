@@ -14,12 +14,11 @@ const manifest = JSON.parse(readFileSync(join(packageDir, "package.json"), "utf8
 
 describe("package export map", () => {
   it("resolves every export target to an existing source file", () => {
-    const missing = Object.entries(manifest.exports)
-      .flatMap(([subpath, conditions]) =>
-        Object.entries(conditions)
-          .filter(([, target]) => !existsSync(join(packageDir, target)))
-          .map(([condition]) => `${subpath} [${condition}]`),
-      );
+    const missing = Object.entries(manifest.exports).flatMap(([subpath, conditions]) =>
+      Object.entries(conditions)
+        .filter(([, target]) => !existsSync(join(packageDir, target)))
+        .map(([condition]) => `${subpath} [${condition}]`),
+    );
 
     expect(missing).toEqual([]);
   });

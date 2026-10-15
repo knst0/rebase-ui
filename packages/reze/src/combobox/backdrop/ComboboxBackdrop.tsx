@@ -31,10 +31,7 @@ export function ComboboxBackdrop<T extends JSX.ElementType = "div">(props: Combo
   }
 
   function style(): string | JSX.CSSProperties | undefined {
-    return mergeStyleValue(
-      { "user-select": "none", "-webkit-user-select": "none" },
-      resolveStyleValue(props.style, snapshot()),
-    );
+    return mergeStyleValue({ "user-select": "none", "-webkit-user-select": "none" }, resolveStyleValue(props.style, snapshot()));
   }
 
   const Tag = dynamicElement<JSX.ElementType>(() => props.as ?? "div");

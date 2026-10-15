@@ -18,7 +18,19 @@ import { useComboboxInputValueContext, useComboboxRootContext } from "../root/Co
  * Documentation: [Base UI Combobox](https://base-ui.com/react/components/combobox)
  */
 export function ComboboxClear<T extends JSX.ElementType = "button">(props: ComboboxClear.Props<T>) {
-  const rest = omitProps(props, "as", "disabled", "nativeButton", "keepMounted", "onClick", "onMouseDown", "class", "style", "children", "ref");
+  const rest = omitProps(
+    props,
+    "as",
+    "disabled",
+    "nativeButton",
+    "keepMounted",
+    "onClick",
+    "onMouseDown",
+    "class",
+    "style",
+    "children",
+    "ref",
+  );
   // Read once: invoking the children getter per binding run would recreate child components.
   const children = props.children;
 
@@ -109,10 +121,7 @@ export function ComboboxClear<T extends JSX.ElementType = "button">(props: Combo
       const selectionMode = store.peek("selectionMode") as string;
       if (selectionMode !== "none") {
         const selectedValue = store.peek("selectedValue") as unknown;
-        store.context.setSelectedValue(
-          Array.isArray(selectedValue) ? [] : null,
-          createChangeEventDetails(REASONS.clearPress, event),
-        );
+        store.context.setSelectedValue(Array.isArray(selectedValue) ? [] : null, createChangeEventDetails(REASONS.clearPress, event));
         // A distinct object shape: `update` iterates own keys, so passing an explicit
         // `selectedIndex: undefined` would overwrite the state instead of leaving it alone.
         store.context.setIndices({

@@ -170,12 +170,7 @@ describe("useCompositeRoot roving tab stop", () => {
       const composite = useCompositeItem();
       const merged = composite?.getCompositeProps();
       return (
-        <button
-          tabindex={merged?.tabIndex}
-          onFocus={merged?.onFocus}
-          onMouseMove={merged?.onMouseMove}
-          ref={composite?.compositeRef}
-        >
+        <button tabindex={merged?.tabIndex} onFocus={merged?.onFocus} onMouseMove={merged?.onMouseMove} ref={composite?.compositeRef}>
           {props.children}
         </button>
       );

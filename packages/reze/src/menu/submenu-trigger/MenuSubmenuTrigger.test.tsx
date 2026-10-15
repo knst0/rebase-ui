@@ -6,7 +6,6 @@ import { effect } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Menu from "../index.parts";
 import { useMenuRootContext } from "../root/MenuRootContext";
 import type { MenuStore } from "../store/MenuStore";

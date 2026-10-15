@@ -185,7 +185,8 @@ export interface MenuRadioGroupOwnProps {
 export type MenuRadioGroupChangeEventReason = MenuRoot.ChangeEventReason;
 export type MenuRadioGroupChangeEventDetails = MenuRoot.ChangeEventDetails;
 
-export type MenuRadioGroupProps<T extends JSX.ElementType = "div"> = MenuRadioGroupOwnProps & RebaseUIComponentProps<T, MenuRadioGroupState>;
+export type MenuRadioGroupProps<T extends JSX.ElementType = "div"> = MenuRadioGroupOwnProps &
+  RebaseUIComponentProps<T, MenuRadioGroupState>;
 
 export namespace MenuRadioGroup {
   export type State = MenuRadioGroupState;

@@ -5,11 +5,7 @@ import type { Orientation } from "../internals/types";
 
 export interface ToggleGroupContext<Value = any> {
   value: () => readonly Value[];
-  setGroupValue: (
-    newValue: Value,
-    nextPressed: boolean,
-    eventDetails: RebaseUIChangeEventDetails<EventReasons["none"]>,
-  ) => void;
+  setGroupValue: (newValue: Value, nextPressed: boolean, eventDetails: RebaseUIChangeEventDetails<EventReasons["none"]>) => void;
   disabled: () => boolean;
   /**
    * Whether multiple toggles in the group can be pressed at the same time.

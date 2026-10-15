@@ -45,9 +45,7 @@ export function PreviewCardPortal<T extends JSX.ElementType = "div">(props: Prev
   );
 }
 
-function resolveContainer(
-  container: PreviewCardPortalOwnProps["container"],
-): HTMLElement | ShadowRoot | undefined {
+function resolveContainer(container: PreviewCardPortalOwnProps["container"]): HTMLElement | ShadowRoot | undefined {
   const fallback = typeof document === "undefined" ? undefined : document.body;
   if (container == null) {
     return fallback;

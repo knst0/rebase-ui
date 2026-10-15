@@ -12,7 +12,15 @@ export function useMenuFilterRoot<Payload>(props: MenuFilterRootProps<Payload>) 
   const virtualFocusRef = { current: null as HTMLElement | null };
 
   // A lazy view: spreading it in JSX keeps every key (including `children`) a getter.
-  const rootProps = omitProps(props as Record<string, unknown>, "value", "defaultValue", "onValueChange", "filter", "autoHighlight", "locale");
+  const rootProps = omitProps(
+    props as Record<string, unknown>,
+    "value",
+    "defaultValue",
+    "onValueChange",
+    "filter",
+    "autoHighlight",
+    "locale",
+  );
 
   // The filter keys pass through as getters so controlled updates stay reactive.
   const dropdownProps = {

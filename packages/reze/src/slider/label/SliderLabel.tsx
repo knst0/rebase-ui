@@ -124,7 +124,8 @@ export function SliderLabel<T extends JSX.ElementType = "div">(props: SliderLabe
 
 export type SliderLabelState = SliderRoot.State;
 
-export type SliderLabelProps<T extends JSX.ElementType = "div"> = ButtonEventHandlers & Omit<RebaseUIComponentProps<T, SliderLabel.State>, "id">;
+export type SliderLabelProps<T extends JSX.ElementType = "div"> = ButtonEventHandlers &
+  Omit<RebaseUIComponentProps<T, SliderLabel.State>, "id">;
 
 export namespace SliderLabel {
   export type State = SliderLabelState;

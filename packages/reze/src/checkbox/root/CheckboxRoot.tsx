@@ -1,15 +1,4 @@
-import {
-  createUniqueId,
-  dynamicElement,
-  effect,
-  getOwner,
-  omitProps,
-  onCleanup,
-  runWithOwner,
-  store,
-  untrack,
-  type JSX,
-} from "reze-js";
+import { createUniqueId, dynamicElement, effect, getOwner, omitProps, onCleanup, runWithOwner, store, untrack, type JSX } from "reze-js";
 
 import { useCheckboxGroupContext } from "../../checkbox-group/CheckboxGroupContext";
 import { useFieldItemContext } from "../../field/item/FieldItemContext";

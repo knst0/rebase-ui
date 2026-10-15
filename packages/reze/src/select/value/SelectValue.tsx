@@ -62,7 +62,7 @@ export function SelectValue<T extends JSX.ElementType = "span">(props: SelectVal
   }
 
   function ref(element: HTMLElement | null): void {
-    mergeRefs<HTMLElement | null>((props.ref as ((element: HTMLElement | null) => void) | undefined), (target) => {
+    mergeRefs<HTMLElement | null>(props.ref as ((element: HTMLElement | null) => void) | undefined, (target) => {
       store.context.valueRef.current = target;
     })(element);
   }

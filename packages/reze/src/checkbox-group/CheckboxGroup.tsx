@@ -131,9 +131,7 @@ export function CheckboxGroup<T extends JSX.ElementType = "div">(props: Checkbox
         form.clearErrors(name);
       }
 
-      const initialValue = Array.isArray(validityData.initialValue)
-        ? (validityData.initialValue as readonly string[])
-        : EMPTY_ARRAY;
+      const initialValue = Array.isArray(validityData.initialValue) ? (validityData.initialValue as readonly string[]) : EMPTY_ARRAY;
 
       setDirty(!areArraysEqual(next, initialValue));
 
@@ -300,8 +298,7 @@ export interface CheckboxGroupOwnProps {
   disabled?: boolean | undefined;
 }
 
-export type CheckboxGroupProps<T extends JSX.ElementType = "div"> = CheckboxGroupOwnProps &
-  RebaseUIComponentProps<T, CheckboxGroupState>;
+export type CheckboxGroupProps<T extends JSX.ElementType = "div"> = CheckboxGroupOwnProps & RebaseUIComponentProps<T, CheckboxGroupState>;
 
 export type CheckboxGroupChangeEventReason = typeof REASONS.none;
 

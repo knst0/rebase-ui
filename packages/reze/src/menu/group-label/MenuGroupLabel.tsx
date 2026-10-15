@@ -51,7 +51,8 @@ export interface MenuGroupLabelOwnProps {
   id?: string | undefined;
 }
 
-export type MenuGroupLabelProps<T extends JSX.ElementType = "div"> = MenuGroupLabelOwnProps & RebaseUIComponentProps<T, MenuGroupLabelState>;
+export type MenuGroupLabelProps<T extends JSX.ElementType = "div"> = MenuGroupLabelOwnProps &
+  RebaseUIComponentProps<T, MenuGroupLabelState>;
 
 export namespace MenuGroupLabel {
   export type State = MenuGroupLabelState;

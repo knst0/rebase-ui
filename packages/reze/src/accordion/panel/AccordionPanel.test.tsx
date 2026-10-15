@@ -4,8 +4,8 @@ import { screen } from "@testing-library/dom";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
-import * as CollapsiblePanelDataAttributes from "../../collapsible/panel/CollapsiblePanelDataAttributes";
 import { nextFrames } from "../../../test/utils";
+import * as CollapsiblePanelDataAttributes from "../../collapsible/panel/CollapsiblePanelDataAttributes";
 import * as Accordion from "../index.parts";
 
 afterEach(cleanup);

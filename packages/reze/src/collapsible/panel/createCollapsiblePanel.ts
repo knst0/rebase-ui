@@ -243,10 +243,18 @@ export function createCollapsiblePanel(parameters: CreateCollapsiblePanelParamet
               : null;
       if (detectionPhase !== null && detectedPhase !== detectionPhase) {
         detectedPhase = detectionPhase;
-        detectedAnimationType = getAnimationType(element, untrack(() => state.shouldPreventMountAnimation));
+        detectedAnimationType = getAnimationType(
+          element,
+          untrack(() => state.shouldPreventMountAnimation),
+        );
       }
 
-      const currentAnimationType = detectedAnimationType ?? getAnimationType(element, untrack(() => state.shouldPreventMountAnimation));
+      const currentAnimationType =
+        detectedAnimationType ??
+        getAnimationType(
+          element,
+          untrack(() => state.shouldPreventMountAnimation),
+        );
       detectedAnimationType = currentAnimationType;
       state.animationType = currentAnimationType;
 

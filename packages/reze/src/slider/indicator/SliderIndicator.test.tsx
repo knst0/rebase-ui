@@ -13,7 +13,7 @@ afterEach(cleanup);
 
 function renderSlider(props: Partial<SliderRoot.Props<number[]>> = {}) {
   const result = mount(() => (
-    <SliderRoot defaultValue={[25]} min={0} max={100} {...(props as SliderRoot.Props<number[]>)}  >
+    <SliderRoot defaultValue={[25]} min={0} max={100} {...(props as SliderRoot.Props<number[]>)}>
       <SliderControl>
         <SliderTrack>
           <SliderIndicator data-testid="indicator" />

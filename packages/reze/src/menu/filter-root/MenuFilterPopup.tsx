@@ -27,10 +27,7 @@ export function MenuFilterPopup<T extends JSX.ElementType = "div">(props: MenuPo
     const mayFocus =
       parent.type !== "menu" ||
       (isOpen &&
-        (method === "keyboard" ||
-          reason === REASONS.listNavigation ||
-          reason === REASONS.triggerHover ||
-          reason === REASONS.triggerPress));
+        (method === "keyboard" || reason === REASONS.listNavigation || reason === REASONS.triggerHover || reason === REASONS.triggerPress));
     if (!mayFocus) {
       return false;
     }

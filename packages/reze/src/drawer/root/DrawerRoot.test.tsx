@@ -6,7 +6,6 @@ import { signal } from "reze-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import { createDrawerHandle } from "../handle";
 import * as Drawer from "../index.parts";
 

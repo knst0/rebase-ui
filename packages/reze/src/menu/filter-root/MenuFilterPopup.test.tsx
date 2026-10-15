@@ -4,7 +4,6 @@ import { fireEvent, screen } from "@testing-library/dom";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import * as Menu from "../index.parts";
 import type { MenuRoot } from "../root/MenuRoot";
 

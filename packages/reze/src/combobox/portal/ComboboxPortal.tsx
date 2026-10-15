@@ -107,7 +107,8 @@ export interface ComboboxPortalOwnProps {
   container?: HTMLElement | ShadowRoot | { current: HTMLElement | ShadowRoot | null } | null | undefined;
 }
 
-export type ComboboxPortalProps<T extends JSX.ElementType = "div"> = ComboboxPortalOwnProps & RebaseUIComponentProps<T, ComboboxPortalState>;
+export type ComboboxPortalProps<T extends JSX.ElementType = "div"> = ComboboxPortalOwnProps &
+  RebaseUIComponentProps<T, ComboboxPortalState>;
 
 export namespace ComboboxPortal {
   export type State = ComboboxPortalState;

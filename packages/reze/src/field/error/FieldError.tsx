@@ -188,9 +188,12 @@ export function FieldError<T extends JSX.ElementType = "div">(props: FieldError.
           data-ending-style={transition.transitionStatus === "ending" ? "" : undefined}
           class={resolveClassValue(props.class, snapshot())}
           style={resolveStyleValue(props.style, snapshot())}
-          ref={mergeRefs((element: HTMLElement | null) => {
-            errorElement = element;
-          }, props.ref as ((element: HTMLElement | null) => void) | undefined)}
+          ref={mergeRefs(
+            (element: HTMLElement | null) => {
+              errorElement = element;
+            },
+            props.ref as ((element: HTMLElement | null) => void) | undefined,
+          )}
         >
           {children === undefined ? displayedMessage() : resolveChildrenValue(children, snapshot)}
         </Tag>
@@ -216,8 +219,7 @@ export interface FieldErrorOwnProps {
   match?: boolean | keyof ValidityState | undefined;
 }
 
-export type FieldErrorProps<T extends JSX.ElementType = "div"> = FieldErrorOwnProps &
-  RebaseUIComponentProps<T, FieldErrorState>;
+export type FieldErrorProps<T extends JSX.ElementType = "div"> = FieldErrorOwnProps & RebaseUIComponentProps<T, FieldErrorState>;
 
 export namespace FieldError {
   export type State = FieldErrorState;

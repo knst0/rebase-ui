@@ -7,11 +7,7 @@ import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } fr
 import { makeEventPreventable } from "../internals/makeEventPreventable";
 import { mergeRefs } from "../internals/mergeRefs";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../internals/renderProps";
-import type {
-  ButtonEventHandlers,
-  NativeButtonProps,
-  RebaseUIComponentProps,
-} from "../internals/types";
+import type { ButtonEventHandlers, NativeButtonProps, RebaseUIComponentProps } from "../internals/types";
 import { useToggleGroupContext } from "../toggle-group/ToggleGroupContext";
 import type { RebaseUIEvent } from "../types";
 
@@ -139,11 +135,7 @@ export function Toggle<Value extends string = string, T extends JSX.ElementType 
   });
   const merged = composite?.getCompositeProps(externalProps);
 
-  const ref = mergeRefs(
-    button.buttonRef,
-    composite?.compositeRef,
-    props.ref as ((element: HTMLElement | null) => void) | undefined,
-  );
+  const ref = mergeRefs(button.buttonRef, composite?.compositeRef, props.ref as ((element: HTMLElement | null) => void) | undefined);
 
   function snapshot(): ToggleState {
     return { pressed: isPressed(), disabled: disabled() };

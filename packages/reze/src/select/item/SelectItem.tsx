@@ -383,11 +383,7 @@ export function SelectItem<T extends JSX.ElementType = "div">(props: SelectItem.
         data-disabled={disabled() ? "" : undefined}
         class={resolveClassValue(props.class, snapshot())}
         style={resolveStyleValue(props.style, snapshot())}
-        ref={mergeRefs(
-          (props.ref as ((element: HTMLElement | null) => void) | undefined),
-          button.buttonRef,
-          registerItemRef,
-        )}
+        ref={mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, button.buttonRef, registerItemRef)}
       >
         <SelectItemContext value={contextValue}>
           <SelectItemContent disabled={disabled()} selected={selected()} highlighted={highlighted()}>
@@ -422,11 +418,7 @@ export function SelectItem<T extends JSX.ElementType = "div">(props: SelectItem.
       data-disabled={disabled() ? "" : undefined}
       class={resolveClassValue(props.class, snapshot())}
       style={resolveStyleValue(props.style, snapshot())}
-      ref={mergeRefs(
-        (props.ref as ((element: HTMLElement | null) => void) | undefined),
-        button.buttonRef,
-        registerItemRef,
-      )}
+      ref={mergeRefs(props.ref as ((element: HTMLElement | null) => void) | undefined, button.buttonRef, registerItemRef)}
     >
       <SelectItemContext value={contextValue}>
         <SelectItemContent disabled={disabled()} selected={selected()} highlighted={highlighted()}>

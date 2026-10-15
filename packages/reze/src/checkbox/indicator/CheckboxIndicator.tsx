@@ -97,9 +97,12 @@ export function CheckboxIndicator<T extends JSX.ElementType = "span">(props: Che
           data-ending-style={transition.transitionStatus === "ending" ? "" : undefined}
           class={resolveClassValue(props.class, snapshot())}
           style={resolveStyleValue(props.style, snapshot())}
-          ref={mergeRefs((element: HTMLElement | null) => {
-            indicatorElement = element;
-          }, props.ref as ((element: HTMLElement | null) => void) | undefined)}
+          ref={mergeRefs(
+            (element: HTMLElement | null) => {
+              indicatorElement = element;
+            },
+            props.ref as ((element: HTMLElement | null) => void) | undefined,
+          )}
         >
           {resolveChildrenValue(children, snapshot)}
         </Tag>

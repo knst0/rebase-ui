@@ -38,7 +38,18 @@ export function isWebKit(): boolean {
  * Documentation: [Rebase UI Number Field](https://rebase-ui.knst.dev/components/number-field)
  */
 export function NumberFieldScrubArea<T extends JSX.ElementType = "span">(props: NumberFieldScrubArea.Props<T>) {
-  const rest = omitProps(props, "as", "direction", "pixelSensitivity", "teleportDistance", "onPointerDown", "class", "style", "children", "ref");
+  const rest = omitProps(
+    props,
+    "as",
+    "direction",
+    "pixelSensitivity",
+    "teleportDistance",
+    "onPointerDown",
+    "class",
+    "style",
+    "children",
+    "ref",
+  );
   // Deliberately not hoisted: reading the children getter here would create the child
   // components in this body, outside the context provider below. It is passed through
   // JSX instead, so the children are created inside the provider by NumberFieldScrubAreaContent.

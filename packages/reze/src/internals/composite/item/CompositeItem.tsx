@@ -11,19 +11,7 @@ import { useCompositeItem } from "./useCompositeItem";
  * Renders a `<div>` element.
  */
 export function CompositeItem<T extends JSX.ElementType = "div">(props: CompositeItem.Props<T>): JSX.Element {
-  const rest = omitProps(
-    props,
-    "as",
-    "metadata",
-    "class",
-    "style",
-    "children",
-    "ref",
-    "onFocus",
-    "onMouseMove",
-    "tabindex",
-    "tabIndex",
-  );
+  const rest = omitProps(props, "as", "metadata", "class", "style", "children", "ref", "onFocus", "onMouseMove", "tabindex", "tabIndex");
   // Read once: invoking the children getter per binding run would recreate child components.
   const children = props.children;
 
@@ -96,8 +84,7 @@ export interface CompositeItemOwnProps {
   metadata?: CompositeItemMetadata | undefined;
 }
 
-export type CompositeItemProps<T extends JSX.ElementType = "div"> = CompositeItemOwnProps &
-  RebaseUIComponentProps<T, CompositeItemState>;
+export type CompositeItemProps<T extends JSX.ElementType = "div"> = CompositeItemOwnProps & RebaseUIComponentProps<T, CompositeItemState>;
 
 export namespace CompositeItem {
   export type Props<T extends JSX.ElementType = "div"> = CompositeItemProps<T>;

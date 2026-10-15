@@ -101,25 +101,28 @@ export function FieldControl<T extends JSX.ElementType = "input">(props: FieldCo
     untrack(() => syncValueFromProps(valueProp, defaultValueProp));
   });
 
-  const ref = mergeRefs((element: HTMLElement | null) => {
-    inputElement = element;
-    validation.inputElement = element as HTMLInputElement | null;
-    if (element !== null) {
-      untrack(() => {
-        // The sync effect above runs before the element mounts, so the initial
-        // uncontrolled value is synced here instead.
-        syncValueFromProps(props.value, props.defaultValue);
-        // The registration effect also ran before mount and captured `undefined` as the
-        // initial value of uncontrolled controls; capture the mounted value instead so
-        // dirty tracking compares against what the user started with.
-        if (props.value === undefined && validityData.initialValue === undefined) {
-          setValidityData((draft) => {
-            draft.initialValue = (element as HTMLInputElement).value;
-          });
-        }
-      });
-    }
-  }, props.ref as ((element: HTMLElement | null) => void) | undefined);
+  const ref = mergeRefs(
+    (element: HTMLElement | null) => {
+      inputElement = element;
+      validation.inputElement = element as HTMLInputElement | null;
+      if (element !== null) {
+        untrack(() => {
+          // The sync effect above runs before the element mounts, so the initial
+          // uncontrolled value is synced here instead.
+          syncValueFromProps(props.value, props.defaultValue);
+          // The registration effect also ran before mount and captured `undefined` as the
+          // initial value of uncontrolled controls; capture the mounted value instead so
+          // dirty tracking compares against what the user started with.
+          if (props.value === undefined && validityData.initialValue === undefined) {
+            setValidityData((draft) => {
+              draft.initialValue = (element as HTMLInputElement).value;
+            });
+          }
+        });
+      }
+    },
+    props.ref as ((element: HTMLElement | null) => void) | undefined,
+  );
 
   createRegisterFieldControl({
     controlElement: () => inputElement,
@@ -289,8 +292,7 @@ export interface FieldControlOwnProps {
   defaultValue?: string | number | readonly string[] | undefined;
 }
 
-export type FieldControlProps<T extends JSX.ElementType = "input"> = FieldControlOwnProps &
-  RebaseUIComponentProps<T, FieldControlState>;
+export type FieldControlProps<T extends JSX.ElementType = "input"> = FieldControlOwnProps & RebaseUIComponentProps<T, FieldControlState>;
 
 export type FieldControlChangeEventReason = typeof REASONS.none;
 

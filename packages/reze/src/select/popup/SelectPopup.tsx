@@ -494,12 +494,9 @@ export function SelectPopup<T extends JSX.ElementType = "div">(props: SelectPopu
           data-align={positioner.align()}
           class={resolveClassValue(props.class, snapshot())}
           style={popupStyle()}
-          ref={mergeRefs(
-            (props.ref as ((element: HTMLDivElement | null) => void) | undefined),
-            (element: HTMLDivElement | null) => {
-              store.context.popupRef.current = element;
-            },
-          )}
+          ref={mergeRefs(props.ref as ((element: HTMLDivElement | null) => void) | undefined, (element: HTMLDivElement | null) => {
+            store.context.popupRef.current = element;
+          })}
         >
           <SelectPositionerContext value={positioner}>
             <SelectPopupContent
@@ -544,12 +541,9 @@ export function SelectPopup<T extends JSX.ElementType = "div">(props: SelectPopu
         data-align={positioner.align()}
         class={resolveClassValue(props.class, snapshot())}
         style={popupStyle()}
-        ref={mergeRefs(
-          (props.ref as ((element: HTMLDivElement | null) => void) | undefined),
-          (element: HTMLDivElement | null) => {
-            store.context.popupRef.current = element;
-          },
-        )}
+        ref={mergeRefs(props.ref as ((element: HTMLDivElement | null) => void) | undefined, (element: HTMLDivElement | null) => {
+          store.context.popupRef.current = element;
+        })}
       >
         <SelectPositionerContext value={positioner}>
           <SelectPopupContent
@@ -622,21 +616,21 @@ export interface SelectPopupState {
 
 export type SelectPopupProps<T extends JSX.ElementType = "div"> = RebaseUIComponentProps<T, SelectPopupState> &
   ButtonEventHandlers & {
-  /**
-   * Determines the element to focus when the select popup is closed.
-   *
-   * - `false`: Do not move focus.
-   * - `true`: Move focus based on the default behavior (trigger or previously focused element).
-   * - `{ current }`: Move focus to the ref element.
-   * - `function`: Called with the interaction type (`mouse`, `touch`, `pen`, or `keyboard`).
-   *   Return an element to focus, `true` to use the default behavior, or `false`/`undefined` to do nothing.
-   */
-  finalFocus?:
-    | boolean
-    | { current: HTMLElement | null }
-    | ((closeType: FloatingFocusManagerInteractionType) => boolean | HTMLElement | null | void)
-    | undefined;
-};
+    /**
+     * Determines the element to focus when the select popup is closed.
+     *
+     * - `false`: Do not move focus.
+     * - `true`: Move focus based on the default behavior (trigger or previously focused element).
+     * - `{ current }`: Move focus to the ref element.
+     * - `function`: Called with the interaction type (`mouse`, `touch`, `pen`, or `keyboard`).
+     *   Return an element to focus, `true` to use the default behavior, or `false`/`undefined` to do nothing.
+     */
+    finalFocus?:
+      | boolean
+      | { current: HTMLElement | null }
+      | ((closeType: FloatingFocusManagerInteractionType) => boolean | HTMLElement | null | void)
+      | undefined;
+  };
 
 export namespace SelectPopup {
   export type State = SelectPopupState;

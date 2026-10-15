@@ -5,7 +5,6 @@ import type { JSX } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
-
 import { ComboboxChips } from "../chips/ComboboxChips";
 import { ComboboxInput } from "../input/ComboboxInput";
 import { ComboboxPopup } from "../popup/ComboboxPopup";

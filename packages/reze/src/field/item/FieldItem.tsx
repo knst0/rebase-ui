@@ -118,8 +118,7 @@ export interface FieldItemOwnProps {
   disabled?: boolean | undefined;
 }
 
-export type FieldItemProps<T extends JSX.ElementType = "div"> = FieldItemOwnProps &
-  RebaseUIComponentProps<T, FieldItemState>;
+export type FieldItemProps<T extends JSX.ElementType = "div"> = FieldItemOwnProps & RebaseUIComponentProps<T, FieldItemState>;
 
 export namespace FieldItem {
   export type State = FieldItemState;

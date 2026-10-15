@@ -1,6 +1,6 @@
 import { cleanup, mount, tick } from "@rezejs/testing-library";
-import { afterEach, describe, expect, it } from "vite-plus/test";
 import { effect, type JSX } from "reze-js";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { FloatingRootStore } from "../../internals/floating/tree/FloatingRootStore";
 import { PopupTriggerMap } from "../../internals/floating/triggerMap";

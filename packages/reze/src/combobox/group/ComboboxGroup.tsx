@@ -2,8 +2,8 @@ import { dynamicElement, getOwner, omitProps, runWithOwner, store as createStore
 
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { useComboboxRootContext } from "../root/ComboboxRootContext";
 import { GroupCollectionContext } from "../collection/GroupCollectionContext";
+import { useComboboxRootContext } from "../root/ComboboxRootContext";
 import { ComboboxGroupContext } from "./ComboboxGroupContext";
 
 /**

@@ -709,8 +709,20 @@ function ReadonlyMultipleValues() {
 
     return (
       <>
-        <Select.Root multiple value={value as readonly string[]} onValueChange={(next) => { value = next; }} />
-        <Select.Root multiple defaultValue={value as readonly string[]} onValueChange={(next) => { value = next; }} />
+        <Select.Root
+          multiple
+          value={value as readonly string[]}
+          onValueChange={(next) => {
+            value = next;
+          }}
+        />
+        <Select.Root
+          multiple
+          defaultValue={value as readonly string[]}
+          onValueChange={(next) => {
+            value = next;
+          }}
+        />
         <Select.Root
           multiple
           value={tupleValue}
@@ -719,7 +731,13 @@ function ReadonlyMultipleValues() {
             checked.pop();
           }}
         />
-        <Select.Root multiple defaultValue={tupleValue} onValueChange={(next) => { value = [...next]; }} />
+        <Select.Root
+          multiple
+          defaultValue={tupleValue}
+          onValueChange={(next) => {
+            value = [...next];
+          }}
+        />
       </>
     );
   }

@@ -15,9 +15,7 @@ const EMPTY_ARRAY: readonly string[] = [];
  *
  * Documentation: [Rebase UI Toggle Group](https://rebase-ui.knst.dev/components/toggle-group)
  */
-export function ToggleGroup<Value extends string = string, T extends JSX.ElementType = "div">(
-  props: ToggleGroup.Props<Value, T>,
-) {
+export function ToggleGroup<Value extends string = string, T extends JSX.ElementType = "div">(props: ToggleGroup.Props<Value, T>) {
   const rest = omitProps(
     props,
     "as",
@@ -86,7 +84,11 @@ export function ToggleGroup<Value extends string = string, T extends JSX.Element
     setValue(next);
   }
 
-  const { contextValue: compositeContext, getRootProps, rootRef } = useCompositeRoot({
+  const {
+    contextValue: compositeContext,
+    getRootProps,
+    rootRef,
+  } = useCompositeRoot({
     orientation: () => orientation(),
     loopFocus: () => loopFocus(),
     enableHomeAndEndKeys: true,

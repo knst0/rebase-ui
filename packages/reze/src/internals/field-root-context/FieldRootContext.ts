@@ -3,11 +3,7 @@ import { createContext, useContext } from "reze-js";
 import type { CreateFieldValidationReturnValue } from "../../field/root/createFieldValidation";
 import type { FieldValidityData, FieldValiditySetter } from "../../field/root/FieldRoot";
 import type { Form } from "../../form/Form";
-import {
-  DEFAULT_FIELD_ROOT_STATE,
-  DEFAULT_VALIDITY_STATE,
-  type FieldRootStateSelectors,
-} from "../field-constants";
+import { DEFAULT_FIELD_ROOT_STATE, DEFAULT_VALIDITY_STATE, type FieldRootStateSelectors } from "../field-constants";
 import type { FieldControlRegistration } from "../field-register-control/createFieldControlRegistration";
 
 export interface FieldRootContext {

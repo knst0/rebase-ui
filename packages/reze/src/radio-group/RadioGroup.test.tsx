@@ -467,9 +467,7 @@ describe("<RadioGroup />", () => {
         let disabled = signal(false);
         return (
           <>
-            <RadioGroup disabled={disabled}>
-              {(state) => <output>{state.disabled ? "disabled" : "enabled"}</output>}
-            </RadioGroup>
+            <RadioGroup disabled={disabled}>{(state) => <output>{state.disabled ? "disabled" : "enabled"}</output>}</RadioGroup>
             <button onClick={() => (disabled = true)}>Disable</button>
           </>
         );

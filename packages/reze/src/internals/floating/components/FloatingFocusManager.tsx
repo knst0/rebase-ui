@@ -898,8 +898,7 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
             }
 
             const currentActiveElement = activeElement(doc);
-            const focusMovedInside =
-              currentActiveElement !== elToFocus && focusEl != null && contains(focusEl, currentActiveElement);
+            const focusMovedInside = currentActiveElement !== elToFocus && focusEl != null && contains(focusEl, currentActiveElement);
 
             return !focusMovedInside;
           },
