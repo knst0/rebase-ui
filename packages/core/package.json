@@ -1,6 +1,6 @@
 {
   "name": "@rebase-ui/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Framework-free internal utilities shared by @rebase-ui/solid.",
   "license": "MIT",
   "author": "Konstantin Kireyev <https://github.com/knst0>",
