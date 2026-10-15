@@ -1,6 +1,6 @@
 {
   "name": "@rebase-ui/reze",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Headless, accessible UI primitives for Reze.js, ported from Base UI.",
   "keywords": [
     "accessible",
