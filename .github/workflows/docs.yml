@@ -64,8 +64,11 @@ jobs:
             echo "DOCS_URL=https://knst0.github.io" >> "$GITHUB_ENV"
           fi
 
+      # The workspace migrated documentation builds onto Vite+ (5c964f1): the
+      # docs package builds through its own `build` script (`vp build`) and no
+      # plain `vite` binary is hoisted for exec.
       - name: Build the docs
-        run: pnpm --filter @rebase-ui/docs exec vite build
+        run: pnpm --filter @rebase-ui/docs build
 
       - name: Prepare the Pages artifact
         run: |
