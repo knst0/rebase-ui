@@ -97,7 +97,12 @@ describe("<PreviewCard.Root />", () => {
     flush();
     await nextFrames();
 
-    expect(screen.queryByText("Preview content")).toBeNull();
+    // A mouseleave that races the imperative close can schedule a hover-close
+    // for the not-yet-identified dom reference; wait for the unmount instead of
+    // asserting in the same tick.
+    await vi.waitFor(() => {
+      expect(screen.queryByText("Preview content")).toBeNull();
+    });
   });
 
   it("opens detached triggers by handle and renders their payload", async () => {
