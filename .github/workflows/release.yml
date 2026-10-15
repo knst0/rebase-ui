@@ -115,14 +115,23 @@ jobs:
         working-directory: ${{ env.PACKAGE_DIR }}
         run: pnpm publish --dry-run --no-git-checks
 
+      # Publish every bumped workspace package in dependency order; solid ships
+      # last since it pins exact deps on core, and reze relies on both.
       - name: Publish to npm
         if: ${{ !inputs.dry-run }}
         working-directory: ${{ env.PACKAGE_DIR }}
         run: |
-          name=$(node -p "require('./package.json').name")
-          # Skip when a previous attempt already published this version.
-          npm view "${name}@${VERSION}" version >/dev/null 2>&1 ||
-            pnpm publish --no-git-checks --provenance
+          set -e
+          for dir in packages/core packages/reze ${{ env.PACKAGE_DIR }}; do
+            name=$(node -p "require('./${dir}/package.json').name")
+            version=$(node -p "require('./${dir}/package.json').version")
+            # Skip when a previous attempt already published this version.
+            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "skip ${name}@${version} (already on the registry)"
+            else
+              (cd "$dir" && pnpm publish --no-git-checks --provenance)
+            fi
+          done
 
       - name: Create the tag and GitHub release
         if: ${{ !inputs.dry-run }}
