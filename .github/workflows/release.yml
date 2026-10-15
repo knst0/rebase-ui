@@ -119,7 +119,6 @@ jobs:
       # last since it pins exact deps on core, and reze relies on both.
       - name: Publish to npm
         if: ${{ !inputs.dry-run }}
-        working-directory: ${{ env.PACKAGE_DIR }}
         run: |
           set -e
           for dir in packages/core packages/reze ${{ env.PACKAGE_DIR }}; do
