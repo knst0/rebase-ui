@@ -1,5 +1,14 @@
 # @rebase-ui/core
 
+## 0.1.1
+
+### Patch Changes
+
+- 278482f: Ship `@rebase-ui/core` with its built `dist`: the 0.1.0 tarball published
+  without any modules because the package lacked the `prepack` hook that
+  `@rebase-ui/reze` and `@rebase-ui/solid` already run during publish.
+  Consumers pin the fixed version.
+
 ## 0.1.0
 
 ### Minor Changes
