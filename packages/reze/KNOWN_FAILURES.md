@@ -5,9 +5,9 @@
 - **Test**: `src/combobox/positioner/ComboboxPositioner.test.tsx` ›
   "repositions a retained popup after a completed close"
 - **Error**: `TypeError: Cannot read properties of undefined (reading 'nextSub')`
-  at `reze-js/packages/signals/src/graph.ts:257` (`checkDirty`), reached via
-  `RenderNode.run` → `flushGlobal` on the `tick()` after the manual
-  `actions.unmount()` call.
+  at `@rezejs/signals@0.1.0` `dist/graph.js:128` (`checkDirty`), reached via
+  `render.js` `RenderNode.runIfDirty` → `scheduler.js` `flushGlobal` on the
+  `tick()` after the manual `actions.unmount()` call.
 - **Status**: deterministic, fails in isolation and in the full suite.
 - **Scope**: the crash is inside the signals dependency graph (a render node
   reading a disposed dependency during flush). No rebase-ui frames are on the

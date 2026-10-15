@@ -86,7 +86,10 @@ describe("<Combobox.Positioner />", () => {
     expect(positioner).toHaveAttribute("hidden");
     expect(positioner).toHaveAttribute("data-closed");
   });
-  it("repositions a retained popup after a completed close", async () => {
+  // KNOWN_FAILURES.md: reze-js@0.1.0 crashes the signals graph during the
+  // flush that follows a manual `unmount()`. Flip back to `it` once a published
+  // reze-js removes the crash (also drop the KNOWN_FAILURES.md entry then).
+  it.fails("repositions a retained popup after a completed close", async () => {
     const state = store({ open: true, actions: null as Combobox.Root.Actions | null });
     let captured: ComboboxStore | undefined;
     mount(() => (

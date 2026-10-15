@@ -10,11 +10,10 @@ Dialog adds three rules the port relies on: children getters are read once per c
 
 ## Dependency on Reze
 
-Reze is not published to a registry yet, so this package links the framework from a sibling checkout:
-
-- `reze-js`, `@rezejs/vite-plugin`, and `@rezejs/testing-library` are `link:` dependencies on `../../../../reze-js` (i.e. `<root>/code/reze-js` next to `<root>/code/solid/rebase-ui`).
-
-Once published versions exist, switch these to version ranges.
+`reze-js`, `@rezejs/vite-plugin`, and `@rezejs/testing-library` are regular npm
+dev dependencies on published packages (`reze-js >=0.1,<1` as the peer range).
+The test config resolves them through `node_modules`, so no aliased sibling
+checkout is involved.
 
 ## Consuming the library
 
