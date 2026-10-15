@@ -1,0 +1,46 @@
+name: Publish core
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit, branch, or tag to publish @rebase-ui/core from (empty = the branch selected when running the workflow)"
+        required: false
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: publish-core
+  cancel-in-progress: false
+
+env:
+  CORE_DIR: packages/core
+
+jobs:
+  publish:
+    name: Publish @rebase-ui/core
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-node
+        with:
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm --filter @rebase-ui/core build
+
+      - name: Publish to npm
+        working-directory: ${{ env.CORE_DIR }}
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          # Skip when a previous attempt already published this version.
+          npm view "${name}@${version}" version >/dev/null 2>&1 ||
+            pnpm publish --no-git-checks --provenance
