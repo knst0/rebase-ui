@@ -126,7 +126,9 @@ export function AvatarImage<T extends JSX.ElementType = "img">(props: AvatarImag
     setImageLoadingStatus("error");
   }
 
-  return (
+  let image: JSX.Element | undefined;
+
+  const render = () => (
     <Tag
       {...(rest as Record<string, unknown>)}
       aria-hidden={imageLoadingStatus() !== "loaded" ? "true" : undefined}
@@ -146,6 +148,17 @@ export function AvatarImage<T extends JSX.ElementType = "img">(props: AvatarImag
       {resolveChildrenValue(children, () => ({ imageLoadingStatus: imageLoadingStatus(), transitionStatus: transition.transitionStatus }))}
     </Tag>
   );
+
+  return () => {
+    image ??= untrack(() => {
+      let node = render();
+      while (typeof node === "function") {
+        node = node();
+      }
+      return node;
+    });
+    return image;
+  };
 }
 
 export interface AvatarImageState extends AvatarRootState {

@@ -386,5 +386,22 @@ describe("<Avatar.Image />", () => {
       expect(getImage(el)).toHaveAttribute("aria-hidden", "true");
       expect(el.textContent).toContain("JD");
     });
+
+    it("keeps the same image element when the status changes next to a fallback", () => {
+      const { el } = mount(() => (
+        <Avatar.Root>
+          <Avatar.Image data-testid="image" src="avatar.png" />
+          <Avatar.Fallback>JD</Avatar.Fallback>
+        </Avatar.Root>
+      ));
+
+      tick();
+      const image = getImage(el);
+
+      fire(image, "load");
+      tick();
+
+      expect(getImage(el)).toBe(image);
+    });
   });
 });
