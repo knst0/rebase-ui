@@ -1,0 +1,94 @@
+name: Release package
+
+on:
+  workflow_call:
+    inputs:
+      package-name:
+        description: The workspace package name to build and publish.
+        required: true
+        type: string
+      package-dir:
+        description: The directory that holds the package.
+        required: true
+        type: string
+      package-version:
+        description: The version to publish.
+        required: true
+        type: string
+      tag:
+        description: The per-package git tag, e.g. "@rebase-ui/reze@0.1.3".
+        required: true
+        type: string
+      sha:
+        description: The release commit.
+        required: true
+        type: string
+      dry-run:
+        description: Build and publish with --dry-run, without tagging.
+        required: false
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  publish:
+    name: ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.sha }}
+
+      - uses: ./.github/actions/setup-node
+        with:
+          registry-url: https://registry.npmjs.org
+
+      - name: Release notes
+        env:
+          PACKAGE_DIR: ${{ inputs.package-dir }}
+          VERSION: ${{ inputs.package-version }}
+        run: |
+          awk -v heading="## ${VERSION}" '
+            $0 == heading { found = 1; next }
+            found && /^## / { exit }
+            found
+          ' "${PACKAGE_DIR}/CHANGELOG.md" | sed '/./,$!d' > RELEASE_NOTES.md
+          [ -s RELEASE_NOTES.md ] || { echo "::error::no CHANGELOG section for ${VERSION}"; exit 1; }
+          cat RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build ${{ inputs.package-name }}
+        run: pnpm --filter "${{ inputs.package-name }}" build
+
+      - name: Publish ${{ inputs.tag }}
+        working-directory: ${{ inputs.package-dir }}
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
+          PACKAGE_NAME: ${{ inputs.package-name }}
+          VERSION: ${{ inputs.package-version }}
+        run: |
+          # A previous attempt may already have published this version. Do not
+          # fail the whole release run because of it.
+          if npm view "${PACKAGE_NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "skip ${PACKAGE_NAME}@${VERSION} (already on the registry)"
+            exit 0
+          fi
+
+          if [ "$DRY_RUN" = "true" ]; then
+            pnpm publish --dry-run --no-git-checks
+          else
+            pnpm publish --no-git-checks --provenance
+          fi
+
+      - name: Create the tag and GitHub release
+        if: ${{ !inputs.dry-run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 ||
+            gh release create "$TAG" --target "$SHA" --title "$TAG" --notes-file RELEASE_NOTES.md

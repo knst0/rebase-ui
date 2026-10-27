@@ -3,7 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter @rebase-ui/solid build",
+    "build": "pnpm build:core && pnpm build:reze && pnpm build:solid",
+    "build:core": "pnpm --filter @rebase-ui/core build",
+    "build:reze": "pnpm --filter @rebase-ui/reze build",
+    "build:solid": "pnpm --filter @rebase-ui/solid build",
     "changeset": "changeset",
     "fmt": "vp fmt",
     "lint": "vp lint --type-aware --type-check",

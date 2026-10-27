@@ -15,9 +15,6 @@ concurrency:
   group: release
   cancel-in-progress: false
 
-env:
-  PACKAGE_DIR: packages/solid
-
 jobs:
   prepare:
     name: Prepare
@@ -25,10 +22,22 @@ jobs:
     permissions:
       contents: write
     outputs:
-      version: ${{ steps.bump.outputs.version }}
-      tag: ${{ steps.bump.outputs.tag }}
-      sha: ${{ steps.bump.outputs.sha }}
-      branch: ${{ steps.bump.outputs.branch }}
+      core_name: ${{ steps.plan.outputs.core_name }}
+      core_dir: ${{ steps.plan.outputs.core_dir }}
+      core_version: ${{ steps.plan.outputs.core_version }}
+      core_tag: ${{ steps.plan.outputs.core_tag }}
+      reze_name: ${{ steps.plan.outputs.reze_name }}
+      reze_dir: ${{ steps.plan.outputs.reze_dir }}
+      reze_version: ${{ steps.plan.outputs.reze_version }}
+      reze_tag: ${{ steps.plan.outputs.reze_tag }}
+      solid_name: ${{ steps.plan.outputs.solid_name }}
+      solid_dir: ${{ steps.plan.outputs.solid_dir }}
+      solid_version: ${{ steps.plan.outputs.solid_version }}
+      solid_tag: ${{ steps.plan.outputs.solid_tag }}
+      tags: ${{ steps.plan.outputs.tags }}
+      summary: ${{ steps.plan.outputs.summary }}
+      sha: ${{ steps.branch.outputs.sha }}
+      branch: ${{ steps.branch.outputs.branch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -36,34 +45,38 @@ jobs:
 
       - uses: ./.github/actions/setup-node
 
-      - id: bump
-        name: Bump the version on a release branch
+      - name: Bump the versions
         run: |
           git ls-files '.changeset/*.md' | grep -qv '^.changeset/README.md$' ||
             { echo "::error::no pending changesets; nothing to release"; exit 1; }
 
           pnpm changeset version
 
-          version=$(node -p "require('./${PACKAGE_DIR}/package.json').version")
-          tag="v${version}"
-          branch="release/${tag}"
-          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null; then
-            echo "::error::tag ${tag} already exists on origin"; exit 1
-          fi
+      # Every package that actually changed gets its own version, tag and
+      # release job. Packages untouched by the pending changesets keep their
+      # current version and are not published again.
+      - id: plan
+        name: Resolve the per-package release plan
+        run: node .github/scripts/release-plan.mjs
+
+      - id: branch
+        name: Commit the release on a branch
+        env:
+          TAGS: ${{ steps.plan.outputs.tags }}
+        run: |
+          branch="release/run-${GITHUB_RUN_ID}"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add -A
-          git commit -m "chore(release): ${tag}"
+          git commit -m "chore(release): ${TAGS}"
           # The branch is owned by this workflow; a previous (dry) run may have left it behind.
           git push --force --set-upstream origin "$branch"
 
           {
-            echo "version=${version}"
-            echo "tag=${tag}"
-            echo "branch=${branch}"
             echo "sha=$(git rev-parse HEAD)"
+            echo "branch=${branch}"
           } >> "$GITHUB_OUTPUT"
 
   verify:
@@ -75,80 +88,85 @@ jobs:
     with:
       ref: ${{ needs.prepare.outputs.sha }}
 
-  publish:
-    name: Publish
+  # The packages are built, published and tagged independently. A changeset for
+  # @rebase-ui/reze no longer requires a new @rebase-ui/solid version, and each
+  # package gets its own tag (e.g. @rebase-ui/reze@0.1.3).
+  publish_core:
+    name: Publish core
     needs: [prepare, verify]
+    if: ${{ !cancelled() && !failure() && needs.prepare.outputs.core_tag != '' }}
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
+    with:
+      package-name: ${{ needs.prepare.outputs.core_name }}
+      package-dir: ${{ needs.prepare.outputs.core_dir }}
+      package-version: ${{ needs.prepare.outputs.core_version }}
+      tag: ${{ needs.prepare.outputs.core_tag }}
+      sha: ${{ needs.prepare.outputs.sha }}
+      dry-run: ${{ inputs.dry-run }}
+
+  publish_reze:
+    name: Publish reze
+    needs: [prepare, verify, publish_core]
+    # publish_core is skipped when core did not change; that must not block reze.
+    if: ${{ !cancelled() && !failure() && needs.prepare.outputs.reze_tag != '' }}
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
+    with:
+      package-name: ${{ needs.prepare.outputs.reze_name }}
+      package-dir: ${{ needs.prepare.outputs.reze_dir }}
+      package-version: ${{ needs.prepare.outputs.reze_version }}
+      tag: ${{ needs.prepare.outputs.reze_tag }}
+      sha: ${{ needs.prepare.outputs.sha }}
+      dry-run: ${{ inputs.dry-run }}
+
+  publish_solid:
+    name: Publish solid
+    needs: [prepare, verify, publish_core]
+    if: ${{ !cancelled() && !failure() && needs.prepare.outputs.solid_tag != '' }}
+    permissions:
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/release-package.yml
+    with:
+      package-name: ${{ needs.prepare.outputs.solid_name }}
+      package-dir: ${{ needs.prepare.outputs.solid_dir }}
+      package-version: ${{ needs.prepare.outputs.solid_version }}
+      tag: ${{ needs.prepare.outputs.solid_tag }}
+      sha: ${{ needs.prepare.outputs.sha }}
+      dry-run: ${{ inputs.dry-run }}
+
+  sync:
+    name: Open or update the sync PR
+    needs: [prepare, publish_core, publish_reze, publish_solid]
+    if: ${{ always() && !cancelled() && !failure() && !inputs.dry-run }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      VERSION: ${{ needs.prepare.outputs.version }}
-      TAG: ${{ needs.prepare.outputs.tag }}
-      SHA: ${{ needs.prepare.outputs.sha }}
+      TAGS: ${{ needs.prepare.outputs.tags }}
+      SUMMARY: ${{ needs.prepare.outputs.summary }}
       BRANCH: ${{ needs.prepare.outputs.branch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.prepare.outputs.sha }}
 
-      - uses: ./.github/actions/setup-node
-        with:
-          registry-url: https://registry.npmjs.org
-
-      - name: Release notes
-        run: |
-          awk -v heading="## ${VERSION}" '
-            $0 == heading { found = 1; next }
-            found && /^## / { exit }
-            found
-          ' "${PACKAGE_DIR}/CHANGELOG.md" | sed '/./,$!d' > RELEASE_NOTES.md
-          [ -s RELEASE_NOTES.md ] || { echo "::error::no CHANGELOG section for ${VERSION}"; exit 1; }
-          cat RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
-
-      - run: pnpm build
-
-      - name: Publish to npm (dry run)
-        if: ${{ inputs.dry-run }}
-        working-directory: ${{ env.PACKAGE_DIR }}
-        run: pnpm publish --dry-run --no-git-checks
-
-      # Publish every bumped workspace package in dependency order; solid ships
-      # last since it pins exact deps on core, and reze relies on both.
-      - name: Publish to npm
-        if: ${{ !inputs.dry-run }}
-        run: |
-          set -e
-          for dir in packages/core packages/reze ${{ env.PACKAGE_DIR }}; do
-            name=$(node -p "require('./${dir}/package.json').name")
-            version=$(node -p "require('./${dir}/package.json').version")
-            # Skip when a previous attempt already published this version.
-            if npm view "${name}@${version}" version >/dev/null 2>&1; then
-              echo "skip ${name}@${version} (already on the registry)"
-            else
-              (cd "$dir" && pnpm publish --no-git-checks --provenance)
-            fi
-          done
-
-      - name: Create the tag and GitHub release
-        if: ${{ !inputs.dry-run }}
-        run: |
-          gh release view "$TAG" >/dev/null 2>&1 ||
-            gh release create "$TAG" --target "$SHA" --title "$TAG" --notes-file RELEASE_NOTES.md
-
       - name: Open or update the sync PR into main
-        if: ${{ !inputs.dry-run }}
         run: |
           {
-            cat RELEASE_NOTES.md
-            printf '\n---\n\nPost-release sync: version bump, changelog and consumed changesets for '
-            printf '**%s**, already published at %s/%s/releases/tag/%s.\n\n' \
-              "$TAG" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$TAG"
-            printf 'Merge (do not squash) to keep the tagged commit reachable from main.\n'
+            printf 'Released packages:\n\n%s\n\n---\n\n' "$SUMMARY"
+            printf 'Post-release sync: version bumps, changelogs and consumed changesets for '
+            printf '%s, already published and tagged.\n\n' "$TAGS"
+            printf 'Merge (do not squash) to keep the tagged commits reachable from main.\n'
           } > body.md
-          title="chore(release): ${TAG}"
+          title="chore(release): ${TAGS}"
           gh pr create --base main --head "$BRANCH" --title "$title" --body-file body.md ||
             gh pr edit "$BRANCH" --title "$title" --body-file body.md
 
@@ -156,8 +174,8 @@ jobs:
   # deploy is called directly instead of listening for the release.
   docs:
     name: Rebuild docs
-    needs: [prepare, publish]
-    if: ${{ !inputs.dry-run }}
+    needs: [prepare, publish_core, publish_reze, publish_solid]
+    if: ${{ always() && !cancelled() && !failure() && !inputs.dry-run }}
     permissions:
       contents: read
       pages: write
