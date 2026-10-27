@@ -1,5 +1,11 @@
 # @rebase-ui/reze
 
+## 0.1.3
+
+### Patch Changes
+
+- cb990c7: Create the `Avatar.Image` element once. A sibling `Avatar.Fallback` shares one render effect with it, so every loading status change used to rebuild the `<img>`, which looped endlessly while the browser cache was bypassed.
+
 ## 0.1.2
 
 ### Patch Changes
