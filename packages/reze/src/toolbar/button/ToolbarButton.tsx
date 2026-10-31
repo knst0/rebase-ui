@@ -2,6 +2,7 @@ import { dynamicElement, omitProps, type JSX } from "reze-js";
 
 import { useCompositeItem } from "../../internals/composite";
 import { createButton } from "../../internals/create-button";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { ButtonEventHandlers, NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
@@ -140,7 +141,7 @@ export function ToolbarButton<T extends JSX.ElementType = "button">(props: Toolb
 
   // A customized `as` (typically another Rebase UI component like Menu.Trigger) also receives
   // `disabled`, so the rendered component can derive its own disabled state.
-  return (
+  return inPlace(
     <Tag
       {...(rest as Record<string, unknown>)}
       disabled={disabled()}
@@ -163,7 +164,7 @@ export function ToolbarButton<T extends JSX.ElementType = "button">(props: Toolb
       ref={ref}
     >
       {resolveChildrenValue(children, snapshot)}
-    </Tag>
+    </Tag>,
   );
 }
 

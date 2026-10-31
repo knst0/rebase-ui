@@ -13,12 +13,12 @@ import {
 } from "../../internals/anchor-positioning/createAnchorPositioning";
 import { useFloatingRootContext } from "../../internals/floating/useFloatingRootContext";
 import { disableFocusInside, enableFocusInside, isOutsideEvent } from "../../internals/floating/utils/tabbable";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuPortalContext } from "../portal/NavigationMenuPortalContext";
 import { useNavigationMenuRootContext, useNavigationMenuTreeContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 import { ResolvedChildren } from "../utils/ResolvedChildren";
 import { watch } from "../utils/watch";
 import { NavigationMenuPositionerContext } from "./NavigationMenuPositionerContext";

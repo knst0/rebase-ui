@@ -1,13 +1,13 @@
 import { createUniqueId, dynamicElement, omitProps, type JSX } from "reze-js";
 
 import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuPositionerContext } from "../positioner/NavigationMenuPositionerContext";
 import { useNavigationMenuRootContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 
 /**
  * A container for the navigation menu contents.

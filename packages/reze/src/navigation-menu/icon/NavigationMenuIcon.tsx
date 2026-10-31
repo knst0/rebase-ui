@@ -1,11 +1,11 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuItemContext } from "../item/NavigationMenuItemContext";
 import { useNavigationMenuRootContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 
 /**
  * An icon that indicates that the trigger button opens a menu.

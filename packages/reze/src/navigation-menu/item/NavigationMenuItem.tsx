@@ -1,8 +1,8 @@
 import { createUniqueId, dynamicElement, omitProps, type JSX } from "reze-js";
 
+import { inPlace } from "../../internals/inPlace";
 import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
-import { inPlace } from "../utils/inPlace";
 import { ResolvedChildren } from "../utils/ResolvedChildren";
 import { NavigationMenuItemContext } from "./NavigationMenuItemContext";
 

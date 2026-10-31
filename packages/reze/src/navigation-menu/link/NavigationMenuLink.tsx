@@ -3,11 +3,11 @@ import { dynamicElement, omitProps, type JSX } from "reze-js";
 import { useCompositeItem } from "../../internals/composite";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { useFloatingTree } from "../../internals/floating/tree/FloatingTree";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuRootContext, useNavigationMenuTreeContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 import { isOutsideMenuEvent } from "../utils/isOutsideMenuEvent";
 
 /**

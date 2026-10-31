@@ -41,13 +41,15 @@ export default function ExampleToolbar() {
       </Toolbar.Group>
       <Toolbar.Separator class="m-1 h-4 w-px bg-neutral-950 dark:bg-white" />
       <Select.Root defaultValue="Helvetica">
-        {/* shortcut: Select.Trigger stays outside the toolbar roving focus, `Toolbar.Button as={Select.Trigger}` loses context in Reze; upgrade once dynamic `as` keeps providers. */}
-        <Select.Trigger class="flex h-8 min-w-32 cursor-default items-center justify-between gap-2 border-0 bg-transparent px-2 font-[inherit] text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:bg-transparent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:not-data-pressed:bg-neutral-200 data-pressed:bg-neutral-100 data-pressed:text-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:not-data-pressed:bg-neutral-700 dark:data-pressed:bg-neutral-800 dark:data-pressed:text-white">
+        <Toolbar.Button
+          as={Select.Trigger}
+          class="flex h-8 min-w-32 cursor-default items-center justify-between gap-2 border-0 bg-transparent px-2 font-[inherit] text-sm leading-none font-normal whitespace-nowrap text-neutral-950 select-none hover:not-data-disabled:bg-neutral-100 focus-visible:bg-transparent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-neutral-950 active:not-data-disabled:not-data-pressed:bg-neutral-200 data-pressed:bg-neutral-100 data-pressed:text-neutral-950 dark:text-white dark:hover:not-data-disabled:bg-neutral-800 dark:focus-visible:outline-white dark:active:not-data-disabled:not-data-pressed:bg-neutral-700 dark:data-pressed:bg-neutral-800 dark:data-pressed:text-white"
+        >
           <Select.Value />
           <Select.Icon>
             <CaretUpDownIcon />
           </Select.Icon>
-        </Select.Trigger>
+        </Toolbar.Button>
         <Select.Portal>
           <Select.Positioner class="z-10 outline-none select-none" sideOffset={4}>
             <Select.Popup class="group max-h-[var(--available-height)] min-w-[var(--anchor-width)] origin-[var(--transform-origin)] overflow-y-auto border border-neutral-950 bg-white bg-clip-padding text-neutral-950 shadow-[0.25rem_0.25rem_0] shadow-black/12 transition-[scale,opacity] duration-100 ease-out outline-none data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.98] data-starting-style:opacity-0 data-[side=none]:min-w-[calc(var(--anchor-width)+1.75rem)] data-[side=none]:translate-y-px data-[side=none]:scale-100 data-[side=none]:opacity-100 data-[side=none]:transition-none data-[side=none]:data-starting-style:scale-100 data-[side=none]:data-starting-style:opacity-100 dark:border-white dark:bg-neutral-950 dark:text-white dark:shadow-none">

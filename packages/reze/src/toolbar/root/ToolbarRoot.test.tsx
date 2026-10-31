@@ -1,9 +1,10 @@
-import "@testing-library/jest-dom/vitest";
 import { cleanup, fire, mount, tick } from "@rezejs/testing-library";
+import "@testing-library/jest-dom/vitest";
 import { screen } from "@testing-library/dom";
 import { signal } from "reze-js";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
+import { Select } from "../../select";
 import { Toggle } from "../../toggle/Toggle";
 import { ToolbarButton } from "../button/ToolbarButton";
 import { ToolbarGroup } from "../group/ToolbarGroup";
@@ -171,5 +172,18 @@ describe("<Toolbar.Root />", () => {
 
   it("throws when a part is outside the root", () => {
     expect(() => mount(() => <ToolbarButton />)).toThrow(/ToolbarRootContext is missing/);
+  });
+
+  it("keeps outer providers for a button composed with a custom `as`", () => {
+    mount(() => (
+      <ToolbarRoot>
+        <Select.Root defaultValue="a">
+          <ToolbarButton as={Select.Trigger} data-testid="select-trigger">
+            <Select.Value />
+          </ToolbarButton>
+        </Select.Root>
+      </ToolbarRoot>
+    ));
+    expect(screen.getByTestId("select-trigger").textContent).toBe("a");
   });
 });

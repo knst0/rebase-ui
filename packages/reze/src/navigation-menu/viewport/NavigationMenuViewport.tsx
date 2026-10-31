@@ -3,12 +3,12 @@ import { createUniqueId, dynamicElement, omitProps, untrack, type JSX } from "re
 import { contains } from "../../internals/floating/utils/element";
 import { getNextTabbable, getPreviousTabbable, isOutsideEvent } from "../../internals/floating/utils/tabbable";
 import { FocusGuard } from "../../internals/focus-guard/FocusGuard";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuPositionerContext } from "../positioner/NavigationMenuPositionerContext";
 import { useNavigationMenuRootContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 
 function Guards(props: { hasPositioner: boolean; children?: JSX.Element }) {
   const root = useNavigationMenuRootContext();

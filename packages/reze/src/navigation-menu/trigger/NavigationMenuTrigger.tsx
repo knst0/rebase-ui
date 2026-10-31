@@ -21,6 +21,7 @@ import { contains, getTarget } from "../../internals/floating/utils/element";
 import { stopEvent } from "../../internals/floating/utils/event";
 import { getNextTabbable, getPreviousTabbable, getTabbableNearElement, isOutsideEvent } from "../../internals/floating/utils/tabbable";
 import { FocusGuard } from "../../internals/focus-guard/FocusGuard";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { getRootFloatingContext } from "../../internals/popups/popupStoreUtils";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
@@ -34,7 +35,6 @@ import * as NavigationMenuPositionerCssVars from "../positioner/NavigationMenuPo
 import type { NavigationMenuRoot } from "../root/NavigationMenuRoot";
 import { useNavigationMenuRootContext, useNavigationMenuTreeContext } from "../root/NavigationMenuRootContext";
 import { NAVIGATION_MENU_TRIGGER_IDENTIFIER } from "../utils/constants";
-import { inPlace } from "../utils/inPlace";
 import { isOutsideMenuEvent } from "../utils/isOutsideMenuEvent";
 import { setSharedFixedSize } from "../utils/setSharedFixedSize";
 import { watch } from "../utils/watch";
@@ -605,11 +605,11 @@ export function NavigationMenuTrigger<T extends JSX.ElementType = "button">(prop
 
   const externalProps = props as Record<string, any>;
   const handlers = {
-    onMouseEnter(event: MouseEvent) {
+    onMouseEnter: (event: MouseEvent) => {
       externalProps.onMouseEnter?.(event);
       handleOpenEvent(event);
     },
-    onClick(event: MouseEvent) {
+    onClick: (event: MouseEvent) => {
       externalProps.onClick?.(event);
       // Moving from another open item is handled by the activation; toggling would close it again.
       const switchingItem = untrack(value) != null && !untrack(isActiveItem);
@@ -619,12 +619,12 @@ export function NavigationMenuTrigger<T extends JSX.ElementType = "button">(prop
       }
       dismiss.reference().onClick?.(event);
     },
-    onPointerEnter(event: PointerEvent) {
+    onPointerEnter: (event: PointerEvent) => {
       externalProps.onPointerEnter?.(event);
       pointerType = event.pointerType;
       hover?.onPointerEnter(event);
     },
-    onPointerDown(event: PointerEvent) {
+    onPointerDown: (event: PointerEvent) => {
       externalProps.onPointerDown?.(event);
       pointerType = event.pointerType;
       clearSafePolygonPointerEventsMutation(hoverInteractionState);
@@ -632,27 +632,27 @@ export function NavigationMenuTrigger<T extends JSX.ElementType = "button">(prop
       hover?.onPointerDown(event);
       dismiss.reference().onPointerDown?.(event);
     },
-    onMouseDown(event: MouseEvent) {
+    onMouseDown: (event: MouseEvent) => {
       externalProps.onMouseDown?.(event);
       click.reference().onMouseDown(event);
     },
-    onMouseMove(event: MouseEvent) {
+    onMouseMove: (event: MouseEvent) => {
       externalProps.onMouseMove?.(event);
       hover?.onMouseMove(event);
     },
-    onFocus(event: FocusEvent) {
+    onFocus: (event: FocusEvent) => {
       externalProps.onFocus?.(event);
       if (untrack(isActiveItem)) {
         root.setViewportInert(false);
       }
     },
-    onMouseLeave(event: MouseEvent) {
+    onMouseLeave: (event: MouseEvent) => {
       externalProps.onMouseLeave?.(event);
       if (untrack(value) == null) {
         clearSafePolygonPointerEventsMutation(hoverInteractionState);
       }
     },
-    onKeyDown(event: KeyboardEvent) {
+    onKeyDown: (event: KeyboardEvent) => {
       externalProps.onKeyDown?.(event);
       click.reference().onKeyDown();
       dismiss.reference().onKeyDown?.(event);
@@ -675,7 +675,7 @@ export function NavigationMenuTrigger<T extends JSX.ElementType = "button">(prop
         stopEvent(event);
       }
     },
-    onBlur(event: FocusEvent) {
+    onBlur: (event: FocusEvent) => {
       externalProps.onBlur?.(event);
       const popup = untrack(popupElement);
       if (

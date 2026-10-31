@@ -1,6 +1,7 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
 import { useCompositeItem } from "../../internals/composite";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
@@ -65,7 +66,7 @@ export function ToolbarLink<T extends JSX.ElementType = "a">(props: ToolbarLink.
     );
   }
 
-  return (
+  return inPlace(
     <Tag
       {...(rest as Record<string, unknown>)}
       tabindex={merged?.tabIndex}
@@ -77,7 +78,7 @@ export function ToolbarLink<T extends JSX.ElementType = "a">(props: ToolbarLink.
       ref={ref}
     >
       {resolveChildrenValue(children, snapshot)}
-    </Tag>
+    </Tag>,
   );
 }
 

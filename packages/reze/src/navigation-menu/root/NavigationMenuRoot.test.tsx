@@ -241,4 +241,19 @@ describe("<NavigationMenu.Root />", () => {
     await vi.waitFor(() => expect(onValueChange.mock.calls.at(-1)?.[0]).toBeNull());
     expect(onValueChange.mock.calls.at(-1)?.[1].reason).toBe("link-press");
   });
+
+  it("keeps context for conditional children of parts", async () => {
+    const state = createStore({ showIcon: false });
+    mount(() => (
+      <NavigationMenu.Root>
+        <NavigationMenu.List>
+          <NavigationMenu.Item>
+            {state.showIcon && <NavigationMenu.Trigger data-testid="late">Late</NavigationMenu.Trigger>}
+          </NavigationMenu.Item>
+        </NavigationMenu.List>
+      </NavigationMenu.Root>
+    ));
+    state.showIcon = true;
+    await vi.waitFor(() => expect(screen.getByTestId("late")).toBeInTheDocument());
+  });
 });

@@ -1,12 +1,12 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
 import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuPositionerContext } from "../positioner/NavigationMenuPositionerContext";
 import { useNavigationMenuRootContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 
 /**
  * Displays an element pointing toward the navigation menu's current anchor.

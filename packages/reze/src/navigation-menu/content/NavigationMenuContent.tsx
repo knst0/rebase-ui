@@ -3,6 +3,7 @@ import { omitProps, Portal, store as createStore, type JSX } from "reze-js";
 import { CompositeRoot } from "../../internals/composite";
 import { FloatingNode } from "../../internals/floating/tree/FloatingTree";
 import { contains, getTarget } from "../../internals/floating/utils/element";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
@@ -10,7 +11,6 @@ import { createTransitionStatus, type TransitionStatus } from "../../internals/t
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuItemContext } from "../item/NavigationMenuItemContext";
 import { useNavigationMenuRootContext, useNavigationMenuTreeContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 import { watch } from "../utils/watch";
 
 /**

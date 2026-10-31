@@ -6,13 +6,13 @@ import { createUnmountAfterClose } from "../../internals/createUnmountAfterClose
 import { createChangeEventDetails, REASONS, type RebaseUIChangeEventDetails } from "../../internals/event-details";
 import { FloatingNode, FloatingTree, useFloatingNodeId, useFloatingParentNodeId } from "../../internals/floating/tree/FloatingTree";
 import { activeElement, contains } from "../../internals/floating/utils/element";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { attachPreventUnmountOnClose } from "../../internals/popups/popupStoreUtils";
 import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import { runOnOpenChangeComplete } from "../../internals/runOnOpenChangeComplete";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import * as NavigationMenuPositionerCssVars from "../positioner/NavigationMenuPositionerCssVars";
-import { inPlace } from "../utils/inPlace";
 import { ResolvedChildren } from "../utils/ResolvedChildren";
 import { setSharedFixedSize } from "../utils/setSharedFixedSize";
 import { watch } from "../utils/watch";

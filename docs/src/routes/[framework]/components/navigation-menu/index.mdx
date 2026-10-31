@@ -40,6 +40,20 @@ import { NavigationMenu } from "@rebase-ui/solid/navigation-menu";
 </NavigationMenu.Root>;
 ```
 
+## Examples
+
+### Nested submenus
+
+`<NavigationMenu.Root>` component can be nested within a higher-level `<NavigationMenu.Content>` part to create a multi-level navigation menu.
+
+<Demo nested />
+
+### Nested inline submenus
+
+For second-level navigation that should stay in the same panel, omit the nested `<NavigationMenu.Portal>` and render only `List` + `Viewport` with a `defaultValue`.
+
+<Demo nested-inline />
+
 ### Custom links
 
 The `<NavigationMenu.Link>` part can be customized to render the link from your framework using the `as` prop to enable client-side routing.
@@ -90,10 +104,10 @@ If your content is flexible, you can use the `max-height` property on `.Popup` t
 }
 ```
 
-Native scrollbars are visible while transitioning content, so we recommend using the [Scroll Area](/react/components/scroll-area) component instead of native scrollbars to keep them hidden, which also allows the `Arrow` to be centered correctly.
+Native scrollbars are visible while transitioning content, so we recommend using the [Scroll Area](/components/scroll-area) component instead of native scrollbars to keep them hidden, which also allows the `Arrow` to be centered correctly.
 
 ## Closing animations
 
 The popup stays rendered until its closing animation finishes.
-See [JavaScript animations](/react/handbook/animation#javascript-animations) for animating it with Motion and for manual control.
+See [JavaScript animations](https://base-ui.com/react/handbook/animation#javascript-animations) for animating it with Motion and for manual control.
 For Navigation Menu, call `eventDetails.preventUnmountOnClose()` in `onValueChange` when the value becomes `null`, and use `actionsRef.current.close()` instead of setting `value` to `null` directly.

@@ -1,11 +1,11 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuRootContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 
 /**
  * A backdrop for the navigation menu popup.

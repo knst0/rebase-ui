@@ -1,9 +1,9 @@
 import { dynamicElement, omitProps, Portal, type JSX } from "reze-js";
 
+import { inPlace } from "../../internals/inPlace";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { useNavigationMenuRootContext } from "../root/NavigationMenuRootContext";
-import { inPlace } from "../utils/inPlace";
 import { NavigationMenuPortalContext } from "./NavigationMenuPortalContext";
 
 /**

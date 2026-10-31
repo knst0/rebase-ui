@@ -1,6 +1,7 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
 import { useCompositeItem } from "../../internals/composite";
+import { inPlace } from "../../internals/inPlace";
 import { mergeRefs } from "../../internals/mergeRefs";
 import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
@@ -117,7 +118,7 @@ export function ToolbarInput<T extends JSX.ElementType = "input">(props: Toolbar
     );
   }
 
-  return (
+  return inPlace(
     <Tag
       {...(rest as Record<string, unknown>)}
       tabindex={merged?.tabIndex}
@@ -133,7 +134,7 @@ export function ToolbarInput<T extends JSX.ElementType = "input">(props: Toolbar
       onFocus={merged?.onFocus ?? props.onFocus}
       onMouseMove={merged?.onMouseMove ?? props.onMouseMove}
       ref={ref}
-    />
+    />,
   );
 }
 
