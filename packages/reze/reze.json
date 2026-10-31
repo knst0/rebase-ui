@@ -88,7 +88,7 @@
         "role": "function"
       }
     },
-    "hash": "560d500cdacf4a5f",
+    "hash": "792eb88a8f2be50d",
     "v": 1
   },
   "src/accordion/item/AccordionItemContext.ts": {
@@ -124,7 +124,7 @@
   "src/accordion/panel/AccordionPanel.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "85e7f49c26c9e4cd",
+    "hash": "74f27952bfe23a3d",
     "v": 1
   },
   "src/accordion/panel/AccordionPanel.tsx": {
@@ -135,7 +135,7 @@
         "role": "function"
       }
     },
-    "hash": "36e24bac2b8f978b",
+    "hash": "c42d6f556f3d7f53",
     "v": 1
   },
   "src/accordion/panel/AccordionPanelCssVars.ts": {
@@ -376,6 +376,310 @@
     "hash": "b086113bba8aa28b",
     "v": 1
   },
+  "src/autocomplete/clear/AutocompleteClearDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "194a4c6513ea88e3",
+    "v": 1
+  },
+  "src/autocomplete/index.parts.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Arrow": {
+        "from": "../combobox/arrow/ComboboxArrow",
+        "name": "ComboboxArrow",
+        "role": "reexport"
+      },
+      "Backdrop": {
+        "from": "../combobox/backdrop/ComboboxBackdrop",
+        "name": "ComboboxBackdrop",
+        "role": "reexport"
+      },
+      "Clear": {
+        "from": "../combobox/clear/ComboboxClear",
+        "name": "ComboboxClear",
+        "role": "reexport"
+      },
+      "Collection": {
+        "from": "../combobox/collection/ComboboxCollection",
+        "name": "ComboboxCollection",
+        "role": "reexport"
+      },
+      "Empty": {
+        "from": "../combobox/empty/ComboboxEmpty",
+        "name": "ComboboxEmpty",
+        "role": "reexport"
+      },
+      "Group": {
+        "from": "../combobox/group/ComboboxGroup",
+        "name": "ComboboxGroup",
+        "role": "reexport"
+      },
+      "GroupLabel": {
+        "from": "../combobox/group-label/ComboboxGroupLabel",
+        "name": "ComboboxGroupLabel",
+        "role": "reexport"
+      },
+      "Icon": {
+        "from": "../combobox/icon/ComboboxIcon",
+        "name": "ComboboxIcon",
+        "role": "reexport"
+      },
+      "Input": {
+        "from": "../combobox/input/ComboboxInput",
+        "name": "ComboboxInput",
+        "role": "reexport"
+      },
+      "InputGroup": {
+        "from": "./input-group/AutocompleteInputGroup",
+        "name": "AutocompleteInputGroup",
+        "role": "reexport"
+      },
+      "Item": {
+        "from": "./item/AutocompleteItem",
+        "name": "AutocompleteItem",
+        "role": "reexport"
+      },
+      "List": {
+        "from": "../combobox/list/ComboboxList",
+        "name": "ComboboxList",
+        "role": "reexport"
+      },
+      "Popup": {
+        "from": "../combobox/popup/ComboboxPopup",
+        "name": "ComboboxPopup",
+        "role": "reexport"
+      },
+      "Portal": {
+        "from": "../combobox/portal/ComboboxPortal",
+        "name": "ComboboxPortal",
+        "role": "reexport"
+      },
+      "Positioner": {
+        "from": "../combobox/positioner/ComboboxPositioner",
+        "name": "ComboboxPositioner",
+        "role": "reexport"
+      },
+      "Root": {
+        "from": "./root/AutocompleteRoot",
+        "name": "AutocompleteRoot",
+        "role": "reexport"
+      },
+      "Row": {
+        "from": "../combobox/row/ComboboxRow",
+        "name": "ComboboxRow",
+        "role": "reexport"
+      },
+      "Separator": {
+        "from": "./separator/AutocompleteSeparator",
+        "name": "AutocompleteSeparator",
+        "role": "reexport"
+      },
+      "Status": {
+        "from": "../combobox/status/ComboboxStatus",
+        "name": "ComboboxStatus",
+        "role": "reexport"
+      },
+      "Trigger": {
+        "from": "./trigger/AutocompleteTrigger",
+        "name": "AutocompleteTrigger",
+        "role": "reexport"
+      },
+      "Value": {
+        "from": "./value/AutocompleteValue",
+        "name": "AutocompleteValue",
+        "role": "reexport"
+      },
+      "useFilter": {
+        "from": "../combobox/root/utils/useFilter",
+        "name": "useCoreFilter",
+        "role": "reexport"
+      },
+      "useFilteredItems": {
+        "from": "../combobox/root/utils/useFilteredItems",
+        "name": "useFilteredItems",
+        "role": "reexport"
+      }
+    },
+    "hash": "b3c3536f14b590f2",
+    "v": 1
+  },
+  "src/autocomplete/index.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "b719551e09152734",
+    "v": 1
+  },
+  "src/autocomplete/input-group/AutocompleteInputGroup.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "AutocompleteInputGroup": {
+        "role": "value"
+      }
+    },
+    "hash": "c85d7d6d315f97fc",
+    "v": 1
+  },
+  "src/autocomplete/input-group/AutocompleteInputGroupDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "dirty": {
+        "role": "value"
+      },
+      "disabled": {
+        "role": "value"
+      },
+      "filled": {
+        "role": "value"
+      },
+      "focused": {
+        "role": "value"
+      },
+      "invalid": {
+        "role": "value"
+      },
+      "listEmpty": {
+        "role": "value"
+      },
+      "popupOpen": {
+        "role": "value"
+      },
+      "popupSide": {
+        "role": "value"
+      },
+      "pressed": {
+        "role": "value"
+      },
+      "readonly": {
+        "role": "value"
+      },
+      "touched": {
+        "role": "value"
+      },
+      "valid": {
+        "role": "value"
+      }
+    },
+    "hash": "8b103f0de60a91d3",
+    "v": 1
+  },
+  "src/autocomplete/item/AutocompleteItem.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "AutocompleteItem": {
+        "role": "value"
+      }
+    },
+    "hash": "f71726d7555345d4",
+    "v": 1
+  },
+  "src/autocomplete/item/AutocompleteItemDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "disabled": {
+        "role": "value"
+      },
+      "highlighted": {
+        "role": "value"
+      }
+    },
+    "hash": "d13258fe46cb2bb0",
+    "v": 1
+  },
+  "src/autocomplete/root/AutocompleteRoot.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "d50401eebb1c9d36",
+    "v": 1
+  },
+  "src/autocomplete/root/AutocompleteRoot.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "AutocompleteRoot": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "ef3c6ae43b0e0e03",
+    "v": 1
+  },
+  "src/autocomplete/separator/AutocompleteSeparator.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "AutocompleteSeparator": {
+        "role": "value"
+      }
+    },
+    "hash": "4604b584594a2b50",
+    "v": 1
+  },
+  "src/autocomplete/trigger/AutocompleteTrigger.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "AutocompleteTrigger": {
+        "role": "value"
+      }
+    },
+    "hash": "20062a245d9dbcc0",
+    "v": 1
+  },
+  "src/autocomplete/trigger/AutocompleteTriggerDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "dirty": {
+        "role": "value"
+      },
+      "disabled": {
+        "role": "value"
+      },
+      "filled": {
+        "role": "value"
+      },
+      "focused": {
+        "role": "value"
+      },
+      "invalid": {
+        "role": "value"
+      },
+      "listEmpty": {
+        "role": "value"
+      },
+      "popupOpen": {
+        "role": "value"
+      },
+      "popupSide": {
+        "role": "value"
+      },
+      "pressed": {
+        "role": "value"
+      },
+      "readonly": {
+        "role": "value"
+      },
+      "required": {
+        "role": "value"
+      },
+      "touched": {
+        "role": "value"
+      },
+      "valid": {
+        "role": "value"
+      }
+    },
+    "hash": "a208f4eb3f019e7b",
+    "v": 1
+  },
+  "src/autocomplete/value/AutocompleteValue.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "AutocompleteValue": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "f05456645d563489",
+    "v": 1
+  },
   "src/avatar/fallback/AvatarFallback.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
@@ -396,7 +700,7 @@
   "src/avatar/image/AvatarImage.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "fa66f44013915b6a",
+    "hash": "83d4eeb01e431f99",
     "v": 1
   },
   "src/avatar/image/AvatarImage.tsx": {
@@ -407,7 +711,7 @@
         "role": "function"
       }
     },
-    "hash": "074d4ee12b4b2530",
+    "hash": "bb7f70adacbd7321",
     "v": 1
   },
   "src/avatar/image/AvatarImageDataAttributes.ts": {
@@ -501,7 +805,7 @@
   "src/button/Button.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "7254836a91e23559",
+    "hash": "e4822010d3b2c59f",
     "v": 1
   },
   "src/button/Button.tsx": {
@@ -512,7 +816,7 @@
         "role": "function"
       }
     },
-    "hash": "b876e2b75313abe9",
+    "hash": "2a7dd6554753df87",
     "v": 1
   },
   "src/button/ButtonDataAttributes.ts": {
@@ -555,7 +859,7 @@
         "role": "function"
       }
     },
-    "hash": "06cd94d4a69beebc",
+    "hash": "e489c3f7d6243fbe",
     "v": 1
   },
   "src/checkbox-group/CheckboxGroupContext.ts": {
@@ -642,7 +946,7 @@
         "role": "function"
       }
     },
-    "hash": "625c97fe2b8a1616",
+    "hash": "4a6a3f231ee5ec12",
     "v": 1
   },
   "src/checkbox/indicator/CheckboxIndicatorDataAttributes.ts": {
@@ -715,7 +1019,7 @@
         "role": "value"
       }
     },
-    "hash": "3b65d81c011fc592",
+    "hash": "44bca1f5eaff25dc",
     "v": 1
   },
   "src/checkbox/root/CheckboxRootContext.ts": {
@@ -773,6 +1077,12 @@
       }
     },
     "hash": "a38f8171482131ff",
+    "v": 1
+  },
+  "src/collapsible/collapsible.bench.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "c2f5155708982d72",
     "v": 1
   },
   "src/collapsible/index.parts.ts": {
@@ -860,7 +1170,7 @@
         "role": "function"
       }
     },
-    "hash": "0b32ab9edbb13b32",
+    "hash": "77460b22ac59808a",
     "v": 1
   },
   "src/collapsible/root/CollapsibleRoot.test.tsx": {
@@ -958,7 +1268,7 @@
   "src/combobox/arrow/ComboboxArrow.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "1ef957442bf31c8a",
+    "hash": "61c39cb7352d4db8",
     "v": 1
   },
   "src/combobox/arrow/ComboboxArrow.tsx": {
@@ -997,7 +1307,7 @@
   "src/combobox/backdrop/ComboboxBackdrop.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "dca82b579817b65a",
+    "hash": "1305b9ae6c9343e8",
     "v": 1
   },
   "src/combobox/backdrop/ComboboxBackdrop.tsx": {
@@ -1008,7 +1318,7 @@
         "role": "function"
       }
     },
-    "hash": "29cb280e82e20f58",
+    "hash": "3afa3d1a5c8da2ca",
     "v": 1
   },
   "src/combobox/backdrop/ComboboxBackdropDataAttributes.ts": {
@@ -1050,7 +1360,7 @@
   "src/combobox/chip/ComboboxChip.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "434a09fc8e19f767",
+    "hash": "114e5bfffe61847d",
     "v": 1
   },
   "src/combobox/chip/ComboboxChip.tsx": {
@@ -1123,7 +1433,7 @@
         "role": "function"
       }
     },
-    "hash": "7524d0887ba7d3a8",
+    "hash": "784408c27315420c",
     "v": 1
   },
   "src/combobox/clear/ComboboxClearDataAttributes.ts": {
@@ -1237,7 +1547,7 @@
         "role": "function"
       }
     },
-    "hash": "241837148e2f4678",
+    "hash": "c0570f3639b5f9f6",
     "v": 1
   },
   "src/combobox/group/ComboboxGroupContext.ts": {
@@ -1506,7 +1816,7 @@
         "role": "function"
       }
     },
-    "hash": "50737947300f0e61",
+    "hash": "e77f5ee0423db7c8",
     "v": 1
   },
   "src/combobox/input/ComboboxInputDataAttributes.ts": {
@@ -1558,7 +1868,7 @@
   "src/combobox/item-indicator/ComboboxItemIndicator.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "9797f7deaf5655e1",
+    "hash": "7e658ac09300984f",
     "v": 1
   },
   "src/combobox/item-indicator/ComboboxItemIndicator.tsx": {
@@ -1599,7 +1909,7 @@
         "role": "function"
       }
     },
-    "hash": "b42f72593a18954a",
+    "hash": "a9b5c01d78846c70",
     "v": 1
   },
   "src/combobox/item/ComboboxItemContext.ts": {
@@ -1680,7 +1990,7 @@
   "src/combobox/list/ComboboxList.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "b62281606932ba27",
+    "hash": "d8d7422070de85e9",
     "v": 1
   },
   "src/combobox/list/ComboboxList.tsx": {
@@ -1697,13 +2007,13 @@
   "src/combobox/list/ComboboxListDiagnostics.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "7d4f3a767495e109",
+    "hash": "f0475762640bf09b",
     "v": 1
   },
   "src/combobox/popup/ComboboxPopup.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "7873233aca092765",
+    "hash": "ca523636d2d00053",
     "v": 1
   },
   "src/combobox/popup/ComboboxPopup.tsx": {
@@ -1714,7 +2024,7 @@
         "role": "function"
       }
     },
-    "hash": "af8baa7e02b0cbdf",
+    "hash": "028f4f80c3a665e5",
     "v": 1
   },
   "src/combobox/popup/ComboboxPopupDataAttributes.ts": {
@@ -1762,7 +2072,7 @@
         "role": "function"
       }
     },
-    "hash": "33f06847facad6db",
+    "hash": "119bcea800ab7999",
     "v": 1
   },
   "src/combobox/portal/ComboboxPortalContext.ts": {
@@ -1782,7 +2092,7 @@
   "src/combobox/positioner/ComboboxPositioner.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "24ce2bf4baac6d5d",
+    "hash": "fe227c0ac9c5aaef",
     "v": 1
   },
   "src/combobox/positioner/ComboboxPositioner.tsx": {
@@ -1807,7 +2117,7 @@
         "role": "function"
       }
     },
-    "hash": "f27dbbc411d1f1e4",
+    "hash": "08f535921158e944",
     "v": 1
   },
   "src/combobox/positioner/ComboboxPositionerCssVars.ts": {
@@ -1876,7 +2186,7 @@
         "role": "function"
       }
     },
-    "hash": "f791281d7d49bc8f",
+    "hash": "472ed19e99b25e2d",
     "v": 1
   },
   "src/combobox/root/ComboboxRoot.test.tsx": {
@@ -1946,7 +2256,7 @@
         "role": "function"
       }
     },
-    "hash": "e7b26ef8138b5a06",
+    "hash": "50359f7794124c3e",
     "v": 1
   },
   "src/combobox/root/utils/constants.ts": {
@@ -2073,7 +2383,7 @@
   "src/combobox/status/ComboboxStatus.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "9e28c440bdbe0bb2",
+    "hash": "afd61005b7861c0a",
     "v": 1
   },
   "src/combobox/status/ComboboxStatus.tsx": {
@@ -2090,7 +2400,7 @@
   "src/combobox/store/ComboboxStore.test.ts": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "b800fc916b012366",
+    "hash": "fd0bf1910be99e0a",
     "v": 1
   },
   "src/combobox/store/ComboboxStore.ts": {
@@ -2108,7 +2418,7 @@
         "role": "value"
       }
     },
-    "hash": "5538ce9fcdfe2614",
+    "hash": "8ab5c34040eb5ff8",
     "v": 1
   },
   "src/combobox/test-utils.tsx": {
@@ -2140,7 +2450,7 @@
         "role": "function"
       }
     },
-    "hash": "569b5130e91897c9",
+    "hash": "d9de03d33bd263cb",
     "v": 1
   },
   "src/combobox/trigger/ComboboxTriggerDataAttributes.ts": {
@@ -2287,7 +2597,192 @@
         "role": "function"
       }
     },
-    "hash": "6f8fcac8cdad2032",
+    "hash": "ec2641f94a5fdbee",
+    "v": 1
+  },
+  "src/context-menu/index.parts.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Arrow": {
+        "from": "../menu/arrow/MenuArrow",
+        "name": "MenuArrow",
+        "role": "reexport"
+      },
+      "Backdrop": {
+        "from": "../menu/backdrop/MenuBackdrop",
+        "name": "MenuBackdrop",
+        "role": "reexport"
+      },
+      "CheckboxItem": {
+        "from": "../menu/checkbox-item/MenuCheckboxItem",
+        "name": "MenuCheckboxItem",
+        "role": "reexport"
+      },
+      "CheckboxItemIndicator": {
+        "from": "../menu/checkbox-item-indicator/MenuCheckboxItemIndicator",
+        "name": "MenuCheckboxItemIndicator",
+        "role": "reexport"
+      },
+      "Group": {
+        "from": "../menu/group/MenuGroup",
+        "name": "MenuGroup",
+        "role": "reexport"
+      },
+      "GroupLabel": {
+        "from": "../menu/group-label/MenuGroupLabel",
+        "name": "MenuGroupLabel",
+        "role": "reexport"
+      },
+      "Item": {
+        "from": "../menu/item/MenuItem",
+        "name": "MenuItem",
+        "role": "reexport"
+      },
+      "LinkItem": {
+        "from": "../menu/link-item/MenuLinkItem",
+        "name": "MenuLinkItem",
+        "role": "reexport"
+      },
+      "Popup": {
+        "from": "../menu/popup/MenuPopup",
+        "name": "MenuPopup",
+        "role": "reexport"
+      },
+      "Portal": {
+        "from": "../menu/portal/MenuPortal",
+        "name": "MenuPortal",
+        "role": "reexport"
+      },
+      "Positioner": {
+        "from": "./positioner/ContextMenuPositioner",
+        "name": "ContextMenuPositioner",
+        "role": "reexport"
+      },
+      "RadioGroup": {
+        "from": "../menu/radio-group/MenuRadioGroup",
+        "name": "MenuRadioGroup",
+        "role": "reexport"
+      },
+      "RadioItem": {
+        "from": "../menu/radio-item/MenuRadioItem",
+        "name": "MenuRadioItem",
+        "role": "reexport"
+      },
+      "RadioItemIndicator": {
+        "from": "../menu/radio-item-indicator/MenuRadioItemIndicator",
+        "name": "MenuRadioItemIndicator",
+        "role": "reexport"
+      },
+      "Root": {
+        "from": "./root/ContextMenuRoot",
+        "name": "ContextMenuRoot",
+        "role": "reexport"
+      },
+      "Separator": {
+        "from": "../separator/Separator",
+        "name": "Separator",
+        "role": "reexport"
+      },
+      "SubmenuRoot": {
+        "from": "../menu/submenu-root/MenuSubmenuRoot",
+        "name": "MenuSubmenuRoot",
+        "role": "reexport"
+      },
+      "SubmenuTrigger": {
+        "from": "../menu/submenu-trigger/MenuSubmenuTrigger",
+        "name": "MenuSubmenuTrigger",
+        "role": "reexport"
+      },
+      "Trigger": {
+        "from": "./trigger/ContextMenuTrigger",
+        "name": "ContextMenuTrigger",
+        "role": "reexport"
+      }
+    },
+    "hash": "cd4f4e32d424c1a4",
+    "v": 1
+  },
+  "src/context-menu/index.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "df2f216dc5474e6f",
+    "v": 1
+  },
+  "src/context-menu/positioner/ContextMenuPositioner.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ContextMenuPositioner": {
+        "role": "value"
+      }
+    },
+    "hash": "cd9d7424159520e9",
+    "v": 1
+  },
+  "src/context-menu/positioner/ContextMenuPositionerCssVars.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "91dc80b10c420ed9",
+    "v": 1
+  },
+  "src/context-menu/positioner/ContextMenuPositionerDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "4fa9bc56e90d03c7",
+    "v": 1
+  },
+  "src/context-menu/root/ContextMenuRoot.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "1138c9152487641a",
+    "v": 1
+  },
+  "src/context-menu/root/ContextMenuRoot.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ContextMenuRoot": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "cef1d733d6e1bf98",
+    "v": 1
+  },
+  "src/context-menu/root/ContextMenuRootContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ContextMenuRootContext": {
+        "role": "value"
+      },
+      "useContextMenuRootContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "1be3f4c7c52e8f33",
+    "v": 1
+  },
+  "src/context-menu/trigger/ContextMenuTrigger.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ContextMenuTrigger": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "c762658bf3735919",
+    "v": 1
+  },
+  "src/context-menu/trigger/ContextMenuTriggerDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "popupOpen": {
+        "role": "value"
+      },
+      "pressed": {
+        "role": "value"
+      }
+    },
+    "hash": "139f45948b6677be",
     "v": 1
   },
   "src/dialog/backdrop/DialogBackdrop.test.tsx": {
@@ -2663,7 +3158,7 @@
         "role": "function"
       }
     },
-    "hash": "8adbdcce4a111400",
+    "hash": "86b45fdcd5a2e134",
     "v": 1
   },
   "src/drawer/backdrop/DrawerBackdropCssVars.ts": {
@@ -2766,7 +3261,7 @@
         "role": "function"
       }
     },
-    "hash": "bab5b37622a79d3a",
+    "hash": "678d1408cd328046",
     "v": 1
   },
   "src/drawer/index.parts.ts": {
@@ -2956,7 +3451,7 @@
   "src/drawer/provider/DrawerProvider.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "31a72a3412fc2299",
+    "hash": "6f88a40694966c7b",
     "v": 1
   },
   "src/drawer/provider/DrawerProvider.tsx": {
@@ -2987,7 +3482,7 @@
   "src/drawer/root/DrawerRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "aec773c0d673c677",
+    "hash": "3c37f720dd08ac2f",
     "v": 1
   },
   "src/drawer/root/DrawerRoot.tsx": {
@@ -3058,7 +3553,7 @@
   "src/drawer/swipe-area/DrawerSwipeArea.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "bdee606cff08dc95",
+    "hash": "c87f216fa3aac0a7",
     "v": 1
   },
   "src/drawer/swipe-area/DrawerSwipeArea.tsx": {
@@ -3193,7 +3688,7 @@
   "src/drawer/viewport/DrawerViewport.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "53edfbd282886e42",
+    "hash": "dbbfc38dda62fad0",
     "v": 1
   },
   "src/drawer/viewport/DrawerViewport.tsx": {
@@ -3208,7 +3703,7 @@
         "role": "function"
       }
     },
-    "hash": "76940192795c7df8",
+    "hash": "cabe6df8b54225c4",
     "v": 1
   },
   "src/drawer/viewport/DrawerViewportContext.tsx": {
@@ -3274,7 +3769,7 @@
   "src/drawer/virtual-keyboard-provider/DrawerVirtualKeyboardProvider.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "559a7207eafc3974",
+    "hash": "c715ddd26a051584",
     "v": 1
   },
   "src/drawer/virtual-keyboard-provider/DrawerVirtualKeyboardProvider.tsx": {
@@ -3302,7 +3797,7 @@
         "role": "function"
       }
     },
-    "hash": "7633fa4af4260a13",
+    "hash": "5c1c358ada04b67f",
     "v": 1
   },
   "src/field/control/FieldControlDataAttributes.ts": {
@@ -3336,7 +3831,7 @@
   "src/field/description/FieldDescription.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "ce3ebe08cc9b0896",
+    "hash": "4acb06f6eaec5bdc",
     "v": 1
   },
   "src/field/description/FieldDescription.tsx": {
@@ -3392,7 +3887,7 @@
         "role": "function"
       }
     },
-    "hash": "b5bf84ebbcd431db",
+    "hash": "fdb9122eb56bf419",
     "v": 1
   },
   "src/field/error/FieldErrorDataAttributes.ts": {
@@ -3495,7 +3990,7 @@
         "role": "function"
       }
     },
-    "hash": "a8558b84ae1b2a9e",
+    "hash": "139e2e1d06a6f790",
     "v": 1
   },
   "src/field/item/FieldItemContext.ts": {
@@ -3588,7 +4083,7 @@
   "src/field/root/FieldRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "354b031084228254",
+    "hash": "27c5a0aacb249bd6",
     "v": 1
   },
   "src/field/root/FieldRoot.tsx": {
@@ -3603,7 +4098,7 @@
         "role": "function"
       }
     },
-    "hash": "53d27a9b81baca3a",
+    "hash": "88fcdb7c2a9c8236",
     "v": 1
   },
   "src/field/root/FieldRootDataAttributes.ts": {
@@ -3893,7 +4388,7 @@
         "role": "function"
       }
     },
-    "hash": "6c6b9096954532f1",
+    "hash": "f32bb1e8f26639c9",
     "v": 1
   },
   "src/menu/backdrop/MenuBackdropDataAttributes.ts": {
@@ -3951,7 +4446,7 @@
   "src/menu/checkbox-item/MenuCheckboxItem.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "a51612a327ddddf5",
+    "hash": "0c64237cc802be03",
     "v": 1
   },
   "src/menu/checkbox-item/MenuCheckboxItem.tsx": {
@@ -4001,7 +4496,7 @@
   "src/menu/clear/MenuClear.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "99e8f5af363113df",
+    "hash": "99a29e32703add6f",
     "v": 1
   },
   "src/menu/clear/MenuClear.tsx": {
@@ -4045,7 +4540,7 @@
   "src/menu/filter-provider/MenuFilterProvider.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "ee0dc8a49cadb36b",
+    "hash": "7e04356f1ba0dbfb",
     "v": 1
   },
   "src/menu/filter-provider/MenuFilterProvider.tsx": {
@@ -4115,7 +4610,7 @@
   "src/menu/filter-root/MenuFilterGroup.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "e0fbb57a8da8c25d",
+    "hash": "231b6e8db44fe437",
     "v": 1
   },
   "src/menu/filter-root/MenuFilterGroup.tsx": {
@@ -4157,7 +4652,7 @@
   "src/menu/filter-root/MenuFilterPopup.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "acc15d597a84cb0b",
+    "hash": "32cdd39e525e2a55",
     "v": 1
   },
   "src/menu/filter-root/MenuFilterPopup.tsx": {
@@ -4168,7 +4663,7 @@
         "role": "function"
       }
     },
-    "hash": "ec9999ef50fb1760",
+    "hash": "2227c42087efa57e",
     "v": 1
   },
   "src/menu/filter-root/MenuFilterRoot.tsx": {
@@ -4185,7 +4680,7 @@
   "src/menu/filter-root/MenuFilterRoot.webkit.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "b25cbbcbac774b53",
+    "hash": "c80511c33e10ac83",
     "v": 1
   },
   "src/menu/filter-root/moveHighlightFrom.ts": {
@@ -4250,7 +4745,7 @@
         "role": "function"
       }
     },
-    "hash": "4018223c51f26a4c",
+    "hash": "332dee5835772358",
     "v": 1
   },
   "src/menu/filter-root/useMenuFilterSubmenuTrigger.ts": {
@@ -4278,7 +4773,7 @@
   "src/menu/filter-submenu-root/MenuFilterSubmenuRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "13034e6344a82e13",
+    "hash": "96ad1b258b4e67ad",
     "v": 1
   },
   "src/menu/filter-submenu-root/MenuFilterSubmenuRoot.tsx": {
@@ -4300,7 +4795,7 @@
         "role": "function"
       }
     },
-    "hash": "82453cb141d54c3d",
+    "hash": "7d1bc47cddf9cd33",
     "v": 1
   },
   "src/menu/group/MenuGroup.tsx": {
@@ -4488,7 +4983,7 @@
   "src/menu/input/MenuInput.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "013e76127a5f5017",
+    "hash": "a1156ab02a592ea7",
     "v": 1
   },
   "src/menu/input/MenuInput.tsx": {
@@ -4515,7 +5010,7 @@
   "src/menu/item/MenuItem.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "f69668df6ee22962",
+    "hash": "b6133b780662891a",
     "v": 1
   },
   "src/menu/item/MenuItem.tsx": {
@@ -4557,7 +5052,7 @@
         "role": "function"
       }
     },
-    "hash": "676a17264a1a9c00",
+    "hash": "ccd05406023cb28c",
     "v": 1
   },
   "src/menu/item/useMenuItemCommonProps.ts": {
@@ -4595,7 +5090,7 @@
   "src/menu/list/MenuList.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "7929aafc77cec8a8",
+    "hash": "87293e97d9db225a",
     "v": 1
   },
   "src/menu/list/MenuList.tsx": {
@@ -4612,7 +5107,7 @@
   "src/menu/popup/MenuPopup.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "2b1e0d380965434f",
+    "hash": "d52b10bec8e46157",
     "v": 1
   },
   "src/menu/popup/MenuPopup.tsx": {
@@ -4627,7 +5122,7 @@
         "role": "function"
       }
     },
-    "hash": "74664a8ff319e405",
+    "hash": "ab1dbace68f47258",
     "v": 1
   },
   "src/menu/popup/MenuPopupDataAttributes.ts": {
@@ -4691,13 +5186,13 @@
         "role": "function"
       }
     },
-    "hash": "b39856b9fabf7454",
+    "hash": "1df4cd01d73b3ed9",
     "v": 1
   },
   "src/menu/positioner/MenuPositioner.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "10de2d57e3d91947",
+    "hash": "6818e3c09b7f69b7",
     "v": 1
   },
   "src/menu/positioner/MenuPositioner.tsx": {
@@ -4708,7 +5203,7 @@
         "role": "function"
       }
     },
-    "hash": "72d5ce0ba682e115",
+    "hash": "86831d3ba002b92d",
     "v": 1
   },
   "src/menu/positioner/MenuPositionerContext.ts": {
@@ -4793,7 +5288,7 @@
         "role": "function"
       }
     },
-    "hash": "2a9d9274a9264c72",
+    "hash": "bac37949d2349b78",
     "v": 1
   },
   "src/menu/radio-group/MenuRadioGroupContext.ts": {
@@ -4890,7 +5385,7 @@
   "src/menu/root/MenuRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "21ab5f3169fb38ef",
+    "hash": "95794744fc9ef485",
     "v": 1
   },
   "src/menu/root/MenuRoot.tsx": {
@@ -4901,7 +5396,7 @@
         "role": "function"
       }
     },
-    "hash": "ba00b26495424f14",
+    "hash": "5adb64e8545b0fc5",
     "v": 1
   },
   "src/menu/root/MenuRootContext.ts": {
@@ -4926,7 +5421,7 @@
         "role": "function"
       }
     },
-    "hash": "507e0503e6f973a3",
+    "hash": "ac4a8f98186de9e0",
     "v": 1
   },
   "src/menu/store/MenuHandle.ts": {
@@ -4949,7 +5444,7 @@
   "src/menu/store/MenuStore.ts": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "1549a431e8307724",
+    "hash": "120df4c9e242ee50",
     "v": 1
   },
   "src/menu/store/MenuStoreFilter.test.ts": {
@@ -4967,7 +5462,7 @@
   "src/menu/submenu-root/MenuSubmenuRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "b3a819d5832d58c2",
+    "hash": "12140b490e12c972",
     "v": 1
   },
   "src/menu/submenu-root/MenuSubmenuRoot.tsx": {
@@ -4998,7 +5493,7 @@
   "src/menu/submenu-trigger/MenuSubmenuTrigger.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "97be8859640aa1f2",
+    "hash": "7c0f6275f4a52f54",
     "v": 1
   },
   "src/menu/submenu-trigger/MenuSubmenuTrigger.tsx": {
@@ -5031,7 +5526,7 @@
   "src/menu/trigger/MenuTrigger.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "12bb5f584bdafcc1",
+    "hash": "fed8cacd76d2f97f",
     "v": 1
   },
   "src/menu/trigger/MenuTrigger.tsx": {
@@ -5042,7 +5537,7 @@
         "role": "function"
       }
     },
-    "hash": "72d2c23ffe24e5e2",
+    "hash": "25677183c42712a1",
     "v": 1
   },
   "src/menu/trigger/MenuTriggerDataAttributes.ts": {
@@ -5137,6 +5632,60 @@
       }
     },
     "hash": "ead25322f6f9ad17",
+    "v": 1
+  },
+  "src/menubar/Menubar.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "091c6951021dfc1d",
+    "v": 1
+  },
+  "src/menubar/Menubar.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Menubar": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "3da7eb49537efa3c",
+    "v": 1
+  },
+  "src/menubar/MenubarContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "MenubarContext": {
+        "role": "value"
+      },
+      "useMenubarContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "26fe0facaa4a48e6",
+    "v": 1
+  },
+  "src/menubar/MenubarDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "7dd39a84c68648c2",
+    "v": 1
+  },
+  "src/menubar/index.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Menubar": {
+        "from": "./Menubar",
+        "name": "Menubar",
+        "role": "reexport"
+      },
+      "MenubarDataAttributes": {
+        "from": "./MenubarDataAttributes",
+        "name": "MenubarDataAttributes",
+        "role": "reexport"
+      }
+    },
+    "hash": "82d0cf34b525d5ff",
     "v": 1
   },
   "src/meter/index.parts.ts": {
@@ -5250,6 +5799,543 @@
       }
     },
     "hash": "fa8b108a9aa906bd",
+    "v": 1
+  },
+  "src/navigation-menu/arrow/NavigationMenuArrow.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuArrow": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "ca6e56bec963e818",
+    "v": 1
+  },
+  "src/navigation-menu/arrow/NavigationMenuArrowDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "align": {
+        "role": "value"
+      },
+      "closed": {
+        "role": "value"
+      },
+      "open": {
+        "role": "value"
+      },
+      "side": {
+        "role": "value"
+      },
+      "uncentered": {
+        "role": "value"
+      }
+    },
+    "hash": "45bf489c309e2571",
+    "v": 1
+  },
+  "src/navigation-menu/backdrop/NavigationMenuBackdrop.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuBackdrop": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "3662072a7656dcf3",
+    "v": 1
+  },
+  "src/navigation-menu/backdrop/NavigationMenuBackdropDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "closed": {
+        "role": "value"
+      },
+      "endingStyle": {
+        "role": "value"
+      },
+      "open": {
+        "role": "value"
+      },
+      "startingStyle": {
+        "role": "value"
+      }
+    },
+    "hash": "95be9f5b301d5340",
+    "v": 1
+  },
+  "src/navigation-menu/content/NavigationMenuContent.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuContent": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "d3eea351bd8255ae",
+    "v": 1
+  },
+  "src/navigation-menu/content/NavigationMenuContentDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "activationDirection": {
+        "role": "value"
+      },
+      "closed": {
+        "role": "value"
+      },
+      "endingStyle": {
+        "role": "value"
+      },
+      "open": {
+        "role": "value"
+      },
+      "startingStyle": {
+        "role": "value"
+      }
+    },
+    "hash": "26265e64e99b0a30",
+    "v": 1
+  },
+  "src/navigation-menu/icon/NavigationMenuIcon.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuIcon": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "622d8d58f25dad8d",
+    "v": 1
+  },
+  "src/navigation-menu/icon/NavigationMenuIconDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "popupOpen": {
+        "role": "value"
+      }
+    },
+    "hash": "9eac5e6200905a2c",
+    "v": 1
+  },
+  "src/navigation-menu/index.parts.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Arrow": {
+        "from": "./arrow/NavigationMenuArrow",
+        "name": "NavigationMenuArrow",
+        "role": "reexport"
+      },
+      "Backdrop": {
+        "from": "./backdrop/NavigationMenuBackdrop",
+        "name": "NavigationMenuBackdrop",
+        "role": "reexport"
+      },
+      "Content": {
+        "from": "./content/NavigationMenuContent",
+        "name": "NavigationMenuContent",
+        "role": "reexport"
+      },
+      "Icon": {
+        "from": "./icon/NavigationMenuIcon",
+        "name": "NavigationMenuIcon",
+        "role": "reexport"
+      },
+      "Item": {
+        "from": "./item/NavigationMenuItem",
+        "name": "NavigationMenuItem",
+        "role": "reexport"
+      },
+      "Link": {
+        "from": "./link/NavigationMenuLink",
+        "name": "NavigationMenuLink",
+        "role": "reexport"
+      },
+      "List": {
+        "from": "./list/NavigationMenuList",
+        "name": "NavigationMenuList",
+        "role": "reexport"
+      },
+      "Popup": {
+        "from": "./popup/NavigationMenuPopup",
+        "name": "NavigationMenuPopup",
+        "role": "reexport"
+      },
+      "Portal": {
+        "from": "./portal/NavigationMenuPortal",
+        "name": "NavigationMenuPortal",
+        "role": "reexport"
+      },
+      "Positioner": {
+        "from": "./positioner/NavigationMenuPositioner",
+        "name": "NavigationMenuPositioner",
+        "role": "reexport"
+      },
+      "Root": {
+        "from": "./root/NavigationMenuRoot",
+        "name": "NavigationMenuRoot",
+        "role": "reexport"
+      },
+      "Trigger": {
+        "from": "./trigger/NavigationMenuTrigger",
+        "name": "NavigationMenuTrigger",
+        "role": "reexport"
+      },
+      "Viewport": {
+        "from": "./viewport/NavigationMenuViewport",
+        "name": "NavigationMenuViewport",
+        "role": "reexport"
+      }
+    },
+    "hash": "eee5f0befc043c52",
+    "v": 1
+  },
+  "src/navigation-menu/index.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "d80d2eee56a6c75b",
+    "v": 1
+  },
+  "src/navigation-menu/item/NavigationMenuItem.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuItem": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "83e9bb2a1bc92e3e",
+    "v": 1
+  },
+  "src/navigation-menu/item/NavigationMenuItemContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuItemContext": {
+        "role": "value"
+      },
+      "useNavigationMenuItemContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "9f432bab0ff33496",
+    "v": 1
+  },
+  "src/navigation-menu/link/NavigationMenuLink.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuLink": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "1c5f941e2ce103ce",
+    "v": 1
+  },
+  "src/navigation-menu/link/NavigationMenuLinkDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "active": {
+        "role": "value"
+      }
+    },
+    "hash": "77486a54a03876bd",
+    "v": 1
+  },
+  "src/navigation-menu/list/NavigationMenuList.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuList": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "f683c4f5b522809e",
+    "v": 1
+  },
+  "src/navigation-menu/popup/NavigationMenuPopup.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuPopup": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "4b8d1b305eec1c11",
+    "v": 1
+  },
+  "src/navigation-menu/popup/NavigationMenuPopupCssVars.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "popupHeight": {
+        "role": "value"
+      },
+      "popupWidth": {
+        "role": "value"
+      }
+    },
+    "hash": "a9c05956124cc8ac",
+    "v": 1
+  },
+  "src/navigation-menu/popup/NavigationMenuPopupDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "align": {
+        "role": "value"
+      },
+      "anchorHidden": {
+        "role": "value"
+      },
+      "closed": {
+        "role": "value"
+      },
+      "endingStyle": {
+        "role": "value"
+      },
+      "open": {
+        "role": "value"
+      },
+      "side": {
+        "role": "value"
+      },
+      "startingStyle": {
+        "role": "value"
+      }
+    },
+    "hash": "eedf0d955796043f",
+    "v": 1
+  },
+  "src/navigation-menu/portal/NavigationMenuPortal.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuPortal": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "09676d84c35ce0ad",
+    "v": 1
+  },
+  "src/navigation-menu/portal/NavigationMenuPortalContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuPortalContext": {
+        "role": "value"
+      },
+      "useNavigationMenuPortalContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "599f6f77b9472e2b",
+    "v": 1
+  },
+  "src/navigation-menu/positioner/NavigationMenuPositioner.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuPositioner": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "0571556780596477",
+    "v": 1
+  },
+  "src/navigation-menu/positioner/NavigationMenuPositionerContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuPositionerContext": {
+        "role": "value"
+      },
+      "useNavigationMenuPositionerContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "9c605949ef23f3d5",
+    "v": 1
+  },
+  "src/navigation-menu/positioner/NavigationMenuPositionerCssVars.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "anchorHeight": {
+        "role": "value"
+      },
+      "anchorWidth": {
+        "role": "value"
+      },
+      "availableHeight": {
+        "role": "value"
+      },
+      "availableWidth": {
+        "role": "value"
+      },
+      "positionerHeight": {
+        "role": "value"
+      },
+      "positionerWidth": {
+        "role": "value"
+      },
+      "transformOrigin": {
+        "role": "value"
+      }
+    },
+    "hash": "cacfc5a1f994dcdf",
+    "v": 1
+  },
+  "src/navigation-menu/positioner/NavigationMenuPositionerDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "align": {
+        "role": "value"
+      },
+      "anchorHidden": {
+        "role": "value"
+      },
+      "closed": {
+        "role": "value"
+      },
+      "instant": {
+        "role": "value"
+      },
+      "open": {
+        "role": "value"
+      },
+      "side": {
+        "role": "value"
+      }
+    },
+    "hash": "1e75e98ed1aa979e",
+    "v": 1
+  },
+  "src/navigation-menu/root/NavigationMenuRoot.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "c77e17bc40f58760",
+    "v": 1
+  },
+  "src/navigation-menu/root/NavigationMenuRoot.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuRoot": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "e7133c82f135ed06",
+    "v": 1
+  },
+  "src/navigation-menu/root/NavigationMenuRootContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuRootContext": {
+        "role": "value"
+      },
+      "NavigationMenuTreeContext": {
+        "role": "value"
+      },
+      "useNavigationMenuRootContext": {
+        "reads": "dynamic",
+        "role": "function"
+      },
+      "useNavigationMenuTreeContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "cfa9964e5ab83018",
+    "v": 1
+  },
+  "src/navigation-menu/trigger/NavigationMenuTrigger.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuTrigger": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "8db3252c73eb3562",
+    "v": 1
+  },
+  "src/navigation-menu/trigger/NavigationMenuTriggerDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "disabled": {
+        "role": "value"
+      },
+      "popupOpen": {
+        "role": "value"
+      },
+      "pressed": {
+        "role": "value"
+      }
+    },
+    "hash": "656779ad44717ac2",
+    "v": 1
+  },
+  "src/navigation-menu/utils/ResolvedChildren.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ResolvedChildren": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "9a597a18443b6c00",
+    "v": 1
+  },
+  "src/navigation-menu/utils/constants.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NAVIGATION_MENU_TRIGGER_IDENTIFIER": {
+        "role": "value"
+      }
+    },
+    "hash": "50ae733824f72622",
+    "v": 1
+  },
+  "src/navigation-menu/utils/isOutsideMenuEvent.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "isOutsideMenuEvent": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "fcf4f29eabeb69e1",
+    "v": 1
+  },
+  "src/navigation-menu/utils/setSharedFixedSize.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "setSharedFixedSize": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "37ec5dfcd85d57cf",
+    "v": 1
+  },
+  "src/navigation-menu/utils/watch.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "watch": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "568bfa2885594a95",
+    "v": 1
+  },
+  "src/navigation-menu/viewport/NavigationMenuViewport.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "NavigationMenuViewport": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "e8b20f3fbb8716b2",
     "v": 1
   },
   "src/number-field/decrement/NumberFieldDecrement.tsx": {
@@ -5576,7 +6662,7 @@
         "role": "function"
       }
     },
-    "hash": "60e3d8701ff0e13d",
+    "hash": "33e7d81a4f1f2e65",
     "v": 1
   },
   "src/number-field/scrub-area-cursor/NumberFieldScrubAreaCursor.tsx": {
@@ -5587,7 +6673,7 @@
         "role": "function"
       }
     },
-    "hash": "8eca74749252aa99",
+    "hash": "c764b9e783a162d7",
     "v": 1
   },
   "src/number-field/scrub-area-cursor/NumberFieldScrubAreaCursorDataAttributes.ts": {
@@ -5649,7 +6735,7 @@
         "role": "function"
       }
     },
-    "hash": "c38aa75dfcf98192",
+    "hash": "747a65bbf84ad88e",
     "v": 1
   },
   "src/number-field/scrub-area/NumberFieldScrubAreaContext.ts": {
@@ -5781,7 +6867,7 @@
         "role": "function"
       }
     },
-    "hash": "97de86eec445ddb1",
+    "hash": "764e52dace6a3527",
     "v": 1
   },
   "src/otp-field/input/OTPFieldInputDataAttributes.ts": {
@@ -6115,7 +7201,7 @@
         "role": "function"
       }
     },
-    "hash": "66ff013ae6b5e291",
+    "hash": "ace4d2e0585bdb19",
     "v": 1
   },
   "src/popover/popup/PopoverPopupCssVars.ts": {
@@ -6209,7 +7295,7 @@
         "role": "function"
       }
     },
-    "hash": "bd9da1ebf7e4f9d5",
+    "hash": "2a2ce471371b0d8b",
     "v": 1
   },
   "src/popover/positioner/PopoverPositionerContext.ts": {
@@ -6370,7 +7456,7 @@
         "role": "function"
       }
     },
-    "hash": "4f3fc0176c8d8213",
+    "hash": "701e47164e0ca911",
     "v": 1
   },
   "src/popover/trigger/PopoverTriggerDataAttributes.ts": {
@@ -6594,7 +7680,7 @@
         "role": "function"
       }
     },
-    "hash": "1b463fdbfba71bf4",
+    "hash": "c7ea8172754097d9",
     "v": 1
   },
   "src/preview-card/popup/PreviewCardPopupDataAttributes.ts": {
@@ -6633,7 +7719,7 @@
         "role": "function"
       }
     },
-    "hash": "0fd6b5d981f306a5",
+    "hash": "8cb0620e0254374f",
     "v": 1
   },
   "src/preview-card/portal/PreviewCardPortalContext.ts": {
@@ -6668,7 +7754,7 @@
         "role": "function"
       }
     },
-    "hash": "403cd03ea8fbbd04",
+    "hash": "c4d26a0d9bdf75d8",
     "v": 1
   },
   "src/preview-card/positioner/PreviewCardPositionerContext.ts": {
@@ -6909,10 +7995,203 @@
     "hash": "a406ee1926d13239",
     "v": 1
   },
+  "src/progress/index.parts.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Indicator": {
+        "from": "./indicator/ProgressIndicator",
+        "name": "ProgressIndicator",
+        "role": "reexport"
+      },
+      "Label": {
+        "from": "./label/ProgressLabel",
+        "name": "ProgressLabel",
+        "role": "reexport"
+      },
+      "Root": {
+        "from": "./root/ProgressRoot",
+        "name": "ProgressRoot",
+        "role": "reexport"
+      },
+      "Track": {
+        "from": "./track/ProgressTrack",
+        "name": "ProgressTrack",
+        "role": "reexport"
+      },
+      "Value": {
+        "from": "./value/ProgressValue",
+        "name": "ProgressValue",
+        "role": "reexport"
+      }
+    },
+    "hash": "b9b5e0933113c88d",
+    "v": 1
+  },
+  "src/progress/index.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "9bbae8679d10cc86",
+    "v": 1
+  },
+  "src/progress/indicator/ProgressIndicator.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ProgressIndicator": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "0ad0a44750436665",
+    "v": 1
+  },
+  "src/progress/indicator/ProgressIndicatorDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "complete": {
+        "role": "value"
+      },
+      "indeterminate": {
+        "role": "value"
+      },
+      "progressing": {
+        "role": "value"
+      }
+    },
+    "hash": "c2fbe2e1fc2839c6",
+    "v": 1
+  },
+  "src/progress/label/ProgressLabel.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ProgressLabel": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "4e7c5cb78ae509f2",
+    "v": 1
+  },
+  "src/progress/label/ProgressLabelDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "complete": {
+        "role": "value"
+      },
+      "indeterminate": {
+        "role": "value"
+      },
+      "progressing": {
+        "role": "value"
+      }
+    },
+    "hash": "c2fbe2e1fc2839c6",
+    "v": 1
+  },
+  "src/progress/root/ProgressRoot.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "145414e6d7194af0",
+    "v": 1
+  },
+  "src/progress/root/ProgressRoot.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ProgressRoot": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "184c769c27a82451",
+    "v": 1
+  },
+  "src/progress/root/ProgressRootContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ProgressRootContext": {
+        "role": "value"
+      },
+      "useProgressRootContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "0e889142b61522b6",
+    "v": 1
+  },
+  "src/progress/root/ProgressRootDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "complete": {
+        "role": "value"
+      },
+      "indeterminate": {
+        "role": "value"
+      },
+      "progressing": {
+        "role": "value"
+      }
+    },
+    "hash": "c2fbe2e1fc2839c6",
+    "v": 1
+  },
+  "src/progress/track/ProgressTrack.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ProgressTrack": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "5c1366ce2a36163e",
+    "v": 1
+  },
+  "src/progress/track/ProgressTrackDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "complete": {
+        "role": "value"
+      },
+      "indeterminate": {
+        "role": "value"
+      },
+      "progressing": {
+        "role": "value"
+      }
+    },
+    "hash": "c2fbe2e1fc2839c6",
+    "v": 1
+  },
+  "src/progress/value/ProgressValue.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ProgressValue": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "fac533d0b7a286eb",
+    "v": 1
+  },
+  "src/progress/value/ProgressValueDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "complete": {
+        "role": "value"
+      },
+      "indeterminate": {
+        "role": "value"
+      },
+      "progressing": {
+        "role": "value"
+      }
+    },
+    "hash": "c2fbe2e1fc2839c6",
+    "v": 1
+  },
   "src/radio-group/RadioGroup.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "d6ff0c8bcc590514",
+    "hash": "ee3a92643ca1b2c2",
     "v": 1
   },
   "src/radio-group/RadioGroup.tsx": {
@@ -6927,7 +8206,7 @@
         "role": "function"
       }
     },
-    "hash": "d966b13284024fb2",
+    "hash": "609cb6e7254e58f9",
     "v": 1
   },
   "src/radio-group/RadioGroupContext.ts": {
@@ -7003,7 +8282,7 @@
         "role": "function"
       }
     },
-    "hash": "b9e985b240723215",
+    "hash": "ac9ad86aa1737b07",
     "v": 1
   },
   "src/radio/indicator/RadioIndicatorDataAttributes.ts": {
@@ -7070,7 +8349,7 @@
         "role": "function"
       }
     },
-    "hash": "2b8a29a8d5b430c5",
+    "hash": "4762f590c3a6d696",
     "v": 1
   },
   "src/radio/root/RadioRootContext.ts": {
@@ -7154,7 +8433,7 @@
         "role": "function"
       }
     },
-    "hash": "2a58e238f9640269",
+    "hash": "7525ff787b695335",
     "v": 1
   },
   "src/scroll-area/content/ScrollAreaContentDataAttributes.ts": {
@@ -7199,7 +8478,7 @@
         "role": "function"
       }
     },
-    "hash": "cdc1baecfce9f0df",
+    "hash": "ab59617eb41316cd",
     "v": 1
   },
   "src/scroll-area/index.parts.ts": {
@@ -7248,7 +8527,7 @@
   "src/scroll-area/root/ScrollAreaRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "973df5e46410d33e",
+    "hash": "34e1efdf6dade168",
     "v": 1
   },
   "src/scroll-area/root/ScrollAreaRoot.tsx": {
@@ -7263,7 +8542,7 @@
         "role": "function"
       }
     },
-    "hash": "9ee191c7f6cc7aa4",
+    "hash": "8b781955f36cd4cb",
     "v": 1
   },
   "src/scroll-area/root/ScrollAreaRootContext.ts": {
@@ -7350,7 +8629,7 @@
         "role": "function"
       }
     },
-    "hash": "df1062794083a14e",
+    "hash": "52086fc50f95af5a",
     "v": 1
   },
   "src/scroll-area/scrollbar/ScrollAreaScrollbarContext.ts": {
@@ -7428,7 +8707,7 @@
         "role": "function"
       }
     },
-    "hash": "e16fe19130631a46",
+    "hash": "232a9f1894cab57e",
     "v": 1
   },
   "src/scroll-area/thumb/ScrollAreaThumbDataAttributes.ts": {
@@ -7530,7 +8809,7 @@
         "role": "function"
       }
     },
-    "hash": "53032d48bff22569",
+    "hash": "f951add3e6d088b7",
     "v": 1
   },
   "src/scroll-area/viewport/ScrollAreaViewportContext.ts": {
@@ -7608,7 +8887,7 @@
         "role": "function"
       }
     },
-    "hash": "99d479123fb9cc0d",
+    "hash": "6886bb163894222b",
     "v": 1
   },
   "src/select/arrow/SelectArrowDataAttributes.ts": {
@@ -7704,7 +8983,7 @@
         "role": "function"
       }
     },
-    "hash": "c153681da5ea792e",
+    "hash": "3bb4db3efdf5a8f0",
     "v": 1
   },
   "src/select/group/SelectGroupContext.ts": {
@@ -7921,7 +9200,7 @@
         "role": "function"
       }
     },
-    "hash": "a00c81a344310a43",
+    "hash": "3629b0ad9f2539b9",
     "v": 1
   },
   "src/select/item/SelectItemContext.ts": {
@@ -7968,7 +9247,7 @@
         "role": "function"
       }
     },
-    "hash": "07a8569c295efdef",
+    "hash": "e7a2a7ae995ce7b7",
     "v": 1
   },
   "src/select/list/SelectList.test.tsx": {
@@ -8006,7 +9285,7 @@
         "role": "function"
       }
     },
-    "hash": "a5b22e18ab031b47",
+    "hash": "21147fda9bca17f3",
     "v": 1
   },
   "src/select/popup/SelectPopupDataAttributes.ts": {
@@ -8094,7 +9373,7 @@
         "role": "function"
       }
     },
-    "hash": "7ae8f7b0a0e282a3",
+    "hash": "c2c094ad39856e39",
     "v": 1
   },
   "src/select/positioner/SelectPositionerContext.ts": {
@@ -8158,7 +9437,7 @@
   "src/select/root/SelectRoot.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "3e37e0e7cea6e823",
+    "hash": "49a27297153f9aa7",
     "v": 1
   },
   "src/select/root/SelectRoot.tsx": {
@@ -8348,7 +9627,7 @@
         "role": "function"
       }
     },
-    "hash": "cea3a5e7d46ed956",
+    "hash": "3b48e54338ffa399",
     "v": 1
   },
   "src/select/trigger/SelectTriggerDataAttributes.ts": {
@@ -8442,7 +9721,7 @@
         "role": "function"
       }
     },
-    "hash": "f2ec350bac1a6b7d",
+    "hash": "29b555be70e08f96",
     "v": 1
   },
   "src/select/value/SelectValueDataAttributes.ts": {
@@ -8458,7 +9737,7 @@
   "src/separator/Separator.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "541f2ab1ab1b82e6",
+    "hash": "579e6e92d04aab25",
     "v": 1
   },
   "src/separator/Separator.tsx": {
@@ -8587,7 +9866,7 @@
   "src/slider/indicator/SliderIndicator.test.tsx": {
     "compiler": "0.1.0",
     "exports": {},
-    "hash": "ceefbef76c896087",
+    "hash": "5e2d813c17fcc2b7",
     "v": 1
   },
   "src/slider/indicator/SliderIndicator.tsx": {
@@ -8646,7 +9925,7 @@
         "role": "function"
       }
     },
-    "hash": "1df0e662bbfe608d",
+    "hash": "7e2bc7546eed503b",
     "v": 1
   },
   "src/slider/root/SliderInteraction.test.tsx": {
@@ -8681,7 +9960,7 @@
         "role": "function"
       }
     },
-    "hash": "972d3cc7b3191d83",
+    "hash": "b66266189867e415",
     "v": 1
   },
   "src/slider/root/SliderRootContext.ts": {
@@ -8937,7 +10216,7 @@
         "role": "function"
       }
     },
-    "hash": "de2e612412dfcf74",
+    "hash": "23d26ca4fe0f6906",
     "v": 1
   },
   "src/switch/root/SwitchRootContext.ts": {
@@ -9008,7 +10287,7 @@
         "role": "function"
       }
     },
-    "hash": "d87aa412a6a0683e",
+    "hash": "9de833dccfae6614",
     "v": 1
   },
   "src/switch/thumb/SwitchThumbDataAttributes.ts": {
@@ -9955,7 +11234,7 @@
         "role": "function"
       }
     },
-    "hash": "9b268a28a4c494fd",
+    "hash": "cf6eb0979e110b1d",
     "v": 1
   },
   "src/toggle-group/ToggleGroupContext.ts": {
@@ -9969,7 +11248,7 @@
         "role": "function"
       }
     },
-    "hash": "edf9e30dfa037fa1",
+    "hash": "4e28d20909814145",
     "v": 1
   },
   "src/toggle-group/ToggleGroupDataAttributes.ts": {
@@ -10014,7 +11293,7 @@
         "role": "function"
       }
     },
-    "hash": "6983906ab9c971d4",
+    "hash": "6e08654b010fce36",
     "v": 1
   },
   "src/toggle/ToggleDataAttributes.ts": {
@@ -10040,6 +11319,227 @@
       }
     },
     "hash": "13cc257702f566c5",
+    "v": 1
+  },
+  "src/toolbar/button/ToolbarButton.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarButton": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "3033b7c5f5fc840f",
+    "v": 1
+  },
+  "src/toolbar/button/ToolbarButtonDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "disabled": {
+        "role": "value"
+      },
+      "focusable": {
+        "role": "value"
+      },
+      "orientation": {
+        "role": "value"
+      }
+    },
+    "hash": "85a5576d8e64137e",
+    "v": 1
+  },
+  "src/toolbar/group/ToolbarGroup.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarGroup": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "9cf924246e2fc325",
+    "v": 1
+  },
+  "src/toolbar/group/ToolbarGroupContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarGroupContext": {
+        "role": "value"
+      },
+      "useToolbarGroupContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "7c52a64af373e5c3",
+    "v": 1
+  },
+  "src/toolbar/group/ToolbarGroupDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "disabled": {
+        "role": "value"
+      },
+      "orientation": {
+        "role": "value"
+      }
+    },
+    "hash": "fc67f593ef58102e",
+    "v": 1
+  },
+  "src/toolbar/index.parts.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "Button": {
+        "from": "./button/ToolbarButton",
+        "name": "ToolbarButton",
+        "role": "reexport"
+      },
+      "Group": {
+        "from": "./group/ToolbarGroup",
+        "name": "ToolbarGroup",
+        "role": "reexport"
+      },
+      "Input": {
+        "from": "./input/ToolbarInput",
+        "name": "ToolbarInput",
+        "role": "reexport"
+      },
+      "Link": {
+        "from": "./link/ToolbarLink",
+        "name": "ToolbarLink",
+        "role": "reexport"
+      },
+      "Root": {
+        "from": "./root/ToolbarRoot",
+        "name": "ToolbarRoot",
+        "role": "reexport"
+      },
+      "Separator": {
+        "from": "./separator/ToolbarSeparator",
+        "name": "ToolbarSeparator",
+        "role": "reexport"
+      }
+    },
+    "hash": "491c9297ec4623df",
+    "v": 1
+  },
+  "src/toolbar/index.ts": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "5ef88618847dc972",
+    "v": 1
+  },
+  "src/toolbar/input/ToolbarInput.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarInput": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "2393a42f19b3ddfa",
+    "v": 1
+  },
+  "src/toolbar/input/ToolbarInputDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "disabled": {
+        "role": "value"
+      },
+      "focusable": {
+        "role": "value"
+      },
+      "orientation": {
+        "role": "value"
+      }
+    },
+    "hash": "3bdb9d31af503e4e",
+    "v": 1
+  },
+  "src/toolbar/link/ToolbarLink.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarLink": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "5adf437c362fb615",
+    "v": 1
+  },
+  "src/toolbar/link/ToolbarLinkDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "orientation": {
+        "role": "value"
+      }
+    },
+    "hash": "70d9cca27a2f708d",
+    "v": 1
+  },
+  "src/toolbar/root/ToolbarRoot.test.tsx": {
+    "compiler": "0.1.0",
+    "exports": {},
+    "hash": "a0a838f6bf734bdd",
+    "v": 1
+  },
+  "src/toolbar/root/ToolbarRoot.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarRoot": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "ad3d3bde9d488ae5",
+    "v": 1
+  },
+  "src/toolbar/root/ToolbarRootContext.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarRootContext": {
+        "role": "value"
+      },
+      "useToolbarRootContext": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "1f7c1a8da110b881",
+    "v": 1
+  },
+  "src/toolbar/root/ToolbarRootDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "disabled": {
+        "role": "value"
+      },
+      "orientation": {
+        "role": "value"
+      }
+    },
+    "hash": "c679e7b8b1af96a6",
+    "v": 1
+  },
+  "src/toolbar/separator/ToolbarSeparator.tsx": {
+    "compiler": "0.1.0",
+    "exports": {
+      "ToolbarSeparator": {
+        "reads": "dynamic",
+        "role": "function"
+      }
+    },
+    "hash": "8b80c79c417edeaf",
+    "v": 1
+  },
+  "src/toolbar/separator/ToolbarSeparatorDataAttributes.ts": {
+    "compiler": "0.1.0",
+    "exports": {
+      "orientation": {
+        "role": "value"
+      }
+    },
+    "hash": "59e9775e75608fc9",
     "v": 1
   },
   "src/tooltip/arrow/TooltipArrow.test.tsx": {

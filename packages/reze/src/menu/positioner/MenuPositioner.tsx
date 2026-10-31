@@ -71,6 +71,19 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
   const keepMounted = useMenuPortalContext();
 
   const isSubmenu = parent.type === "menu";
+  const menubar = parent.type === "menubar" ? parent.context : undefined;
+  const contextMenu = parent.type === "context-menu" ? parent.context : undefined;
+
+  const align = props.align ?? (isSubmenu || menubar || contextMenu ? "start" : undefined);
+  let side = props.side;
+  const contextMenuOffsets = contextMenu !== undefined && side === undefined && align !== "center";
+  if (isSubmenu) {
+    side ??= "inline-end";
+  } else if (menubar) {
+    side ??= menubar.orientation === "vertical" ? "inline-end" : "bottom";
+  }
+
+  const collisionAvoidance = props.collisionAvoidance;
 
   const positioning = createAnchorPositioning({
     // One-shot read: the node id is seeded synchronously by the root before the positioner
@@ -82,27 +95,33 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
     // `externalTree` in `createMenuRoot`.
     externalTree: untrack(() => store.select("floatingTreeRoot")) as FloatingTreeStore | undefined,
     get anchor() {
-      return props.anchor;
+      return props.anchor ?? contextMenu?.anchor();
     },
-    positionMethod: props.positionMethod ?? "absolute",
-    side: props.side ?? (isSubmenu ? "inline-end" : undefined),
-    align: props.align ?? (isSubmenu ? "start" : undefined),
+    positionMethod: contextMenu ? "fixed" : (props.positionMethod ?? "absolute"),
+    side,
+    align,
     get sideOffset() {
-      return props.sideOffset;
+      return contextMenuOffsets ? (props.sideOffset ?? -5) : props.sideOffset;
     },
     get alignOffset() {
-      return props.alignOffset;
+      return contextMenuOffsets ? (props.alignOffset ?? 2) : props.alignOffset;
     },
     collisionBoundary: props.collisionBoundary ?? "clipping-ancestors",
     collisionPadding: props.collisionPadding ?? 5,
     sticky: props.sticky ?? false,
-    arrowPadding: props.arrowPadding ?? 5,
+    arrowPadding: contextMenu ? 0 : (props.arrowPadding ?? 5),
     disableAnchorTracking: props.disableAnchorTracking ?? false,
     keepMounted,
     floatingRootContext: untrack(() => store.select("floatingRootContext")),
     mounted: () => store.select("mounted"),
     lazyFlip: virtualFocus ? "placement" : false,
-    collisionAvoidance: props.collisionAvoidance ?? (isSubmenu ? POPUP_COLLISION_AVOIDANCE : DROPDOWN_COLLISION_AVOIDANCE),
+    collisionAvoidance: collisionAvoidance ?? (isSubmenu ? POPUP_COLLISION_AVOIDANCE : DROPDOWN_COLLISION_AVOIDANCE),
+    shift: contextMenu
+      ? {
+          crossAxis: !(collisionAvoidance && "side" in collisionAvoidance && collisionAvoidance.side === "flip"),
+          rootBoundary: "layoutViewport",
+        }
+      : undefined,
     get adaptiveOrigin() {
       return store.select("adaptiveOrigin");
     },
@@ -246,7 +265,9 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
     (store.select("modal") as boolean | undefined) === true &&
     (store.select("lastOpenChangeReason") as string | null) !== REASONS.triggerHover;
 
-  const isOpenModalNonHover = () => (store.select("open") as boolean) && isModalNonHover();
+  const isMenubarModal = () => menubar !== undefined && menubar.modal();
+
+  const isOpenModalNonHover = () => (store.select("open") as boolean) && (isMenubarModal() || isModalNonHover());
 
   // Touch-opened popups avoid scroll locking unless effectively full-width.
   const touchLock = createStore({ shouldLock: false });
@@ -290,7 +311,20 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
     };
   }
 
-  const showInternalBackdrop = () => (store.select("mounted") as boolean) && !isSubmenu && isModalNonHover();
+  const showInternalBackdrop = () => (store.select("mounted") as boolean) && !isSubmenu && (isMenubarModal() || isModalNonHover());
+
+  const internalBackdropCutout = () => {
+    if (contextMenu) {
+      return undefined;
+    }
+    return (menubar ? menubar.contentElement() : (store.select("activeTriggerElement") as Element | null)) ?? undefined;
+  };
+
+  const setInternalBackdropElement = (element: HTMLDivElement | null) => {
+    if (contextMenu) {
+      contextMenu.internalBackdropElement = element;
+    }
+  };
 
   const Tag = dynamicElement<JSX.ElementType>(() => props.as ?? "div");
 
@@ -321,7 +355,12 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
   if (props.as == null) {
     return (
       <>
-        {showInternalBackdrop() && <InternalBackdrop cutout={(store.select("activeTriggerElement") as Element | null) ?? undefined} />}
+        {showInternalBackdrop() && (
+          <InternalBackdrop
+            cutout={internalBackdropCutout()}
+            ref={(element: HTMLDivElement | null) => setInternalBackdropElement(element)}
+          />
+        )}
         <FloatingNode id={floatingNodeId}>
           <div
             {...(rest as Record<string, unknown>)}
@@ -366,7 +405,9 @@ export function MenuPositioner<T extends JSX.ElementType = "div">(props: MenuPos
 
   return (
     <>
-      {showInternalBackdrop() && <InternalBackdrop cutout={(store.select("activeTriggerElement") as Element | null) ?? undefined} />}
+      {showInternalBackdrop() && (
+        <InternalBackdrop cutout={internalBackdropCutout()} ref={(element: HTMLDivElement | null) => setInternalBackdropElement(element)} />
+      )}
       <FloatingNode id={floatingNodeId}>
         <Tag
           {...(rest as Record<string, unknown>)}

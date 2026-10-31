@@ -186,6 +186,36 @@
       "reze": "./src/otp-field/index.ts",
       "types": "./src/otp-field/index.ts",
       "default": "./src/otp-field/index.ts"
+    },
+    "./progress": {
+      "reze": "./src/progress/index.ts",
+      "types": "./src/progress/index.ts",
+      "default": "./src/progress/index.ts"
+    },
+    "./toolbar": {
+      "reze": "./src/toolbar/index.ts",
+      "types": "./src/toolbar/index.ts",
+      "default": "./src/toolbar/index.ts"
+    },
+    "./context-menu": {
+      "reze": "./src/context-menu/index.ts",
+      "types": "./src/context-menu/index.ts",
+      "default": "./src/context-menu/index.ts"
+    },
+    "./menubar": {
+      "reze": "./src/menubar/index.ts",
+      "types": "./src/menubar/index.ts",
+      "default": "./src/menubar/index.ts"
+    },
+    "./autocomplete": {
+      "reze": "./src/autocomplete/index.ts",
+      "types": "./src/autocomplete/index.ts",
+      "default": "./src/autocomplete/index.ts"
+    },
+    "./navigation-menu": {
+      "reze": "./src/navigation-menu/index.ts",
+      "types": "./src/navigation-menu/index.ts",
+      "default": "./src/navigation-menu/index.ts"
     }
   },
   "publishConfig": {
@@ -349,6 +379,36 @@
         "reze": "./src/otp-field/index.ts",
         "types": "./dist/otp-field/index.d.ts",
         "default": "./dist/otp-field/index.js"
+      },
+      "./progress": {
+        "reze": "./src/progress/index.ts",
+        "types": "./dist/progress/index.d.ts",
+        "default": "./dist/progress/index.js"
+      },
+      "./toolbar": {
+        "reze": "./src/toolbar/index.ts",
+        "types": "./dist/toolbar/index.d.ts",
+        "default": "./dist/toolbar/index.js"
+      },
+      "./context-menu": {
+        "reze": "./src/context-menu/index.ts",
+        "types": "./dist/context-menu/index.d.ts",
+        "default": "./dist/context-menu/index.js"
+      },
+      "./menubar": {
+        "reze": "./src/menubar/index.ts",
+        "types": "./dist/menubar/index.d.ts",
+        "default": "./dist/menubar/index.js"
+      },
+      "./autocomplete": {
+        "reze": "./src/autocomplete/index.ts",
+        "types": "./dist/autocomplete/index.d.ts",
+        "default": "./dist/autocomplete/index.js"
+      },
+      "./navigation-menu": {
+        "reze": "./src/navigation-menu/index.ts",
+        "types": "./dist/navigation-menu/index.d.ts",
+        "default": "./dist/navigation-menu/index.js"
       }
     },
     "access": "public"

@@ -1,12 +1,12 @@
 import type { ValidComponent } from "@solidjs/web";
-import { type Accessor, untrack } from "solid-js";
+import { untrack } from "solid-js";
 
 import { RenderElement, type RenderElementProps } from "../../render-element";
 import type { StateAttributesMapping } from "../../stateToAttributes";
 import type { CompositeItemMetadata } from "../root/CompositeRootContext";
 import { useCompositeItem } from "./useCompositeItem";
 
-export function CompositeItem<T extends ValidComponent = "div", State extends Record<string, Accessor<unknown>> = {}>(
+export function CompositeItem<T extends ValidComponent = "div", State extends Record<string, any> = {}>(
   props: CompositeItem.Props<T, State>,
 ) {
   const as = untrack(() => props.as ?? ("div" as T));
@@ -28,7 +28,7 @@ export function CompositeItem<T extends ValidComponent = "div", State extends Re
 }
 
 export namespace CompositeItem {
-  export type Props<T extends ValidComponent = "div", State extends Record<string, Accessor<unknown>> = {}> = {
+  export type Props<T extends ValidComponent = "div", State extends Record<string, any> = {}> = {
     as?: T | undefined;
     state?: State | undefined;
     stateAttributesMapping?: StateAttributesMapping<State> | undefined;

@@ -1,0 +1,94 @@
+---
+title: Toolbar
+description: A container for grouping a set of buttons and controls.
+---
+
+# Toolbar
+
+A container for grouping a set of buttons and controls.
+
+<Demo hero />
+
+## Usage guidelines
+
+To ensure that toolbars are accessible and helpful, follow these guidelines:
+
+- **Use inputs sparingly**: Left and right arrow keys are used to both move the text insertion cursor in an input, and to navigate among controls in horizontal toolbars. When using an input in a horizontal toolbar, use only one and place it as the last element of the toolbar.
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Toolbar } from "@rebase-ui/solid/toolbar";
+
+<Toolbar.Root>
+  <Toolbar.Button />
+  <Toolbar.Link />
+  <Toolbar.Separator />
+  <Toolbar.Group>
+    <Toolbar.Button />
+    <Toolbar.Button />
+  </Toolbar.Group>
+  <Toolbar.Input />
+</Toolbar.Root>;
+```
+
+### Using with Menu
+
+All Base UI popup components that provide a `Trigger` component can be integrated with a toolbar by passing the trigger to `<Toolbar.Button>` with the `as` prop:
+
+```tsx title="Using popups with toolbar"
+return (
+  <Toolbar.Root>
+    <Menu.Root>
+      {/* @highlight */}
+      <Toolbar.Button as={Menu.Trigger} />
+      <Menu.Portal>
+        {/* prettier-ignore */}
+        {/* Compose the rest of the menu */}
+      </Menu.Portal>
+    </Menu.Root>
+  </Toolbar.Root>;
+)
+```
+
+This applies to `<AlertDialog>`, `<Dialog>`, `<Menu>`, `<Popover>`, and `<Select>`.
+
+### Using with Tooltip
+
+Unlike other popups, the toolbar item should be passed to the `as` prop of `<Tooltip.Trigger>`:
+
+```tsx title="Using popups with toolbar"
+return (
+  <Toolbar.Root>
+    <Tooltip.Root>
+      {/* @highlight */}
+      <Tooltip.Trigger as={Toolbar.Button} />
+      <Tooltip.Portal>
+        {/* prettier-ignore */}
+        {/* Compose the rest of the tooltip */}
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  </Toolbar.Root>;
+)
+```
+
+### Using with NumberField
+
+To use a NumberField in the toolbar, pass `<NumberField.Input>` to `<Toolbar.Input>` using the `as` prop:
+
+```tsx title="Using NumberField with toolbar"
+return (
+  <Toolbar.Root>
+    <NumberField.Root>
+      <NumberField.Group>
+        <NumberField.Decrement />
+        {/* @highlight */}
+        <Toolbar.Input as={NumberField.Input} />
+        <NumberField.Increment />
+      </NumberField.Group>
+    </NumberField.Root>
+  </Toolbar.Root>;
+)
+```

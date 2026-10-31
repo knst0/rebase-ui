@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, mount, tick } from "@rezejs/testing-library";
+import { createContext, useContext } from "reze-js";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import * as ScrollArea from "../index.parts";
@@ -8,6 +9,24 @@ import * as ScrollAreaRootCssVars from "./ScrollAreaRootCssVars";
 afterEach(cleanup);
 
 describe("<ScrollArea.Root />", () => {
+  it("keeps providers surrounding the root for its parts", () => {
+    const Outer = createContext("missing");
+    function Reader() {
+      return <span data-testid="reader">{useContext(Outer)}</span>;
+    }
+    const { el } = mount(() => (
+      <Outer value="provided">
+        <ScrollArea.Root>
+          <ScrollArea.Viewport>
+            <Reader />
+          </ScrollArea.Viewport>
+        </ScrollArea.Root>
+      </Outer>
+    ));
+
+    expect(el.querySelector('[data-testid="reader"]')).toHaveTextContent("provided");
+  });
+
   it("renders a presentation div by default", () => {
     const { el } = mount(() => <ScrollArea.Root data-testid="root" />);
 

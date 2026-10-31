@@ -2,22 +2,27 @@ import { describe, expect, it } from "vite-plus/test";
 
 import * as Accordion from "./accordion/index";
 import * as AlertDialog from "./alert-dialog/index";
+import * as Autocomplete from "./autocomplete/index";
 import * as Avatar from "./avatar/index";
 import * as Button from "./button/index";
 import * as CheckboxGroup from "./checkbox-group/index";
 import * as Checkbox from "./checkbox/index";
 import * as Collapsible from "./collapsible/index";
 import * as Combobox from "./combobox/index";
+import * as ContextMenu from "./context-menu/index";
 import * as Dialog from "./dialog/index";
 import * as Drawer from "./drawer/index";
 import * as Field from "./field/index";
 import * as Fieldset from "./fieldset/index";
 import * as Input from "./input/index";
 import * as Menu from "./menu/index";
+import * as Menubar from "./menubar/index";
+import * as NavigationMenu from "./navigation-menu/index";
 import * as NumberField from "./number-field/index";
 import * as OTPField from "./otp-field/index";
 import * as Popover from "./popover/index";
 import * as PreviewCard from "./preview-card/index";
+import * as Progress from "./progress/index";
 import * as RadioGroup from "./radio-group/index";
 import * as Radio from "./radio/index";
 import * as ScrollArea from "./scroll-area/index";
@@ -29,6 +34,7 @@ import * as Tabs from "./tabs/index";
 import * as Toast from "./toast/index";
 import * as ToggleGroup from "./toggle-group/index";
 import * as Toggle from "./toggle/index";
+import * as Toolbar from "./toolbar/index";
 import * as Tooltip from "./tooltip/index";
 
 const EXPECTED: Array<[Record<string, unknown>, string, string]> = [
@@ -193,11 +199,47 @@ const EXPECTED: Array<[Record<string, unknown>, string, string]> = [
   [Tooltip, "TooltipArrowDataAttributes", "tooltip"],
   [Tooltip, "TooltipViewportCssVariables", "tooltip"],
   [Tooltip, "TooltipViewportDataAttributes", "tooltip"],
+  [Progress, "ProgressRootDataAttributes", "progress"],
+  [Progress, "ProgressTrackDataAttributes", "progress"],
+  [Progress, "ProgressIndicatorDataAttributes", "progress"],
+  [Progress, "ProgressValueDataAttributes", "progress"],
+  [Progress, "ProgressLabelDataAttributes", "progress"],
+  [Toolbar, "ToolbarSeparatorDataAttributes", "toolbar"],
+  [Toolbar, "ToolbarRootDataAttributes", "toolbar"],
+  [Toolbar, "ToolbarGroupDataAttributes", "toolbar"],
+  [Toolbar, "ToolbarButtonDataAttributes", "toolbar"],
+  [Toolbar, "ToolbarLinkDataAttributes", "toolbar"],
+  [Toolbar, "ToolbarInputDataAttributes", "toolbar"],
+  [ContextMenu, "ContextMenuTriggerDataAttributes", "context-menu"],
+  [ContextMenu, "ContextMenuPositionerDataAttributes", "context-menu"],
+  [ContextMenu, "ContextMenuPositionerCssVariables", "context-menu"],
+
+  [Autocomplete, "AutocompleteTriggerDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteInputDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteInputGroupDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteClearDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteBackdropDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompletePositionerCssVariables", "autocomplete"],
+  [Autocomplete, "AutocompletePositionerDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompletePopupDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteArrowDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteItemDataAttributes", "autocomplete"],
+  [Autocomplete, "AutocompleteSeparatorDataAttributes", "autocomplete"],
+  [NavigationMenu, "NavigationMenuContentDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuTriggerDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuPositionerCssVariables", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuPositionerDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuBackdropDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuPopupCssVariables", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuPopupDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuArrowDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuLinkDataAttributes", "navigation-menu"],
+  [NavigationMenu, "NavigationMenuIconDataAttributes", "navigation-menu"],
 ];
 
 describe("metadata namespace exports (#5243)", () => {
   it("exposes every DataAttributes/CssVariables namespace from its component entrypoint", () => {
-    expect(EXPECTED.length).toBe(161);
+    expect(EXPECTED.length).toBe(196);
 
     for (const [module, name, component] of EXPECTED) {
       const namespace = module[name] as Record<string, unknown> | undefined;

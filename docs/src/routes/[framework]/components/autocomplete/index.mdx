@@ -1,0 +1,132 @@
+---
+title: Autocomplete
+description: An input that suggests options as you type.
+---
+
+# Autocomplete
+
+An input that suggests options as you type.
+
+<Demo hero />
+
+## Usage guidelines
+
+- **Avoid when selection state is needed**: Use [Combobox](/components/combobox) instead of Autocomplete if the selection should be remembered and the input value cannot be custom. Unlike Combobox, Autocomplete's input can contain free-form text, as its suggestions only _optionally_ autocomplete the text.
+- **Can be used for filterable command pickers**: The input can be used as a filter for command items that perform an action when clicked when rendered inside the popup.
+- **Form controls must have an accessible name**: It can be created using a `<label>` element or the `Field` component. See the [forms guide](https://base-ui.com/react/handbook/forms).
+- **Closing animations**: The popup stays rendered until its closing animation finishes. See [JavaScript animations](https://base-ui.com/react/handbook/animation#javascript-animations) for animating it with Motion and for manual control.
+
+## Anatomy
+
+Import the components and place them together:
+
+```jsx title="Anatomy"
+import { Autocomplete } from "@rebase-ui/solid/autocomplete";
+
+<Autocomplete.Root>
+  <Autocomplete.InputGroup>
+    <Autocomplete.Input />
+    <Autocomplete.Trigger />
+    <Autocomplete.Icon />
+    <Autocomplete.Clear />
+    <Autocomplete.Value />
+  </Autocomplete.InputGroup>
+
+  <Autocomplete.Portal>
+    <Autocomplete.Backdrop />
+    <Autocomplete.Positioner>
+      <Autocomplete.Popup>
+        <Autocomplete.Arrow />
+
+        <Autocomplete.Status />
+        <Autocomplete.Empty />
+
+        <Autocomplete.List>
+          <Autocomplete.Row>
+            <Autocomplete.Item />
+          </Autocomplete.Row>
+
+          <Autocomplete.Separator />
+
+          <Autocomplete.Group>
+            <Autocomplete.GroupLabel />
+          </Autocomplete.Group>
+
+          <Autocomplete.Collection />
+        </Autocomplete.List>
+      </Autocomplete.Popup>
+    </Autocomplete.Positioner>
+  </Autocomplete.Portal>
+</Autocomplete.Root>;
+```
+
+## Item values
+
+Each `<Autocomplete.Item>` takes a `value` prop identifying it. Pass the item being rendered, so that props like `itemToStringValue` receive it.
+
+## Examples
+
+### Async search
+
+Load items asynchronously while typing and render custom status content.
+
+<Demo async />
+
+### Inline autocomplete
+
+Autofill the input with the highlighted item while navigating with arrow keys using the `mode` prop. Accepts `aria-autocomplete` values `list`, `both`, `inline`, or `none`.
+
+<Demo inline />
+
+### Grouped
+
+Organize related options with `<Autocomplete.Group>` and `<Autocomplete.GroupLabel>` to add section headings inside the popup.
+
+Groups are represented by an array of objects with an `items` property, which itself is an array of individual items for each group. An extra property, such as `value`, can be provided for the heading text when rendering the group label.
+
+```tsx title="Example"
+interface ProduceGroupItem {
+  value: string;
+  // @highlight
+  items: string[];
+}
+
+const groups: ProduceGroupItem[] = [
+  {
+    value: "Fruits",
+    items: ["Apple", "Banana", "Orange"],
+  },
+  {
+    value: "Vegetables",
+    items: ["Carrot", "Lettuce", "Spinach"],
+  },
+];
+```
+
+<Demo grouped />
+
+### Limit results
+
+Limit the number of visible items using the `limit` prop and guide users to refine their query using `<Autocomplete.Status>`.
+
+<Demo limit />
+
+### Auto highlight
+
+The first matching item can be automatically highlighted as the user types by specifying the `autoHighlight` prop on `<Autocomplete.Root>`. Set the prop's value to `"always"` if the highlight should always be present, such as when the list is rendered inline within a dialog.
+
+The prop can be combined with the `keepHighlight` and `highlightItemOnHover` props to configure how the highlight behaves during mouse interactions.
+
+<Demo auto-highlight />
+
+### Command palette
+
+Use the autocomplete input to filter a list of command items that perform an action when clicked.
+
+<Demo command-palette />
+
+### Grid layout
+
+Display items in a grid layout, wrapping each row in `<Autocomplete.Row>` components.
+
+<Demo grid />

@@ -86,11 +86,13 @@ export function ScrollAreaRoot<T extends JSX.ElementType = "div">(props: ScrollA
   );
 
   // The tag is evaluated eagerly so the tree holds a stable node: re-evaluating it
-  // (e.g. when a sibling binding re-runs) would rebuild every scroll area part.
+  // (e.g. when a sibling binding re-runs) would rebuild every scroll area part. It runs before
+  // the return so that the parts see the providers surrounding the root.
+  const element = evaluateTag(tag);
   return (
     <>
       <style>{DISABLE_SCROLLBAR_CSS}</style>
-      {evaluateTag(tag)}
+      {element}
     </>
   );
 }

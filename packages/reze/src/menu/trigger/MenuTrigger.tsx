@@ -1,9 +1,11 @@
 import { createUniqueId, dynamicElement, effect, omitProps, onCleanup, store as createStore, untrack, type JSX } from "reze-js";
 
+import { useCompositeItem, useCompositeRootContext } from "../../internals/composite";
 import { createButton } from "../../internals/create-button";
 import { REASONS } from "../../internals/event-details";
 import { safePolygon } from "../../internals/floating";
 import { createClick, type ClickReferenceProps } from "../../internals/floating/interactions/createClick";
+import { createFocus, type FocusReferenceProps } from "../../internals/floating/interactions/createFocus";
 import { Timeout } from "../../internals/floating/interactions/createHoverInteractionSharedState";
 import {
   createHoverReferenceInteraction,
@@ -12,10 +14,12 @@ import {
 import type { FloatingTreeStore } from "../../internals/floating/tree/FloatingTreeStore";
 import { contains } from "../../internals/floating/utils/element";
 import { FocusGuard } from "../../internals/focus-guard/FocusGuard";
+import { mergeRefs } from "../../internals/mergeRefs";
 import { getRootFloatingContext, setupTrigger } from "../../internals/popups/popupStoreUtils";
 import { createTriggerFocusGuards, type TriggerFocusGuards } from "../../internals/popups/popupTriggerFocusGuards";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { useMenubarContext } from "../../menubar/MenubarContext";
 import type { RebaseUIEvent } from "../../types";
 import { useMenuRootContext } from "../root/MenuRootContext";
 import type { MenuHandle } from "../store/MenuHandle";
@@ -64,6 +68,9 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
   const children = props.children;
 
   const rootContext = useMenuRootContext(true);
+  const menubar = useMenubarContext(true);
+  const compositeRootContext = useCompositeRootContext();
+  const isInMenubar = menubar !== undefined;
   const handle = props.handle as MenuHandle<Payload> | undefined;
 
   if (!rootContext && !handle) {
@@ -84,8 +91,19 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
   const triggerElementRef: { current: Element | null } = { current: null };
 
   const rootDisabled = () => (store()?.select("disabled") as boolean | undefined) ?? false;
-  const disabled = () => props.disabled === true || rootDisabled();
-  const openOnHover = () => props.openOnHover ?? false;
+  const disabled = () => props.disabled === true || rootDisabled() || (menubar?.disabled() ?? false);
+  const openOnHover = () => props.openOnHover ?? menubar?.hasSubmenuOpen() ?? false;
+
+  const composite = isInMenubar
+    ? useCompositeItem({
+        metadata: () => ({
+          get disabled() {
+            return disabled();
+          },
+        }),
+      })
+    : undefined;
+  const compositeProps = composite?.getCompositeProps();
 
   const { isMountedByTrigger: isMountedByThisTrigger } = setupTrigger({
     triggerId: thisTriggerId,
@@ -96,6 +114,7 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
       disabled: disabled(),
       openOnHover: openOnHover(),
       closeDelay: props.closeDelay ?? 0,
+      keyboardEventRelay: compositeRootContext?.relayKeyboardEvent,
     }),
   });
 
@@ -151,6 +170,7 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
   const interactionState = createStore({
     click: undefined as ClickReferenceProps | undefined,
     hover: undefined as HoverReferenceProps | undefined,
+    focus: undefined as FocusReferenceProps | undefined,
     // Whether to ignore clicks to open the menu after a hover-open ("patient" clicks only).
     stickIfOpen: false,
   });
@@ -179,20 +199,33 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
   // Interaction creators access context and read options once, so they run in the body of a
   // child component that mounts once a store is available (immediately for triggers inside a
   // root; on handle attach for detached triggers) instead of in an effect.
+  // Inside a menubar the interactions depend on the bar's state. Their options are read once, so
+  // the interactions are recreated from the tracked read of that state.
+  let registeredClick: ClickReferenceProps | undefined;
   function setupInteractions(liveStore: MenuStore<any>) {
+    const menubarState = menubar
+      ? { opened: isOpenedByThisTrigger(), hasSubmenuOpen: menubar.hasSubmenuOpen(), mounted: isMountedByThisTrigger() }
+      : undefined;
     return (
       <MenuTriggerInteractions
         store={liveStore}
         triggerId={thisTriggerId}
         triggerElementRef={triggerElementRef}
+        menubarState={menubarState}
         disabled={disabled()}
         openOnHover={openOnHover()}
         delay={props.delay}
         closeDelay={props.closeDelay}
         stickIfOpen={() => interactionState.stickIfOpen}
-        onInteractions={(click, hover) => {
+        onInteractions={(click, hover, focus, disposedClick) => {
+          // Recreated interactions register before the previous ones are disposed.
+          if (disposedClick && disposedClick !== registeredClick) {
+            return;
+          }
+          registeredClick = click;
           setClickProps(click);
           setHoverProps(hover);
+          interactionState.focus = focus;
         }}
       />
     );
@@ -227,7 +260,7 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
     const liveStore = store();
     // One-shot write: the values only steer this write.
     untrack(() => {
-      if (!opened && liveStore) {
+      if (!opened && liveStore && !isInMenubar) {
         liveStore.context.allowMouseUpTriggerRef.current = false;
       }
     });
@@ -301,14 +334,40 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
 
     const doc = (event.currentTarget as Element | null)?.ownerDocument ?? document;
     doc.addEventListener("mouseup", handleDocumentMouseUp, { once: true });
+
+    if (isInMenubar) {
+      ignoreClick = true;
+      doc.addEventListener(
+        "click",
+        () => {
+          ignoreClick = false;
+        },
+        { once: true },
+      );
+    }
   }
+
+  // A menubar trigger opens on mousedown and closes on click: the click that ends the opening
+  // press must not reach the click interaction.
+  let ignoreClick = false;
 
   const localHandlers: Record<string, (event: any) => void> = {
     onMouseDown: handleMouseDown,
   };
 
   function chainHandlers(key: string): ((event: any) => void) | undefined {
-    const click = interactionState.click?.[key as keyof ClickReferenceProps] as ((event: any) => void) | undefined;
+    const clickHandler = interactionState.click?.[key as keyof ClickReferenceProps] as ((event: any) => void) | undefined;
+    const click =
+      key === "onClick" && clickHandler
+        ? (event: any) => {
+            if (!ignoreClick) {
+              clickHandler(event);
+            }
+            ignoreClick = false;
+          }
+        : clickHandler;
+    const focus = interactionState.focus?.[key as keyof FocusReferenceProps] as ((event: any) => void) | undefined;
+    const compositeHandler = compositeProps?.[key] as ((event: any) => void) | undefined;
     const hover = interactionState.hover?.[key as keyof HoverReferenceProps] as ((event: any) => void) | undefined;
     const root = getRootTriggerProps()[key] as ((event: any) => void) | undefined;
     const localHandler = localHandlers[key] as ((event: any) => void) | undefined;
@@ -322,7 +381,9 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
     // Execution order mirrors upstream `mergeProps` (right-to-left): the user handler runs
     // first and the click interaction last, so the open-method recording in the root props
     // still observes the closed state and the press-drag-release arming observes it too.
-    const handlers = [user, filter, localHandler, root, hover, click].filter(Boolean) as Array<(event: any) => void>;
+    const handlers = [user, compositeHandler, filter, localHandler, root, hover, focus, click].filter(Boolean) as Array<
+      (event: any) => void
+    >;
     if (handlers.length === 0) {
       return undefined;
     }
@@ -378,7 +439,7 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
 
   const showFocusGuards = () => {
     const liveStore = store();
-    return liveStore !== undefined && isOpenedByThisTrigger();
+    return !isInMenubar && liveStore !== undefined && isOpenedByThisTrigger();
   };
 
   function snapshot(): MenuTriggerState {
@@ -392,6 +453,7 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
     elements.triggerElement = element;
     triggerElementRef.current = element;
     button.buttonRef(element);
+    composite?.compositeRef(element);
   }
 
   function ariaHasPopup(): "menu" | "dialog" {
@@ -428,9 +490,9 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
         <button
           {...(rest as Record<string, unknown>)}
           type={button.type}
-          role={button.role}
+          role={isInMenubar ? "menuitem" : button.role}
           bool:disabled={button.disabled}
-          tabindex={button.tabIndex}
+          tabindex={compositeProps?.tabIndex ?? button.tabIndex}
           aria-disabled={button.ariaDisabled}
           id={thisTriggerId}
           aria-haspopup={ariaHasPopup()}
@@ -488,9 +550,9 @@ export function MenuTrigger<Payload = unknown, T extends JSX.ElementType = "butt
           <Tag
             {...(rest as Record<string, unknown>)}
             type={button.type}
-            role={button.role}
+            role={isInMenubar ? "menuitem" : button.role}
             bool:disabled={button.disabled}
-            tabindex={button.tabIndex}
+            tabindex={compositeProps?.tabIndex ?? button.tabIndex}
             aria-disabled={button.ariaDisabled}
             id={thisTriggerId}
             aria-haspopup={ariaHasPopup()}
@@ -550,36 +612,50 @@ function isWithinBounds(event: MouseEvent, element: Element): boolean {
  * resulting props back to the trigger. Mounted once a store is available so detached triggers
  * set up their interactions when their handle attaches.
  */
+interface MenubarTriggerState {
+  opened: boolean;
+  hasSubmenuOpen: boolean;
+  mounted: boolean;
+}
+
 function MenuTriggerInteractions(props: {
   store: MenuStore<any>;
   triggerId: string;
   triggerElementRef: { readonly current: Element | null };
+  menubarState: MenubarTriggerState | undefined;
   disabled: boolean;
   openOnHover: boolean;
   delay: number | undefined;
   closeDelay: number | undefined;
   stickIfOpen: () => boolean;
-  onInteractions: (click: ClickReferenceProps | undefined, hover: HoverReferenceProps | undefined) => void;
+  onInteractions: (
+    click: ClickReferenceProps | undefined,
+    hover: HoverReferenceProps | undefined,
+    focus: FocusReferenceProps | undefined,
+    disposedClick?: ClickReferenceProps,
+  ) => void;
 }) {
+  const menubarState = props.menubarState;
   const floatingContext = getRootFloatingContext(untrack(() => props.store.select("floatingRootContext")));
 
   const click = createClick(floatingContext, {
     enabled: !props.disabled,
-    event: "mousedown",
+    event: menubarState?.opened ? "click" : "mousedown",
     toggle: true,
     ignoreMouse: false,
-    stickIfOpen: () => props.stickIfOpen(),
+    stickIfOpen: menubarState ? false : () => props.stickIfOpen(),
   }).reference();
 
   const isActiveTrigger = untrack(() => props.store.select("isTriggerActive", props.triggerId)) as boolean;
 
   const hover = props.openOnHover
     ? createHoverReferenceInteraction(floatingContext, {
-        enabled: !props.disabled,
-        handleClose: safePolygon({ blockPointerEvents: true }),
+        enabled: !props.disabled && (!menubarState || (menubarState.hasSubmenuOpen && !menubarState.mounted)),
+        handleClose: safePolygon({ blockPointerEvents: !menubarState }),
+        externalTree: untrack(() => props.store.peek("floatingTreeRoot")) as FloatingTreeStore,
         mouseOnly: true,
         move: false,
-        restMs: props.delay ?? 100,
+        restMs: menubarState ? undefined : (props.delay ?? 100),
         delay: { close: props.closeDelay ?? 0 },
         triggerElementRef: props.triggerElementRef,
         isActiveTrigger,
@@ -587,15 +663,19 @@ function MenuTriggerInteractions(props: {
       })
     : undefined;
 
+  const focus = menubarState
+    ? createFocus(floatingContext, { enabled: !props.disabled && menubarState.hasSubmenuOpen }).reference()
+    : undefined;
+
   effect(() => {
     const onInteractions = props.onInteractions;
     // One-shot report: the interaction props only steer this write.
     untrack(() => {
-      onInteractions(click, hover ?? undefined);
+      onInteractions(click, hover ?? undefined, focus);
     });
     onCleanup(() => {
       untrack(() => {
-        onInteractions(undefined, undefined);
+        onInteractions(undefined, undefined, undefined, click);
       });
     });
   });

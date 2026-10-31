@@ -107,7 +107,7 @@ export function MenuRoot<Payload = unknown>(props: MenuRoot.Props<Payload>) {
     </MenuRootContext>
   );
 
-  if (menu.parent.type === undefined) {
+  if (menu.parent.type === undefined || menu.parent.type === "context-menu") {
     // Set up a FloatingTree to provide the context to nested menus.
     return <FloatingTree externalTree={menu.floatingTreeRoot}>{content}</FloatingTree>;
   }

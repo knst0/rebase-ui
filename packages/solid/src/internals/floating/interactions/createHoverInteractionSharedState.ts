@@ -22,6 +22,8 @@ export class Timeout {
     clearTimeout(this.currentId);
     this.currentId = undefined;
   };
+
+  isStarted = () => this.currentId !== undefined;
 }
 
 // Mutable hover state shared by the reference and floating interactions of one

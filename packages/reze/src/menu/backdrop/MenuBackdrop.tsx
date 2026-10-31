@@ -1,6 +1,8 @@
 import { dynamicElement, omitProps, type JSX } from "reze-js";
 
+import { useContextMenuRootContext } from "../../context-menu/root/ContextMenuRootContext";
 import { REASONS } from "../../internals/event-details";
+import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { TransitionStatus } from "../../internals/transition-status";
 import type { RebaseUIComponentProps } from "../../internals/types";
@@ -18,6 +20,7 @@ export function MenuBackdrop<T extends JSX.ElementType = "div">(props: MenuBackd
   const children = props.children;
 
   const { store } = useMenuRootContext();
+  const contextMenuContext = useContextMenuRootContext(true);
 
   function snapshot(): MenuBackdropState {
     return {
@@ -46,7 +49,11 @@ export function MenuBackdrop<T extends JSX.ElementType = "div">(props: MenuBackd
         },
         resolveStyleValue(props.style, snapshot()),
       )}
-      ref={props.ref as ((element: HTMLElement | null) => void) | undefined}
+      ref={mergeRefs<HTMLElement>(props.ref as ((element: HTMLElement | null) => void) | undefined, (element) => {
+        if (contextMenuContext) {
+          contextMenuContext.backdropElement = element;
+        }
+      })}
     >
       {resolveChildrenValue(children, snapshot)}
     </Tag>

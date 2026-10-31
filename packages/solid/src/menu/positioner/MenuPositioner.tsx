@@ -68,6 +68,20 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
   const keepMounted = useMenuPortalContext();
 
   const isSubmenu = parent.type === "menu";
+  const menubar = parent.type === "menubar" ? parent.context : undefined;
+  const contextMenu = parent.type === "context-menu" ? parent.context : undefined;
+
+  // Read from the raw props: the context menu defaults apply only when the offsets are not set.
+  const align = untrack(() => local.align) ?? (isSubmenu || menubar || contextMenu ? "start" : undefined);
+  let side = untrack(() => local.side);
+  const contextMenuOffsets = contextMenu !== undefined && side === undefined && align !== "center";
+  if (isSubmenu) {
+    side ??= "inline-end";
+  } else if (menubar) {
+    side ??= menubar.orientation === "vertical" ? "inline-end" : "bottom";
+  }
+
+  const collisionAvoidance = untrack(() => local.collisionAvoidance);
 
   const positioning = createAnchorPositioning({
     // One-shot read: the node id is seeded synchronously by the root before the positioner
@@ -79,27 +93,33 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
     // descendant guards). Mirrors the explicit `externalTree` in `createMenuRoot`.
     externalTree: untrack(() => store.select("floatingTreeRoot")) as FloatingTreeStore | undefined,
     get anchor() {
-      return local.anchor;
+      return local.anchor ?? contextMenu?.anchor();
     },
-    positionMethod: untrack(() => local.positionMethod),
-    side: untrack(() => local.side) ?? (isSubmenu ? "inline-end" : undefined),
-    align: untrack(() => local.align) ?? (isSubmenu ? "start" : undefined),
+    positionMethod: contextMenu ? "fixed" : untrack(() => local.positionMethod),
+    side,
+    align,
     get sideOffset() {
-      return local.sideOffset;
+      return contextMenuOffsets ? (props.sideOffset ?? -5) : local.sideOffset;
     },
     get alignOffset() {
-      return local.alignOffset;
+      return contextMenuOffsets ? (props.alignOffset ?? 2) : local.alignOffset;
     },
     collisionBoundary: untrack(() => local.collisionBoundary),
     collisionPadding: untrack(() => local.collisionPadding),
     sticky: untrack(() => local.sticky),
-    arrowPadding: untrack(() => local.arrowPadding),
+    arrowPadding: contextMenu ? 0 : untrack(() => local.arrowPadding),
     disableAnchorTracking: untrack(() => local.disableAnchorTracking) ?? false,
     keepMounted,
     floatingRootContext: untrack(() => store.select("floatingRootContext")),
     mounted: () => store.select("mounted"),
     lazyFlip: virtualFocus ? "placement" : false,
-    collisionAvoidance: untrack(() => local.collisionAvoidance) ?? (isSubmenu ? POPUP_COLLISION_AVOIDANCE : DROPDOWN_COLLISION_AVOIDANCE),
+    collisionAvoidance: collisionAvoidance ?? (isSubmenu ? POPUP_COLLISION_AVOIDANCE : DROPDOWN_COLLISION_AVOIDANCE),
+    shift: contextMenu
+      ? {
+          crossAxis: !(collisionAvoidance && "side" in collisionAvoidance && collisionAvoidance.side === "flip"),
+          rootBoundary: "layoutViewport",
+        }
+      : undefined,
     get adaptiveOrigin() {
       return store.select("adaptiveOrigin");
     },
@@ -244,7 +264,9 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
     (store.select("modal") as boolean | undefined) === true &&
     (store.select("lastOpenChangeReason") as string | null) !== REASONS.triggerHover;
 
-  const isOpenModalNonHover = () => (store.select("open") as boolean) && isModalNonHover();
+  const isMenubarModal = () => menubar !== undefined && menubar.modal();
+
+  const isOpenModalNonHover = () => (store.select("open") as boolean) && (isMenubarModal() || isModalNonHover());
 
   // Touch-opened popups avoid scroll locking unless effectively full-width.
   const [touchOpenShouldLockScroll, setTouchOpenShouldLockScroll] = createSignal(false, { ownedWrite: true });
@@ -295,7 +317,7 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
     },
   };
 
-  const showInternalBackdrop = () => (store.select("mounted") as boolean) && !isSubmenu && isModalNonHover();
+  const showInternalBackdrop = () => (store.select("mounted") as boolean) && !isSubmenu && (isMenubarModal() || isModalNonHover());
 
   const positionerProps = {
     role: "presentation" as const,
@@ -328,8 +350,24 @@ export function MenuPositioner<T extends ValidComponent = "div">(props: MenuPosi
       }}
     >
       {(() => {
-        const triggerElement = () => store.select("activeTriggerElement") as Element | null;
-        return showInternalBackdrop() ? <InternalBackdrop cutout={triggerElement() ?? undefined} /> : null;
+        const cutout = () => {
+          if (contextMenu) {
+            return undefined;
+          }
+          return (menubar ? menubar.contentElement() : (store.select("activeTriggerElement") as Element | null)) ?? undefined;
+        };
+        return showInternalBackdrop() ? (
+          <InternalBackdrop
+            cutout={cutout()}
+            ref={
+              contextMenu
+                ? (element) => {
+                    contextMenu.internalBackdropElement = element;
+                  }
+                : undefined
+            }
+          />
+        ) : null;
       })()}
       <FloatingNode id={floatingNodeId}>
         <CompositeListContext value={compositeList.contextValue}>

@@ -1,10 +1,12 @@
 import { isServer, type ValidComponent } from "@solidjs/web";
 import { createEffect, createSignal, createUniqueId, onCleanup, Show, untrack } from "solid-js";
 
+import { CompositeItem, useCompositeRootContext } from "../../internals/composite";
 import { createButton } from "../../internals/create-button";
 import { REASONS } from "../../internals/event-details";
 import { safePolygon } from "../../internals/floating";
 import { createClick, type ClickReferenceProps } from "../../internals/floating/interactions/createClick";
+import { createFocus, type FocusReferenceProps } from "../../internals/floating/interactions/createFocus";
 import { Timeout } from "../../internals/floating/interactions/createHoverInteractionSharedState";
 import {
   createHoverReferenceInteraction,
@@ -19,6 +21,7 @@ import { createTriggerFocusGuards, type TriggerFocusGuards } from "../../interna
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { NativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
+import { useMenubarContext } from "../../menubar/MenubarContext";
 import { useMenuRootContext } from "../root/MenuRootContext";
 import type { MenuHandle } from "../store/MenuHandle";
 import type { MenuStore } from "../store/MenuStore";
@@ -56,6 +59,9 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
 
   const as = untrack(() => local.as);
   const rootContext = useMenuRootContext(true);
+  const menubar = useMenubarContext(true);
+  const compositeRootContext = useCompositeRootContext(true);
+  const isInMenubar = menubar !== undefined;
   const handle = untrack(() => local.handle) as MenuHandle<Payload> | undefined;
 
   if (!rootContext && !handle) {
@@ -74,8 +80,8 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
   const triggerElementRef: { current: Element | null } = { current: null };
 
   const rootDisabled = () => (store()?.select("disabled") as boolean | undefined) ?? false;
-  const disabled = () => local.disabled || rootDisabled();
-  const openOnHover = () => local.openOnHover ?? false;
+  const disabled = () => local.disabled || rootDisabled() || (menubar?.disabled() ?? false);
+  const openOnHover = () => local.openOnHover ?? menubar?.hasSubmenuOpen() ?? false;
 
   const { isMountedByTrigger: isMountedByThisTrigger } = setupTrigger({
     triggerId: thisTriggerId,
@@ -86,6 +92,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
       disabled: disabled(),
       openOnHover: openOnHover(),
       closeDelay: local.closeDelay ?? 0,
+      keyboardEventRelay: compositeRootContext?.relayKeyboardEvent,
     }),
   });
 
@@ -139,6 +146,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
   // Written from the setup child's body, so owned writes are intentional.
   const [clickProps, setClickProps] = createSignal<ClickReferenceProps | undefined>(undefined, { ownedWrite: true });
   const [hoverProps, setHoverProps] = createSignal<HoverReferenceProps | undefined>(undefined, { ownedWrite: true });
+  const [focusProps, setFocusProps] = createSignal<FocusReferenceProps | undefined>(undefined, { ownedWrite: true });
   // Whether to ignore clicks to open the menu after a hover-open ("patient" clicks only).
   const [stickIfOpen, setStickIfOpen] = createSignal(false, { ownedWrite: true });
 
@@ -152,19 +160,29 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
   // Interaction creators access context and read options once, so they run in the body of a
   // child component that mounts once a store is available (immediately for triggers inside a
   // root; on handle attach for detached triggers) instead of in an effect.
-  const setupInteractions = (liveStore: MenuStore<any>) => (
+  // Inside a menubar the interactions depend on the bar's state. Their options are read once, so
+  // the interactions are recreated from this tracked read when that state changes.
+  let registeredClick: ClickReferenceProps | undefined;
+  const setupInteractions = (liveStore: MenuStore<any>, menubarState: MenubarTriggerState | undefined) => (
     <MenuTriggerInteractions
       store={liveStore}
       triggerId={thisTriggerId}
       triggerElementRef={triggerElementRef}
+      menubarState={menubarState}
       disabled={untrack(disabled)}
       openOnHover={untrack(openOnHover)}
       delay={untrack(() => local.delay)}
       closeDelay={untrack(() => local.closeDelay)}
       stickIfOpen={stickIfOpen}
-      onInteractions={(click, hover) => {
+      onInteractions={(click, hover, focus, disposedClick) => {
+        // Recreated interactions register before the previous ones are disposed.
+        if (disposedClick && disposedClick !== registeredClick) {
+          return;
+        }
+        registeredClick = click;
         setClickProps(click);
         setHoverProps(hover);
+        setFocusProps(focus);
       }}
     />
   );
@@ -198,7 +216,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
   createEffect(
     () => ({ opened: isOpenedByThisTrigger(), liveStore: store() }),
     ({ opened, liveStore }) => {
-      if (!opened && liveStore) {
+      if (!opened && liveStore && !isInMenubar) {
         liveStore.context.allowMouseUpTriggerRef.current = false;
       }
       return undefined;
@@ -268,8 +286,22 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
     onMouseDown: handleMouseDown,
   };
 
+  // A menubar trigger opens on mousedown and closes on click: the click that ends the opening
+  // press must not reach the click interaction.
+  let ignoreClick = false;
+
   function chainHandlers(key: string): ((event: any) => void) | undefined {
-    const click = clickProps()?.[key as keyof ClickReferenceProps] as ((event: any) => void) | undefined;
+    const clickHandler = clickProps()?.[key as keyof ClickReferenceProps] as ((event: any) => void) | undefined;
+    const click =
+      key === "onClick" && clickHandler
+        ? (event: any) => {
+            if (!ignoreClick) {
+              clickHandler(event);
+            }
+            ignoreClick = false;
+          }
+        : clickHandler;
+    const focus = focusProps()?.[key as keyof FocusReferenceProps] as ((event: any) => void) | undefined;
     const hover = hoverProps()?.[key as keyof HoverReferenceProps] as ((event: any) => void) | undefined;
     const root = getRootTriggerProps()[key] as ((event: any) => void) | undefined;
     const localHandler = localHandlers[key] as ((event: any) => void) | undefined;
@@ -283,7 +315,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
     // Execution order mirrors upstream `mergeProps` (right-to-left): the user handler runs
     // first and the click interaction last, so the open-method recording in the root props
     // still observes the closed state and the press-drag-release arming observes it too.
-    const handlers = [user, filter, localHandler, root, hover, click].filter(Boolean) as Array<(event: any) => void>;
+    const handlers = [user, filter, localHandler, root, hover, focus, click].filter(Boolean) as Array<(event: any) => void>;
     if (handlers.length === 0) {
       return undefined;
     }
@@ -307,11 +339,23 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
 
     const doc = (event.currentTarget as Element | null)?.ownerDocument ?? document;
     doc.addEventListener("mouseup", handleDocumentMouseUp, { once: true });
+
+    if (isInMenubar) {
+      ignoreClick = true;
+      doc.addEventListener(
+        "click",
+        () => {
+          ignoreClick = false;
+        },
+        { once: true },
+      );
+    }
   }
 
   const { getButtonProps, buttonRef } = createButton({
     disabled,
     native: () => local.nativeButton ?? true,
+    composite: () => isInMenubar,
   });
 
   // Focus guards are created per store (the store identity is stable) so the guard
@@ -331,7 +375,7 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
 
   const showFocusGuards = () => {
     const liveStore = store();
-    return liveStore !== undefined && isOpenedByThisTrigger();
+    return !isInMenubar && liveStore !== undefined && isOpenedByThisTrigger();
   };
 
   const state: MenuTriggerState = {
@@ -413,22 +457,46 @@ export function MenuTrigger<Payload = unknown, T extends ValidComponent = "butto
         const liveStore = store();
         currentGuards = liveStore ? getGuardsFor(liveStore) : undefined;
         currentStore = liveStore;
-        return liveStore ? setupInteractions(liveStore) : null;
+        const menubarState =
+          liveStore && menubar
+            ? { opened: isOpenedByThisTrigger(), hasSubmenuOpen: menubar.hasSubmenuOpen(), mounted: isMountedByThisTrigger() }
+            : undefined;
+        return liveStore ? setupInteractions(liveStore, menubarState) : null;
       })()}
       <Show when={showFocusGuards()}>
         <FocusGuard guardRef={currentStore?.context.beforeTriggerFocusGuardRef} onFocus={currentGuards?.handlePreFocusGuardFocus} />
       </Show>
-      <RenderElement
-        as={as}
-        state={state}
-        props={[triggerProps, elementProps, refProps, getButtonProps]}
-        stateAttributesMapping={menuPressableTriggerStateMapping}
-      />
+      {isInMenubar ? (
+        <CompositeItem
+          as={as}
+          state={state}
+          metadata={{
+            get disabled() {
+              return disabled();
+            },
+          }}
+          props={[{ role: "menuitem" }, triggerProps, elementProps, refProps, getButtonProps]}
+          stateAttributesMapping={menuPressableTriggerStateMapping}
+        />
+      ) : (
+        <RenderElement
+          as={as}
+          state={state}
+          props={[triggerProps, elementProps, refProps, getButtonProps]}
+          stateAttributesMapping={menuPressableTriggerStateMapping}
+        />
+      )}
       <Show when={showFocusGuards()}>
         <FocusGuard guardRef={currentStore?.context.triggerFocusTargetRef} onFocus={currentGuards?.handleFocusTargetFocus} />
       </Show>
     </>
   );
+}
+
+interface MenubarTriggerState {
+  opened: boolean;
+  hasSubmenuOpen: boolean;
+  mounted: boolean;
 }
 
 function isWithinBounds(event: MouseEvent, element: Element): boolean {
@@ -445,34 +513,41 @@ function MenuTriggerInteractions(props: {
   store: MenuStore<any>;
   triggerId: string;
   triggerElementRef: { readonly current: Element | null };
+  menubarState: MenubarTriggerState | undefined;
   disabled: boolean;
   openOnHover: boolean;
   delay: number | undefined;
   closeDelay: number | undefined;
   stickIfOpen: () => boolean;
-  onInteractions: (click: ClickReferenceProps | undefined, hover: HoverReferenceProps | undefined) => void;
+  onInteractions: (
+    click: ClickReferenceProps | undefined,
+    hover: HoverReferenceProps | undefined,
+    focus: FocusReferenceProps | undefined,
+    disposedClick?: ClickReferenceProps,
+  ) => void;
 }) {
-  const { store: liveStore, triggerId } = props;
+  const { store: liveStore, triggerId, menubarState } = props;
   const floatingRootContext = untrack(() => liveStore.select("floatingRootContext"));
   const floatingContext = getRootFloatingContext(floatingRootContext);
 
   const click = createClick(floatingContext, {
     enabled: !props.disabled,
-    event: "mousedown",
+    event: menubarState?.opened ? "click" : "mousedown",
     toggle: true,
     ignoreMouse: false,
-    stickIfOpen: () => props.stickIfOpen(),
+    stickIfOpen: menubarState ? false : () => props.stickIfOpen(),
   }).reference();
 
   const isActiveTrigger = untrack(() => liveStore.select("isTriggerActive", triggerId)) as boolean;
 
   const hover = props.openOnHover
     ? createHoverReferenceInteraction(floatingContext, {
-        enabled: !props.disabled,
-        handleClose: safePolygon({ blockPointerEvents: true }),
+        enabled: !props.disabled && (!menubarState || (menubarState.hasSubmenuOpen && !menubarState.mounted)),
+        handleClose: safePolygon({ blockPointerEvents: !menubarState }),
+        externalTree: untrack(() => liveStore.peek("floatingTreeRoot")) as FloatingTreeStore,
         mouseOnly: true,
         move: false,
-        restMs: props.delay ?? 100,
+        restMs: menubarState ? undefined : (props.delay ?? 100),
         delay: { close: props.closeDelay ?? 0 },
         triggerElementRef: props.triggerElementRef,
         isActiveTrigger,
@@ -480,10 +555,14 @@ function MenuTriggerInteractions(props: {
       })
     : undefined;
 
+  const focus = menubarState
+    ? createFocus(floatingContext, { enabled: !props.disabled && menubarState.hasSubmenuOpen }).reference()
+    : undefined;
+
   if (!isServer) {
-    props.onInteractions(click, hover ?? undefined);
+    props.onInteractions(click, hover ?? undefined, focus);
     onCleanup(() => {
-      props.onInteractions(undefined, undefined);
+      props.onInteractions(undefined, undefined, undefined, click);
     });
   }
 
@@ -493,7 +572,6 @@ function MenuTriggerInteractions(props: {
 const defaultProps = Object.freeze({
   as: "button",
   nativeButton: true,
-  openOnHover: false,
   delay: 100,
   closeDelay: 0,
 } satisfies Partial<MenuTrigger.Props>);

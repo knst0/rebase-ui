@@ -1,7 +1,9 @@
 import type { ValidComponent } from "@solidjs/web";
 import { untrack } from "solid-js";
 
+import { useContextMenuRootContext } from "../../context-menu/root/ContextMenuRootContext";
 import { REASONS } from "../../internals/event-details";
+import { mergeRefs } from "../../internals/mergeRefs";
 import { RenderElement } from "../../internals/render-element";
 import { split } from "../../internals/split";
 import type { TransitionStatus } from "../../internals/transition-status";
@@ -21,6 +23,7 @@ export function MenuBackdrop<T extends ValidComponent = "div">(props: MenuBackdr
   const as = untrack(() => local.as);
 
   const { store } = useMenuRootContext();
+  const contextMenuContext = useContextMenuRootContext(true);
 
   const state: MenuBackdropState = {
     get open() {
@@ -45,7 +48,17 @@ export function MenuBackdrop<T extends ValidComponent = "div">(props: MenuBackdr
     },
   };
 
-  return <RenderElement as={as} state={state} stateAttributesMapping={menuPopupStateMapping} props={[backdropProps, elementProps]} />;
+  const refProps = contextMenuContext
+    ? (externalProps: Record<string, any>) => ({
+        ref: mergeRefs<HTMLElement>(externalProps.ref, (element: HTMLElement | null) => {
+          contextMenuContext.backdropElement = element;
+        }),
+      })
+    : undefined;
+
+  return (
+    <RenderElement as={as} state={state} stateAttributesMapping={menuPopupStateMapping} props={[backdropProps, elementProps, refProps]} />
+  );
 }
 
 const defaultProps = Object.freeze({
