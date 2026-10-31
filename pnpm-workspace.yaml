@@ -12,6 +12,12 @@ catalog:
 overrides:
   vite@*: "catalog:"
   vitest@*: "catalog:"
+  # seroval <=1.6.7 has unauthenticated deserialization DoS and callable-invocation
+  # advisories (GHSA-97r2-qh9m-474h, GHSA-wp97-x4hv-qvhp, GHSA-7rv5-mrxv-xcr9), and
+  # solid-js/@solidjs/web pull it in transitively with `~1.6.7`. Stay on 1.6.x so
+  # seroval-plugins keeps matching.
+  seroval: 1.6.12
+  seroval-plugins: 1.6.12
 peerDependencyRules:
   allowAny:
     - vite
