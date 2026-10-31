@@ -2,7 +2,10 @@
  * Backdrop rendered behind a modal menu with a cutout around the trigger.
  * @internal
  */
-export function InternalBackdrop(props: { cutout?: Element | null | undefined }) {
+export function InternalBackdrop(props: {
+  cutout?: Element | null | undefined;
+  ref?: ((element: HTMLDivElement | null) => void) | undefined;
+}) {
   const cutout = () => props.cutout;
 
   function getClipPath(): string | undefined {
@@ -16,6 +19,7 @@ export function InternalBackdrop(props: { cutout?: Element | null | undefined })
 
   return (
     <div
+      ref={props.ref}
       role="presentation"
       // Ensures Floating UI's outside press detection runs, as it considers
       // it an element that existed when the popup rendered.

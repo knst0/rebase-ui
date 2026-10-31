@@ -54,7 +54,13 @@ export function CompositeRoot<T extends ValidComponent = "div", State extends Re
 
   return (
     <CompositeRootContext value={contextValue}>
-      <RenderElement as={as} state={props.state} props={sources()} stateAttributesMapping={props.stateAttributesMapping} />
+      <RenderElement
+        as={as}
+        state={props.state}
+        props={sources()}
+        stateAttributesMapping={props.stateAttributesMapping}
+        untrackChildren={props.untrackChildren}
+      />
     </CompositeRootContext>
   );
 }
@@ -66,6 +72,10 @@ export interface CompositeRootProps<T extends ValidComponent = "div", State exte
   props?: RenderElementProps<T, State, undefined>["props"];
   ref?: ((element: HTMLElement | null) => void) | undefined;
   children?: JSX.Element;
+  /**
+   * Instantiates children once instead of re-running them when signals they read change.
+   */
+  untrackChildren?: boolean | undefined;
   /**
    * @default 'both'
    */

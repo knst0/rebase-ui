@@ -4,7 +4,10 @@ import type { JSX } from "reze-js";
  * Backdrop rendered behind a modal menu with a cutout around the trigger.
  * @internal
  */
-export function InternalBackdrop(props: { cutout?: Element | null | undefined }): JSX.Element {
+export function InternalBackdrop(props: {
+  cutout?: Element | null | undefined;
+  ref?: ((element: HTMLDivElement | null) => void) | undefined;
+}): JSX.Element {
   function getClipPath(): string | undefined {
     const element = props.cutout;
     if (!element) {
@@ -16,6 +19,7 @@ export function InternalBackdrop(props: { cutout?: Element | null | undefined })
 
   return (
     <div
+      ref={props.ref}
       // Spread: the static checker does not list `role` for `div`, but the runtime renders it.
       {...{ role: "presentation" }}
       // Ensures Floating UI's outside press detection runs, as it considers

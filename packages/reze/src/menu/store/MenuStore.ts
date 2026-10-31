@@ -1,3 +1,4 @@
+import type { ContextMenuRootContext } from "../../context-menu/root/ContextMenuRootContext";
 import type { AdaptiveOriginMiddleware } from "../../internals/anchor-positioning/adaptiveOrigin";
 import { REASONS } from "../../internals/event-details";
 import { FloatingTreeStore } from "../../internals/floating/tree/FloatingTreeStore";
@@ -5,6 +6,7 @@ import { PopupTriggerMap } from "../../internals/floating/triggerMap";
 import { PopupStore } from "../../internals/popups/PopupStore";
 import { createInitialPopupStoreState, popupStoreSelectors, type PopupStoreContext } from "../../internals/popups/popupStoreState";
 import { platform } from "../../internals/utils/platform";
+import type { MenubarContext } from "../../menubar/MenubarContext";
 import type { MenuRoot } from "../root/MenuRoot";
 
 export type MenuInteractionType = "keyboard" | "mouse" | "touch" | "pen" | "";
@@ -71,8 +73,9 @@ export type MenuStoreContext = PopupStoreContext<MenuRoot.ChangeEventDetails> & 
 
 const menuStoreSelectors = {
   ...popupStoreSelectors,
-  disabled: (state: MenuStoreState<unknown>) => state.disabled,
-  modal: (state: MenuStoreState<unknown>) => state.parent.type === undefined && (state.modal ?? true),
+  disabled: (state: MenuStoreState<unknown>) => (state.parent.type === "menubar" && state.parent.context.disabled()) || state.disabled,
+  modal: (state: MenuStoreState<unknown>) =>
+    (state.parent.type === undefined || state.parent.type === "context-menu") && (state.modal ?? true),
   openMethod: (state: MenuStoreState<unknown>) => state.openMethod,
   keyboardOpen: (state: MenuStoreState<unknown>) => state.keyboardOpen,
   allowMouseEnter: (state: MenuStoreState<unknown>) => state.allowMouseEnter,
@@ -83,7 +86,7 @@ const menuStoreSelectors = {
       return state.parent.store.select("rootId") as string | undefined;
     }
 
-    return state.rootId;
+    return state.parent.type === "menubar" ? state.parent.context.rootId : state.rootId;
   },
   activeIndex: (state: MenuStoreState<unknown>) => state.activeIndex,
   listElement: (state: MenuStoreState<unknown>) => state.listElement,
@@ -237,7 +240,12 @@ function createInitialContext(triggerElements: PopupTriggerMap, parent: MenuPare
     syncHighlightedItem: undefined,
     // A submenu shares the parent's flag so a press-drag-release gesture that starts on the
     // parent menu's trigger and ends on a submenu item activates the item.
-    allowMouseUpTriggerRef: parent?.type === "menu" ? parent.store.context.allowMouseUpTriggerRef : { current: false },
+    allowMouseUpTriggerRef:
+      parent?.type === "menu"
+        ? parent.store.context.allowMouseUpTriggerRef
+        : parent?.type !== undefined
+          ? parent.context.allowMouseUpTriggerRef
+          : { current: false },
     virtualFocusRef: undefined,
     triggerFocusTargetRef: { current: null },
     beforeTriggerFocusGuardRef: { current: null },
@@ -247,14 +255,20 @@ function createInitialContext(triggerElements: PopupTriggerMap, parent: MenuPare
 }
 
 /**
- * Groups all parts of a menu, or nests a menu inside another menu as a submenu.
- * `menubar` and `context-menu` parents are not supported yet: those components have not been
- * ported, so only a parent menu (submenu) or no parent (top-level menu) is represented.
+ * What a menu is nested in: another menu (submenu), a menubar, a context menu, or nothing.
  */
 export type MenuParent =
   | {
       type: "menu";
       store: MenuStore<unknown>;
+    }
+  | {
+      type: "menubar";
+      context: MenubarContext;
+    }
+  | {
+      type: "context-menu";
+      context: ContextMenuRootContext;
     }
   | {
       type: undefined;

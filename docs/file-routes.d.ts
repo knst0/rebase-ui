@@ -75,6 +75,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/:framework/components/autocomplete/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/:framework/components/avatar/";
       page: true;
       $component: FileRouteLazyRef;
@@ -106,6 +112,12 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/:framework/components/combobox/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/:framework/components/context-menu/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -153,7 +165,19 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/:framework/components/menubar/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
       path: "/:framework/components/meter/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/:framework/components/navigation-menu/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -178,6 +202,12 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/:framework/components/preview-card/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/:framework/components/progress/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -238,6 +268,12 @@ declare module "virtual:file-routes" {
     },
     {
       path: "/:framework/components/toggle-group/";
+      page: true;
+      $component: FileRouteLazyRef;
+      $$route?: undefined;
+    },
+    {
+      path: "/:framework/components/toolbar/";
       page: true;
       $component: FileRouteLazyRef;
       $$route?: undefined;
@@ -420,8 +456,24 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/menubar/";
+              id: "/menubar/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/popover/";
               id: "/popover/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/toolbar/";
+              id: "/toolbar/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
@@ -454,6 +506,14 @@ declare module "virtual:file-routes" {
             {
               path: "/fieldset/";
               id: "/fieldset/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/progress/";
+              id: "/progress/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;
@@ -508,6 +568,22 @@ declare module "virtual:file-routes" {
               children?: undefined;
             },
             {
+              path: "/autocomplete/";
+              id: "/autocomplete/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/context-menu/";
+              id: "/context-menu/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
               path: "/number-field/";
               id: "/number-field/";
               page: true;
@@ -534,6 +610,14 @@ declare module "virtual:file-routes" {
             {
               path: "/checkbox-group/";
               id: "/checkbox-group/";
+              page: true;
+              $component: FileRouteLazyRef;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/navigation-menu/";
+              id: "/navigation-menu/";
               page: true;
               $component: FileRouteLazyRef;
               $$route?: undefined;

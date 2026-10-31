@@ -1,5 +1,6 @@
 import { createUniqueId, effect, onCleanup, untrack } from "reze-js";
 
+import { useContextMenuRootContext } from "../../context-menu/root/ContextMenuRootContext";
 import { createGenericEventDetails, REASONS } from "../../internals/event-details";
 import { createDismiss } from "../../internals/floating/interactions/createDismiss";
 import { Timeout } from "../../internals/floating/interactions/createHoverInteractionSharedState";
@@ -17,10 +18,12 @@ import {
 } from "../../internals/popups/popupStoreUtils";
 import { stableCallback } from "../../internals/stableCallback";
 import { getHighlightReason } from "../../internals/utils/getHighlightReason";
+import { useMenubarContext } from "../../menubar/MenubarContext";
 import { MenuStore, type MenuInteractionType, type MenuParent } from "../store/MenuStore";
 import { useMenuSubmenuRootContext } from "../submenu-root/MenuSubmenuRootContext";
 import { isKeyboardClick, isKeyboardOpen } from "../utils/isKeyboardOpen";
 import type { MenuRoot } from "./MenuRoot";
+import { useMenuRootContext } from "./MenuRootContext";
 
 const EMPTY_ARRAY: Array<number> = [];
 
@@ -53,10 +56,28 @@ export interface CreateMenuRootReturnValue<Payload> {
 
 export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): CreateMenuRootReturnValue<Payload> {
   const submenuContext = useMenuSubmenuRootContext();
-  const parent: MenuParent =
-    submenuContext !== undefined ? { type: "menu", store: submenuContext.parentMenu as MenuStore<unknown> } : { type: undefined };
+  const menubarContext = useMenubarContext(true);
+  const contextMenuContext = useContextMenuRootContext(true);
+  const enclosingMenu = useMenuRootContext(true);
+  let parent: MenuParent = { type: undefined };
+  if (submenuContext !== undefined) {
+    parent = { type: "menu", store: submenuContext.parentMenu as MenuStore<unknown> };
+  } else if (menubarContext) {
+    parent = { type: "menubar", context: menubarContext };
+  } else if (contextMenuContext && !enclosingMenu) {
+    // A menu nested inside `ContextMenu.Trigger` sees an enclosing root and stays independent:
+    // `ContextMenu.Root` clears the menu context for its own menu.
+    parent = { type: "context-menu", context: contextMenuContext };
+  }
 
-  const floatingTreeRoot = parent.type === "menu" ? (parent.store.peek("floatingTreeRoot") as FloatingTreeStore) : new FloatingTreeStore();
+  let floatingTreeRoot: FloatingTreeStore;
+  if (parent.type === "menu") {
+    floatingTreeRoot = parent.store.peek("floatingTreeRoot") as FloatingTreeStore;
+  } else if (parent.type === "menubar") {
+    floatingTreeRoot = parent.context.floatingTreeRoot;
+  } else {
+    floatingTreeRoot = new FloatingTreeStore();
+  }
 
   const floatingId = createUniqueId();
   const rootId = createUniqueId();
@@ -107,6 +128,13 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
   const allowTouchToCloseTimeout = new Timeout();
   onCleanup(() => allowTouchToCloseTimeout.clear());
   const allowTouchToCloseRef = { current: true };
+
+  let openEvent: Event | undefined;
+  // With `mousedown` outside press events and long press touch input, there needs to be a grace
+  // period after opening a context menu so the dismissal doesn't fire immediately after open.
+  let allowOutsidePressDismissal = parent.type !== "context-menu";
+  const allowOutsidePressDismissalTimeout = new Timeout();
+  onCleanup(() => allowOutsidePressDismissalTimeout.clear());
 
   function setOpen(nextOpen: boolean, eventDetails: Omit<MenuRoot.ChangeEventDetails, "preventUnmountOnClose">) {
     const reason = eventDetails.reason;
@@ -163,6 +191,10 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
       allowTouchToCloseTimeout.clear();
     }
 
+    if (nextOpen) {
+      openEvent = nativeEvent;
+    }
+
     const isDismissClose = !nextOpen && (reason === REASONS.escapeKey || reason == null);
 
     const popupOpenState = createPopupOpenState(
@@ -179,7 +211,16 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     popupOpenState.openChangeReason = reason as MenuRoot.ChangeEventReason;
     popupOpenState.keyboardOpen = nextOpen && isKeyboardOpen(reason as string | null, nativeEvent);
 
-    if (isKeyboardClick(reason as string | null, nativeEvent)) {
+    if (
+      parent.type === "menubar" &&
+      (reason === REASONS.triggerFocus ||
+        reason === REASONS.focusOut ||
+        reason === REASONS.triggerHover ||
+        reason === REASONS.listNavigation ||
+        reason === REASONS.siblingOpen)
+    ) {
+      popupOpenState.instantType = "group";
+    } else if (isKeyboardClick(reason as string | null, nativeEvent)) {
       popupOpenState.instantType = "click";
     } else if (isDismissClose) {
       popupOpenState.instantType = "dismiss";
@@ -236,7 +277,7 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
   store.useSyncedValues(() => ({
     disabled: parameters.disabled(),
     highlightItemOnHover: parameters.highlightItemOnHover(),
-    modal: parent.type === undefined ? parameters.modal() : undefined,
+    modal: parent.type === undefined || parent.type === "context-menu" ? parameters.modal() : undefined,
     rootId,
   }));
 
@@ -266,6 +307,24 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
       untrack(() => {
         if ((!isOpen || transitionStatus === undefined) && store.peek("instantType") === seededInstantType) {
           store.set("instantType", undefined);
+        }
+      });
+    });
+  }
+
+  if (parent.type === "context-menu") {
+    effect(() => {
+      const isOpen = open();
+      // One-shot write: the value only steers this timer.
+      untrack(() => {
+        allowOutsidePressDismissalTimeout.clear();
+        if (isOpen) {
+          allowOutsidePressDismissalTimeout.start(500, () => {
+            allowOutsidePressDismissal = true;
+          });
+        } else {
+          allowOutsidePressDismissal = false;
+          openEvent = undefined;
         }
       });
     });
@@ -332,6 +391,9 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
   const dismiss = createDismiss(floatingContext, {
     enabled: !setupDisabled,
     bubbles: { escapeKey: untrack(parameters.closeParentOnEsc) && parent.type === "menu" },
+    outsidePress() {
+      return parent.type !== "context-menu" || openEvent?.type === "contextmenu" || allowOutsidePressDismissal;
+    },
     externalTree: nested ? floatingTreeRoot : undefined,
   });
 
@@ -340,7 +402,7 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
   const resetOnPointerLeave = untrack(parameters.resetOnPointerLeave);
   const orientation = untrack(parameters.orientation);
   const loopFocus = untrack(parameters.loopFocus);
-  const listNested = !virtualFocus && parent.type !== undefined;
+  const listNested = parent.type === "menubar" || (!virtualFocus && parent.type !== undefined);
 
   const listNavigation = createListNavigation(floatingContext, {
     enabled: !setupDisabled,
@@ -348,6 +410,7 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     activeIndex: () => store.select("activeIndex") as number | null,
     virtual: virtualFocus,
     nested: listNested,
+    parentOrientation: parent.type === "menubar" ? parent.context.orientation : undefined,
     loopFocus,
     // Filtered menus keep DOM focus on the input, while keyboard and virtual opens initially
     // highlight an item as ordinary menus do. The input stays in the arrow-key loop unless the
@@ -366,7 +429,7 @@ export function createMenuRoot<Payload>(parameters: CreateMenuRootParameters): C
     // A virtual-focus submenu's keyboard opening is orchestrated by its navigation wrapper based
     // on both menus' orientations; the generic arrow-key opening would also react to the parent's
     // forwarded cross-axis keys while closed.
-    openOnArrowKeyDown: !(virtualFocus && parent.type === "menu"),
+    openOnArrowKeyDown: parent.type !== "context-menu" && !(virtualFocus && parent.type === "menu"),
     externalTree: !virtualFocus && nested ? floatingTreeRoot : undefined,
     nestedReturnFocusRef: parent.type === "menu" ? parent.store.context.virtualFocusRef : undefined,
     focusItemOnHover: untrack(parameters.highlightItemOnHover),

@@ -1,10 +1,10 @@
 # @rebase-ui/reze
 
-Headless, accessible UI primitives for [Reze.js](https://github.com/knst0/reze-js), ported from Base UI. This package is pre-release: all 32 component entrypoints are ported (`accordion`, `alert-dialog`, `avatar`, `button`, `checkbox`, `checkbox-group`, `collapsible`, `combobox`, `dialog`, `drawer`, `field`, `fieldset`, `form`, `input`, `menu`, `meter`, `number-field`, `otp-field`, `popover`, `preview-card`, `radio`, `radio-group`, `scroll-area`, `select`, `separator`, `slider`, `switch`, `tabs`, `toast`, `toggle`, `toggle-group`, `tooltip`).
+Headless, accessible UI primitives for [Reze.js](https://github.com/knst0/reze-js), ported from Base UI. This package is pre-release: all 38 component entrypoints are ported (`accordion`, `alert-dialog`, `avatar`, `button`, `checkbox`, `checkbox-group`, `collapsible`, `combobox`, `dialog`, `drawer`, `field`, `fieldset`, `form`, `input`, `menu`, `meter`, `number-field`, `otp-field`, `popover`, `preview-card`, `radio`, `radio-group`, `scroll-area`, `select`, `separator`, `slider`, `switch`, `tabs`, `toast`, `toggle`, `toggle-group`, `tooltip`).
 
 ## Status
 
-All 32 upstream component entrypoints are ported with tests. The port pattern (reactive prop reads inline in JSX bindings, stable per-event handlers over the live props object, `dynamicElement` for `as`) is documented in the port notes below.
+All 38 upstream component entrypoints are ported with tests. The port pattern (reactive prop reads inline in JSX bindings, stable per-event handlers over the live props object, `dynamicElement` for `as`) is documented in the port notes below.
 
 Dialog adds three rules the port relies on: children getters are read once per component body (re-reading them per binding run would recreate child components); zero-argument function children pass through to the renderer untouched (control-flow primitives return thunks, not render props); store mutations inside effects are wrapped in `untrack` so actions never subscribe to the counters they write.
 

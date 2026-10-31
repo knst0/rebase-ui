@@ -68,7 +68,13 @@
     "./toast": "./src/toast/index.ts",
     "./toggle": "./src/toggle/index.ts",
     "./toggle-group": "./src/toggle-group/index.ts",
-    "./tooltip": "./src/tooltip/index.ts"
+    "./tooltip": "./src/tooltip/index.ts",
+    "./progress": "./src/progress/index.ts",
+    "./toolbar": "./src/toolbar/index.ts",
+    "./context-menu": "./src/context-menu/index.ts",
+    "./menubar": "./src/menubar/index.ts",
+    "./autocomplete": "./src/autocomplete/index.ts",
+    "./navigation-menu": "./src/navigation-menu/index.ts"
   },
   "publishConfig": {
     "imports": {
@@ -241,6 +247,36 @@
         "types": "./dist/tooltip/index.d.ts",
         "solid": "./dist/solid/tooltip/index.jsx",
         "default": "./dist/tooltip/index.js"
+      },
+      "./progress": {
+        "types": "./dist/progress/index.d.ts",
+        "solid": "./dist/solid/progress/index.jsx",
+        "default": "./dist/progress/index.js"
+      },
+      "./toolbar": {
+        "types": "./dist/toolbar/index.d.ts",
+        "solid": "./dist/solid/toolbar/index.jsx",
+        "default": "./dist/toolbar/index.js"
+      },
+      "./context-menu": {
+        "types": "./dist/context-menu/index.d.ts",
+        "solid": "./dist/solid/context-menu/index.jsx",
+        "default": "./dist/context-menu/index.js"
+      },
+      "./menubar": {
+        "types": "./dist/menubar/index.d.ts",
+        "solid": "./dist/solid/menubar/index.jsx",
+        "default": "./dist/menubar/index.js"
+      },
+      "./autocomplete": {
+        "types": "./dist/autocomplete/index.d.ts",
+        "solid": "./dist/solid/autocomplete/index.jsx",
+        "default": "./dist/autocomplete/index.js"
+      },
+      "./navigation-menu": {
+        "types": "./dist/navigation-menu/index.d.ts",
+        "solid": "./dist/solid/navigation-menu/index.jsx",
+        "default": "./dist/navigation-menu/index.js"
       }
     },
     "access": "public"

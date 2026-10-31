@@ -3,7 +3,7 @@ import { dynamicElement, omitProps, onCleanup, untrack, useContext, type JSX } f
 
 import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
 import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
-import { createChangeEventDetails } from "../../internals/event-details";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { FloatingFocusManager } from "../../internals/floating";
 import type { FloatingFocusManagerInteractionType } from "../../internals/floating/components/FloatingFocusManager";
 import { createHoverFloatingInteraction } from "../../internals/floating/interactions/createHoverFloatingInteraction";
@@ -102,6 +102,8 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
   const submenuRootContext = parent.type === "menu" ? inheritedSubmenuRootContext : undefined;
 
   const isTopLevel = parent.type === undefined;
+  const isContextMenu = parent.type === "context-menu";
+  const isNested = parent.type === "menu";
 
   const floatingTreeRoot = untrack(() => store.select("floatingTreeRoot")) as FloatingTreeStore;
   const floatingRootContext = untrack(() => store.select("floatingRootContext"));
@@ -116,7 +118,11 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
   });
 
   createHoverFloatingInteraction(getRootFloatingContext(floatingRootContext), {
-    enabled: (untrack(() => store.select("hoverEnabled")) as boolean) && !(untrack(() => store.select("disabled")) as boolean),
+    enabled:
+      !isContextMenu &&
+      parent.type !== "menubar" &&
+      (untrack(() => store.select("hoverEnabled")) as boolean) &&
+      !(untrack(() => store.select("disabled")) as boolean),
     closeDelay: untrack(() => store.select("closeDelay")) as number,
   });
 
@@ -135,7 +141,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
       open: store.select("open"),
       side: positioner.side(),
       align: positioner.align(),
-      nested: !isTopLevel,
+      nested: isNested,
       instant: store.select("instantType"),
       transitionStatus: store.select("transitionStatus"),
     };
@@ -175,7 +181,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
     return resolveFocusTarget(
       initialFocus,
       ((openType || store.peek("openMethod") || "keyboard") as MenuInteractionType) ?? null,
-      () => isTopLevel,
+      () => parent.type !== "menu",
     );
   }
 
@@ -184,7 +190,12 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
       finalFocus,
       ((closeType || store.peek("openMethod") || "keyboard") as MenuInteractionType) ?? null,
       // One-shot read: the focus manager calls this outside a tracking scope when closing.
-      () => isTopLevel || activeTriggerElement() != null,
+      () => {
+        if (parent.type === "menubar") {
+          return store.peek("lastOpenChangeReason") !== REASONS.outsidePress;
+        }
+        return isTopLevel || isContextMenu || activeTriggerElement() != null;
+      },
     );
   }
 
@@ -315,7 +326,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
       <FloatingFocusManager
         context={floatingRootContext}
         openInteractionType={store.peek("openMethod") as FloatingFocusManagerInteractionType | null}
-        modal={false}
+        modal={isContextMenu}
         disabled={!(store.select("mounted") as boolean)}
         initialFocus={resolveInitialFocus}
         returnFocus={resolveReturnFocus}
@@ -353,7 +364,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
           data-ending-style={store.select("transitionStatus") === "ending" ? "" : undefined}
           data-side={positioner.side()}
           data-align={positioner.align()}
-          data-nested={!isTopLevel ? "" : undefined}
+          data-nested={isNested ? "" : undefined}
           data-instant={store.select("instantType") ?? undefined}
           class={resolveClassValue(props.class, snapshot())}
           style={mergeStyleValue(
@@ -374,7 +385,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
                 open={store.select("open") as boolean}
                 side={positioner.side()}
                 align={positioner.align()}
-                nested={!isTopLevel}
+                nested={isNested}
                 instant={store.select("instantType")}
                 transitionStatus={store.select("transitionStatus")}
               >
@@ -391,7 +402,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
     <FloatingFocusManager
       context={floatingRootContext}
       openInteractionType={store.peek("openMethod") as FloatingFocusManagerInteractionType | null}
-      modal={false}
+      modal={isContextMenu}
       disabled={!(store.select("mounted") as boolean)}
       initialFocus={resolveInitialFocus}
       returnFocus={resolveReturnFocus}
@@ -429,7 +440,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
         data-ending-style={store.select("transitionStatus") === "ending" ? "" : undefined}
         data-side={positioner.side()}
         data-align={positioner.align()}
-        data-nested={!isTopLevel ? "" : undefined}
+        data-nested={isNested ? "" : undefined}
         data-instant={store.select("instantType") ?? undefined}
         class={resolveClassValue(props.class, snapshot())}
         style={mergeStyleValue(
@@ -444,7 +455,7 @@ export function MenuPopupPlain<T extends JSX.ElementType = "div">(props: MenuPop
               open={store.select("open") as boolean}
               side={positioner.side()}
               align={positioner.align()}
-              nested={!isTopLevel}
+              nested={isNested}
               instant={store.select("instantType")}
               transitionStatus={store.select("transitionStatus")}
             >

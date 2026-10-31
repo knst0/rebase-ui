@@ -2,11 +2,13 @@ import { createEffect, onCleanup } from "solid-js";
 
 import { dispatchClickWithModifiers } from "#utils/dispatchClickWithModifiers";
 
+import { useContextMenuRootContext } from "../../context-menu/root/ContextMenuRootContext";
 import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
 import { useContext } from "../../internals/context";
 import { createButton } from "../../internals/create-button";
 import { REASONS } from "../../internals/event-details";
 import type { FloatingTreeStore } from "../../internals/floating/tree/FloatingTreeStore";
+import { platform } from "../../internals/utils/platform";
 import { useMenuRootContext } from "../root/MenuRootContext";
 import type { MenuStore } from "../store/MenuStore";
 import { useMenuItemCommonProps } from "./useMenuItemCommonProps";
@@ -37,6 +39,7 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
   });
 
   const rootContext = useMenuRootContext(true);
+  const contextMenuContext = useContextMenuRootContext(true);
   const commonItemProps = rootContext === undefined ? undefined : useMenuItemCommonProps({ highlighted, store, itemMetadata });
 
   const commonProps: MenuHTMLProps = {
@@ -87,7 +90,30 @@ export function useMenuItem(params: UseMenuItemParameters): UseMenuItemReturnVal
       }
     },
     onMouseUp(event: MouseEvent) {
-      if (itemElement && store.context.allowMouseUpTriggerRef.current && itemMetadata.type === "regular-item") {
+      if (contextMenuContext) {
+        const initialCursorPoint = contextMenuContext.initialCursorPoint;
+        contextMenuContext.initialCursorPoint = null;
+        if (
+          initialCursorPoint &&
+          Math.abs(event.clientX - initialCursorPoint.x) <= 1 &&
+          Math.abs(event.clientY - initialCursorPoint.y) <= 1
+        ) {
+          return;
+        }
+
+        // On non-macOS platforms, this mouseup belongs to the right-click gesture
+        // that opened the context menu, so it must not activate an item.
+        if (!platform.os.mac && event.button === 2) {
+          return;
+        }
+      }
+
+      if (
+        itemElement &&
+        store.context.allowMouseUpTriggerRef.current &&
+        (!contextMenuContext || event.button === 2) &&
+        itemMetadata.type === "regular-item"
+      ) {
         // This fires whenever the user clicks on the trigger, moves the cursor, and releases it over the item.
         // We trigger the click and override the `closeOnClick` preference to always close the menu.
         // `detail: 1` and `pointerType: 'mouse'` mark this as a mouse-gesture click so

@@ -1,0 +1,26 @@
+---
+title: Progress
+description: Displays the status of a task that takes a long time.
+---
+
+# Progress
+
+Displays the status of a task that takes a long time.
+
+<Demo hero />
+
+## Anatomy
+
+Import the component and assemble its parts:
+
+```jsx title="Anatomy"
+import { Progress } from "@rebase-ui/solid/progress";
+
+<Progress.Root>
+  <Progress.Label />
+  <Progress.Track>
+    <Progress.Indicator />
+  </Progress.Track>
+  <Progress.Value />
+</Progress.Root>;
+```

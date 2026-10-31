@@ -2,7 +2,7 @@ import type { ValidComponent } from "@solidjs/web";
 import { onCleanup, untrack } from "solid-js";
 
 import type { Align, Side } from "../../internals/anchor-positioning/createAnchorPositioning";
-import { createChangeEventDetails } from "../../internals/event-details";
+import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { FloatingFocusManager } from "../../internals/floating";
 import type { FloatingFocusManagerInteractionType } from "../../internals/floating/components/FloatingFocusManager";
 import { createHoverFloatingInteraction } from "../../internals/floating/interactions/createHoverFloatingInteraction";
@@ -81,6 +81,7 @@ export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopu
   const submenuRootContext = parent.type === "menu" ? inheritedSubmenuRootContext : undefined;
 
   const isTopLevel = parent.type === undefined;
+  const isContextMenu = parent.type === "context-menu";
 
   const floatingTreeRoot = untrack(() => store.select("floatingTreeRoot")) as FloatingTreeStore;
   const floatingRootContext = untrack(() => store.select("floatingRootContext"));
@@ -95,7 +96,11 @@ export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopu
   });
 
   createHoverFloatingInteraction(getRootFloatingContext(floatingRootContext), {
-    enabled: (untrack(() => store.select("hoverEnabled")) as boolean) && !(untrack(() => store.select("disabled")) as boolean),
+    enabled:
+      !isContextMenu &&
+      parent.type !== "menubar" &&
+      (untrack(() => store.select("hoverEnabled")) as boolean) &&
+      !(untrack(() => store.select("disabled")) as boolean),
     closeDelay: untrack(() => store.select("closeDelay")) as number,
   });
 
@@ -120,7 +125,7 @@ export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopu
       return positioner.align();
     },
     get nested() {
-      return !isTopLevel;
+      return parent.type === "menu";
     },
     get instant() {
       return store.select("instantType");
@@ -200,7 +205,7 @@ export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopu
     return resolveFocusTarget(
       initialFocus,
       ((openType || store.peek("openMethod") || "keyboard") as MenuInteractionType) ?? null,
-      () => isTopLevel,
+      () => parent.type !== "menu",
     );
   }
 
@@ -209,7 +214,12 @@ export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopu
       finalFocus,
       ((closeType || store.peek("openMethod") || "keyboard") as MenuInteractionType) ?? null,
       // One-shot read: the focus manager calls this outside a tracking scope when closing.
-      () => isTopLevel || activeTriggerElement() != null,
+      () => {
+        if (parent.type === "menubar") {
+          return store.peek("lastOpenChangeReason") !== REASONS.outsidePress;
+        }
+        return isTopLevel || isContextMenu || activeTriggerElement() != null;
+      },
     );
   }
 
@@ -247,7 +257,7 @@ export function MenuPopupPlain<T extends ValidComponent = "div">(props: MenuPopu
     <FloatingFocusManager
       context={floatingRootContext}
       openInteractionType={store.peek("openMethod") as FloatingFocusManagerInteractionType | null}
-      modal={false}
+      modal={isContextMenu}
       disabled={!(store.select("mounted") as boolean)}
       initialFocus={resolveInitialFocus}
       returnFocus={resolveReturnFocus}
