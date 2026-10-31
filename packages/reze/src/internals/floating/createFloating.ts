@@ -13,7 +13,6 @@ import type {
   NarrowedElement,
   Placement,
   ReferenceType,
-  Strategy,
   UseFloatingOptions,
   UseFloatingReturn,
   VirtualElement,

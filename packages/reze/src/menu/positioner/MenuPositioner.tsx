@@ -15,7 +15,6 @@ import { createChangeEventDetails, REASONS } from "../../internals/event-details
 import { Timeout } from "../../internals/floating/interactions/createHoverInteractionSharedState";
 import { FloatingNode } from "../../internals/floating/tree/FloatingTree";
 import type { FloatingTreeStore } from "../../internals/floating/tree/FloatingTreeStore";
-import { mergeRefs } from "../../internals/mergeRefs";
 import { mergeStyleValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import { createScrollLock } from "../../internals/scroll-lock";
 import type { RebaseUIComponentProps } from "../../internals/types";

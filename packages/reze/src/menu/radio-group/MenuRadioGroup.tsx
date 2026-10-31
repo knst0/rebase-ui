@@ -1,7 +1,7 @@
 import { dynamicElement, omitProps, store as createStore, untrack, type JSX } from "reze-js";
 
 import { createControllableSignal } from "../../internals/createControllableSignal";
-import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
+import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import { stableCallback } from "../../internals/stableCallback";
 import type { ChildrenValue, RebaseUIComponentProps } from "../../internals/types";
 import { useMenuFilterImpl } from "../filter-root/MenuFilterContext";

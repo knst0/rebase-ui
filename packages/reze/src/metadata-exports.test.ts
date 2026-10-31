@@ -112,6 +112,7 @@ const EXPECTED: Array<[Record<string, unknown>, string, string]> = [
   [Menu, "MenuViewportDataAttributes", "menu"],
   [Menu, "MenuSeparatorDataAttributes", "menu"],
   [Menu, "MenuSubmenuTriggerDataAttributes", "menu"],
+  [Menubar, "MenubarDataAttributes", "menubar"],
   [NumberField, "NumberFieldRootDataAttributes", "number-field"],
   [NumberField, "NumberFieldGroupDataAttributes", "number-field"],
   [NumberField, "NumberFieldIncrementDataAttributes", "number-field"],
@@ -239,7 +240,7 @@ const EXPECTED: Array<[Record<string, unknown>, string, string]> = [
 
 describe("metadata namespace exports (#5243)", () => {
   it("exposes every DataAttributes/CssVariables namespace from its component entrypoint", () => {
-    expect(EXPECTED.length).toBe(196);
+    expect(EXPECTED.length).toBe(197);
 
     for (const [module, name, component] of EXPECTED) {
       const namespace = module[name] as Record<string, unknown> | undefined;

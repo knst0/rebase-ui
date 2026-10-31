@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 
 import { REASONS } from "../../internals/event-details";
 import { MenuStore } from "./MenuStore";

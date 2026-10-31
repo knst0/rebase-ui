@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getMenuFilterKeyAction, type MenuFilterKeyAction, type MenuFilterKeyContext } from "./useMenuFilterKeyDown";
 

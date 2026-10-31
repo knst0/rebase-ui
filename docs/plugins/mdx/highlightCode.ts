@@ -123,7 +123,7 @@ function applyTextMarks(lineHtml: string, searchTerms: string[]): string {
     .map((segment) => segment.value)
     .join("");
 
-  const marked = new Array<boolean>(text.length).fill(false);
+  const marked = Array.from({ length: text.length }, () => false);
   let any = false;
 
   for (const term of searchTerms) {

@@ -4,7 +4,7 @@ import { useCompositeListItem } from "../../internals/composite";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { stopEvent } from "../../internals/floating/utils/event";
 import { mergeRefs } from "../../internals/mergeRefs";
-import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
+import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { ButtonEventHandlers, RebaseUIComponentProps } from "../../internals/types";
 import { useComboboxChipsContext } from "../chips/ComboboxChipsContext";
 import { useComboboxRootContext } from "../root/ComboboxRootContext";

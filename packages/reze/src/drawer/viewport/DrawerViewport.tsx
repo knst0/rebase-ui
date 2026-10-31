@@ -7,7 +7,7 @@ import { useDialogRootContext } from "../../dialog/root/DialogRootContext";
 import { createChangeEventDetails, REASONS } from "../../internals/event-details";
 import { activeElement, contains, getTarget } from "../../internals/floating/utils/element";
 import { mergeRefs } from "../../internals/mergeRefs";
-import { mergeStyleValue, resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
+import { mergeStyleValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { TransitionStatus } from "../../internals/transition-status";
 import { endingStyle as endingStyleAttribute } from "../../internals/transition-status/TransitionStatusDataAttributes";
 import type { RebaseUIComponentProps } from "../../internals/types";

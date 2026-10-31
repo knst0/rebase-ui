@@ -1,6 +1,6 @@
 import { dynamicElement, getOwner, omitProps, runWithOwner, type JSX } from "reze-js";
 
-import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
+import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { RebaseUIComponentProps } from "../../internals/types";
 import { ComboboxRowContext } from "./ComboboxRowContext";
 

@@ -5,7 +5,7 @@ import { CompositeListContext } from "../../internals/composite/list/CompositeLi
 import { useCompositeListItem } from "../../internals/composite/list/useCompositeListItem";
 import { createButton } from "../../internals/create-button";
 import { mergeRefs } from "../../internals/mergeRefs";
-import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
+import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { ButtonEventHandlers, NonNativeButtonProps, RebaseUIComponentProps } from "../../internals/types";
 import { ComboboxHasItemsContext, useComboboxDerivedItemsContext, useComboboxRootContext } from "../root/ComboboxRootContext";
 import { useComboboxRowContext } from "../row/ComboboxRowContext";

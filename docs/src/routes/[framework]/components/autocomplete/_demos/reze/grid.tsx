@@ -93,7 +93,7 @@ export default function ExampleEmojiPicker() {
                           {group.label}
                         </Autocomplete.GroupLabel>
                         <div class="px-2 pt-0 pb-1" role="presentation">
-                          {chunkArray(group.items, COLUMNS).map((row, rowIdx) => (
+                          {chunkArray(group.items, COLUMNS).map((row) => (
                             <Autocomplete.Row class="grid grid-cols-5">
                               {row.map((rowItem) => (
                                 <Autocomplete.Item

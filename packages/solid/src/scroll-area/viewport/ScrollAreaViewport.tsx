@@ -342,8 +342,8 @@ export function ScrollAreaViewport<T extends ValidComponent = "div">(props: Scro
       // Re-run the measurement scheduling pass when the hidden state toggles so the
       // newly mounted scrollbar and thumb refs are measured. `setHiddenState` bails
       // out on shallow-equal values, so this converges instead of looping.
-      hiddenState().x;
-      hiddenState().y;
+      void hiddenState().x;
+      void hiddenState().y;
     },
     () => {
       queueMicrotask(computeThumbPosition);

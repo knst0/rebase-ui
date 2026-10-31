@@ -2,7 +2,7 @@ import { dynamicElement, effect, getOwner, omitProps, runWithOwner, untrack, typ
 
 import { CompositeListContext, createCompositeList } from "../../internals/composite";
 import { mergeRefs } from "../../internals/mergeRefs";
-import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
+import { resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
 import type { ButtonEventHandlers, RebaseUIComponentProps } from "../../internals/types";
 import { useComboboxRootContext } from "../root/ComboboxRootContext";
 import { handleInputPress } from "../utils/handleInputPress";

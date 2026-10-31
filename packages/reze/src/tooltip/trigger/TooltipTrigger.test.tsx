@@ -2,7 +2,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, mount, tick } from "@rezejs/testing-library";
 import { fireEvent, screen } from "@testing-library/dom";
 import { signal } from "reze-js";
-import { afterEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { nextFrames } from "../../../test/utils";
 import * as Tooltip from "../index.parts";
@@ -12,6 +12,15 @@ afterEach(cleanup);
 function sleep(ms: number) {
   return new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
+  });
+}
+
+// Hover open/close lands after timers and a render pass, so poll instead of
+// assuming a fixed delay survived the load of a full parallel test run.
+function waitForPopupState(trigger: Element, open: boolean) {
+  return vi.waitFor(() => {
+    tick();
+    expect(trigger.hasAttribute("data-popup-open")).toBe(open);
   });
 }
 
@@ -41,10 +50,7 @@ describe("<Tooltip.Trigger />", () => {
     expect(trigger).not.toHaveAttribute("data-popup-open");
 
     fireEvent.mouseEnter(trigger);
-    await sleep(10);
-    tick();
-
-    expect(trigger).toHaveAttribute("data-popup-open");
+    await waitForPopupState(trigger, true);
   });
 
   it("marks itself disabled and does not open when disabled", async () => {
@@ -85,14 +91,10 @@ describe("<Tooltip.Trigger />", () => {
     const trigger = screen.getByRole("button", { name: "Hover me" });
 
     fireEvent.mouseEnter(trigger);
-    await sleep(10);
-    tick();
-    expect(trigger).toHaveAttribute("data-popup-open");
+    await waitForPopupState(trigger, true);
 
     fireEvent.mouseLeave(trigger);
-    await sleep(10);
-    tick();
-    expect(trigger).not.toHaveAttribute("data-popup-open");
+    await waitForPopupState(trigger, false);
 
     setDisabled(true);
     tick();
@@ -109,9 +111,7 @@ describe("<Tooltip.Trigger />", () => {
     expect(trigger).not.toHaveAttribute("data-trigger-disabled");
 
     fireEvent.mouseEnter(trigger);
-    await sleep(10);
-    tick();
-    expect(trigger).toHaveAttribute("data-popup-open");
+    await waitForPopupState(trigger, true);
   });
 
   it("cancels a pending hover open when clicked before the delay", async () => {

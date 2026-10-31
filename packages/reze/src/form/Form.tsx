@@ -80,7 +80,7 @@ export function Form<FormValues extends Record<string, any> = Record<string, any
   effect(() => {
     // Subscribe to error updates: async errors (e.g. from a server action)
     // arrive through the `errors` prop after the submit already happened.
-    state.errors;
+    void state.errors;
     if (!submitted) {
       return;
     }

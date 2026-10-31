@@ -526,7 +526,8 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
     const floatingEl = floating();
     const domReferenceEl = domReference();
     const focusEl = getFloatingFocusEl();
-    const portalNode = portalContext?.portalNode() ?? null;
+    // Tracked read: the listener wiring below re-reads the portal node untracked.
+    void (portalContext?.portalNode() ?? null);
     let cleanup: (() => void) | undefined;
     // One-shot listener wiring: the values only steer the subscriptions.
     untrack(() => {
@@ -586,7 +587,8 @@ export function FloatingFocusManager(props: FloatingFocusManagerProps): JSX.Elem
     const closeOnFocusOut = props.closeOnFocusOut ?? true;
     const floatingEl = floating();
     const domReferenceEl = domReference();
-    const focusEl = getFloatingFocusEl();
+    // Tracked read: focus-out handling resolves the element lazily via `peekFloatingFocusEl`.
+    void getFloatingFocusEl();
     const isModal = props.modal ?? true;
     const restoreFocus = props.restoreFocus ?? false;
     const untrapped = isUntrappedTypeableCombobox();

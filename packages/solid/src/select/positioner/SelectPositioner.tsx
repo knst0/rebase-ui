@@ -162,8 +162,8 @@ export function SelectPositioner<T extends ValidComponent = "div">(props: Select
       const state = store.peekState();
       const { valuesRef, labelsRef, listRef } = store.context;
 
-      const nextElements: Array<HTMLElement | null> = new Array(map.size);
-      const nextLabels: Array<string | null> = new Array(map.size);
+      const nextElements: Array<HTMLElement | null> = Array.from({ length: map.size }, () => null);
+      const nextLabels: Array<string | null> = Array.from({ length: map.size }, () => null);
       for (const [element, entry] of map) {
         nextElements[entry.index] = element;
         nextLabels[entry.index] = entry.label ?? element.textContent ?? null;

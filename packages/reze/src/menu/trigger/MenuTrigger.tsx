@@ -14,7 +14,6 @@ import {
 import type { FloatingTreeStore } from "../../internals/floating/tree/FloatingTreeStore";
 import { contains } from "../../internals/floating/utils/element";
 import { FocusGuard } from "../../internals/focus-guard/FocusGuard";
-import { mergeRefs } from "../../internals/mergeRefs";
 import { getRootFloatingContext, setupTrigger } from "../../internals/popups/popupStoreUtils";
 import { createTriggerFocusGuards, type TriggerFocusGuards } from "../../internals/popups/popupTriggerFocusGuards";
 import { resolveChildrenValue, resolveClassValue, resolveStyleValue } from "../../internals/renderProps";
@@ -26,7 +25,6 @@ import type { MenuHandle } from "../store/MenuHandle";
 import type { MenuStore } from "../store/MenuStore";
 import { findRootOwnerId } from "../utils/findRootOwnerId";
 
-const MENU_TRIGGER_IDENTIFIER = "data-base-ui-click-trigger";
 const PATIENT_CLICK_THRESHOLD = 500;
 
 /**
