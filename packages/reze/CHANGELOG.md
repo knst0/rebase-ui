@@ -1,5 +1,15 @@
 # @rebase-ui/reze
 
+## 0.2.0
+
+### Minor Changes
+
+- 04cbf63: Add Autocomplete, Context Menu, Menubar, Navigation Menu, Progress and Toolbar components.
+
+### Patch Changes
+
+- f72f8e7: Fix Scroll Area parts losing providers that surround `ScrollArea.Root`, such as Autocomplete context in a command palette.
+
 ## 0.1.3
 
 ### Patch Changes

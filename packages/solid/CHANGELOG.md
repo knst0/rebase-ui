@@ -1,5 +1,11 @@
 # @rebase-ui/solid
 
+## 0.16.0
+
+### Minor Changes
+
+- 04cbf63: Add Autocomplete, Context Menu, Menubar, Navigation Menu, Progress and Toolbar components.
+
 ## 0.15.2
 
 ### Patch Changes
